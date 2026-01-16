@@ -1,0 +1,29 @@
+# Python / Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+.env
+.env.*
+!.env.example
+
+# Django media/static (локальные файлы)
+backend/media/
+backend/staticfiles/
+
+# Node / React
+node_modules/
+build/
+dist/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
