@@ -1,0 +1,1133 @@
+/* ====== RESET / BASE ====== */
+:root{
+  --header-color:#6C78C8;
+  --header-color-hover:#5B66B8;
+
+  --bg:#ffffff;
+  --text:rgba(10,12,20,.92);
+  --muted:rgba(10,12,20,.65);
+  --line:rgba(10,12,20,.12);
+
+  --card:#ffffff;
+  --card2:#ffffff;
+
+  --shadow:0 18px 60px rgba(10,12,20,.12);
+  --radius:18px;
+  --max:1100px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+}
+
+
+body, button, input, select, textarea, a, p, h1, h2, h3, h4, li, span, div{
+  font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif !important;
+}
+
+
+a{color:inherit; text-decoration:none}
+a:hover{text-decoration:none}
+
+/* ====== LAYOUT ====== */
+.container{
+  max-width:var(--max);
+  margin:0 auto;
+  padding:0 18px;
+}
+
+.section{
+  padding:64px 0;
+  background:#fff;
+}
+
+.grid{display:grid; gap:16px}
+
+/* ====== UI ELEMENTS ====== */
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+
+.blur{backdrop-filter: blur(12px)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+.btn{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.75);
+  color:var(--text);
+  padding:11px 16px;
+  border-radius:999px;
+  display:inline-flex;
+  gap:10px;
+  align-items:center;
+  cursor:pointer;
+  transition:.2s ease;
+  font-weight:500;
+}
+.btn:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.92);
+}
+
+/* Кнопка основная */
+.btnPrimary{
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color:#fff;
+  font-size:16px;
+  border:none;
+  font-weight:500;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+.btnPrimary:hover{
+  background:var(--header-color-hover);
+}
+
+/* кнопка в шапке "Войти" */
+.btnStart{
+  background:rgba(255,255,255,.22);
+  color:rgba(10,12,20,.92);
+  border:1px solid rgba(255,255,255,.35);
+  font-weight:500;
+}
+.btnStart:hover{
+  background:rgba(255,255,255,.30);
+}
+
+
+.kicker{
+  display:inline-flex;
+  gap:8px;
+  color:#000;
+  letter-spacing:-0.01em;
+  font-size:16px;      
+  font-weight:800;     
+  line-height:28px;    
+  margin-left:0;
+}
+
+/* ====== NAV ====== */
+.nav{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:#5B66B8;
+  border-bottom:none;
+}
+
+.nav__inner{
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.logo{
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:.02em;
+  color:#0a0c14;
+  opacity:.95;
+  position:relative;   
+  left:-10px;
+}
+
+/* меню */
+.menu{display:flex; gap:22px; align-items:center}
+.menu a{
+  color:rgba(10,12,20,.80);
+  font-weight:500;
+}
+.menu a:hover{
+  color:rgba(10,12,20,.95);
+}
+
+.nav__actions{display:flex; align-items:center; gap:10px}
+.burger{display:none; background:transparent;border:0;cursor:pointer}
+.burger span{
+  display:block;
+  width:22px;
+  height:2px;
+  background:rgba(10,12,20,.75);
+  margin:5px 0;
+  border-radius:2px;
+}
+
+/* ====== HERO ====== */
+.hero{
+  padding-top:32px;
+  padding-bottom:32px;
+}
+
+.hero__grid{
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:24px;
+  align-items:center;
+}
+
+.hero__text{max-width:560px}
+
+.hero h1{
+  font-size:72px;
+  line-height:1.12;
+  margin:0 0 10px;
+  font-weight:800;
+  letter-spacing:-0.02em;
+}
+
+.hero p{
+  font-size:16px;
+  line-height:24px;
+  margin:0;
+  max-width:520px;
+}
+
+.hero__cta{
+  display:flex;
+  gap:12px;      
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+
+.badges{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+.badge{
+  padding:8px 12px;
+  border:1px solid rgba(108,120,200,.22);
+  border-radius:999px;
+  color:rgba(10,12,20,.70);
+  background:rgba(108,120,200,.08);
+  font-size:13px;
+}
+
+/* Картинка справа (hero) */
+.hero__image{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+}
+.hero__image img{
+  max-width:100%;
+  height:auto;
+  border-radius:26px;
+  box-shadow:0 20px 60px rgba(10,12,20,.12);
+  }
+
+/* ====== SECTIONS ====== */
+.sectionTitle h2{
+  font-size:42px;
+  line-height:40px;
+  margin:0 0 12px;
+}
+.sectionTitle p{
+  margin:0 0 28px;
+  font-size:16px;
+  line-height:24px;
+}
+
+.cards3{
+  grid-template-columns:repeat(3,1fr);
+  gap:32px;
+}
+.cards2{grid-template-columns:repeat(2,1fr)}
+.twoCols{grid-template-columns:1fr 1fr}
+
+.pad{padding:24px}
+
+/* FEATURES */
+#features .card{
+  position:relative;
+  overflow:hidden;
+}
+#features .card::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:8px; 
+  background:var(--header-color);
+}
+
+/* списки */
+.list{
+  margin:12px 0 0;
+  font-size: 16px;
+  padding-left:12px;
+  color:var(--muted);
+}
+.list li{margin:8px 0}
+.list.small li{margin:6px 0}
+
+/* TRUST */
+.trust{
+  display:grid;
+  grid-template-columns:1.2fr 0.8fr;
+  gap:32px;
+  align-items:center;
+  justify-items:stretch;
+}
+
+.trust__image{
+  justify-self:end;        
+  display:flex;
+  justify-content:flex-end;  
+  align-items:center;
+  overflow:visible;
+}
+
+.trust__image img{
+  width:auto;
+  height:auto;
+  max-width:140%;            
+  margin-left:auto;
+  border-radius:20px;
+  display:block;
+}
+
+/* subcard */
+.subcard{
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.55);
+}
+.subcard h4{margin:0 0 6px}
+.subcard p{margin:0}
+
+/* How */
+.how4{grid-template-columns:repeat(4,1fr)}
+.step .num{
+  width:42px; height:42px;
+  border-radius:14px;
+  display:grid; place-items:center;
+  background:rgba(108,120,200,.10);
+  border:1px solid rgba(108,120,200,.20);
+  color:var(--header-color);
+  font-weight:700;
+}
+.step h3{margin:12px 0 6px}
+.step p{margin:0}
+
+/* Pricing */
+.price{position:relative}
+.price__big{font-size:28px;font-weight:900;margin:8px 0}
+.popular{outline:2px solid rgba(108,120,200,.35)}
+.pill{
+  position:absolute; top:12px; right:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(108,120,200,.16);
+  border:1px solid rgba(108,120,200,.25);
+  color:rgba(10,12,20,.88);
+  font-size:12px;
+}
+
+/* CTA */
+.cta{
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  align-items:center;
+  gap:16px;
+  padding:18px;
+}
+.cta__bubble{
+  min-height:220px;
+  border-radius:16px;
+  background:rgba(255,255,255,.55);
+  border:1px solid var(--line);
+}
+
+/* Footer */
+.footer{
+  padding:24px 0;
+  border-top:1px solid var(--line);
+  background:#fff;
+}
+.footer__inner{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+/* ====== MODAL ====== */
+.modal{position:fixed; inset:0; display:none}
+.modal.show{display:block}
+.modal__backdrop{position:absolute; inset:0; background:rgba(0,0,0,.45)}
+.modal__panel{
+  position:relative;
+  max-width:520px;
+  margin:10vh auto 0;
+  padding:16px;
+}
+.modal__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+.form{display:grid; gap:12px}
+input,select{
+  width:100%;
+  padding:12px 12px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.80);
+  color:var(--text);
+  outline:none;
+}
+label{display:grid; gap:6px; color:var(--muted)}
+
+/* ====== MOBILE ====== */
+@media (max-width: 920px){
+  .hero__grid, .trust, .cta{grid-template-columns:1fr}
+  .how4{grid-template-columns:repeat(2,1fr)}
+  .cards3{grid-template-columns:1fr}
+  .twoCols{grid-template-columns:1fr}
+  .cards2{grid-template-columns:1fr}
+
+  .menu{display:none}
+  .burger{display:block}
+
+  .menu.open{
+    display:flex;
+    position:absolute;
+    top:64px; left:0; right:0;
+    padding:12px 18px;
+    background:var(--header-color);
+    flex-direction:column;
+    gap:12px;
+  }
+  .menu.open a{
+    color:rgba(10,12,20,.90);
+  }
+
+  .hero h1{font-size:36px}
+  .section{padding:54px 0}
+
+  .trust__image{
+    justify-self:center;
+    justify-content:center;
+  }
+  .trust__image img{
+    max-width:92%;
+  }
+}
+
+
+
+
+
+
+/* ====== BENEFITS split sections ====== */
+.split{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:32px;              
+  align-items:center;
+}
+
+.split--reverse .split__media{ order:2; }
+.split--reverse .split__content{ order:1; }
+
+.split__media{
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+}
+
+.split--reverse .split__media{
+  justify-content:flex-end;
+}
+
+.split__media img{
+  max-width:100%;
+  height:auto;
+  border-radius:24px;
+  box-shadow: var(--shadow);
+}
+
+
+.hl{
+  margin:0 0 12px;
+  line-height:1.05;
+  font-size:42px;        
+  font-weight:700;
+  letter-spacing:-0.02em;
+}
+
+
+
+
+
+.split__lead{
+  margin:0 0 20px;
+  font-size:16px;
+  line-height:28px;
+  max-width:520px;
+}
+
+.split__points{
+  display:grid;
+  gap:16px;
+}
+
+
+
+
+
+
+
+.point{
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  
+  background: rgba(108,120,200,.18);
+}
+
+.point h3{
+  margin:0 0 8px;
+  font-size:20px;
+  line-height:28px;
+}
+
+.point p{
+  margin:0;
+  line-height:24px;
+}
+
+/* Mobile */
+@media (max-width: 920px){
+  .split{
+    grid-template-columns:1fr;
+  }
+  .split--reverse .split__media,
+  .split--reverse .split__content{
+    order:unset;
+  }
+  .hl{ font-size:34px; }
+}
+
+
+
+
+
+
+/* ====== HOW IT WORKS ====== */
+
+.how{
+  padding-top:32px;
+}
+
+.how__title{
+  font-size:42px;
+  line-height:48px;
+  margin-bottom:40px;
+  font-weight:500; 
+}
+
+.how__grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  column-gap:48px;
+  row-gap:40px;
+}
+
+/* Один шаг */
+.how__item{
+  max-width:520px;
+}
+
+.how__line{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+  position:relative;
+}
+
+.how__line::after{
+  content:"";
+  flex:1;
+  height:2px;
+  background:var(--header-color);
+  opacity:.8;
+}
+
+/* Номер шага */
+.how__step{
+  font-size:14px;
+  font-weight:600;
+  color:var(--header-color);
+  letter-spacing:.06em;
+}
+
+/* Заголовок шага */
+.how__item h3{
+  margin:0 0 8px;
+  font-size:20px;
+  font-weight:500;
+}
+
+/* Описание */
+.how__item p{
+  margin:0;
+  font-size:16px;
+  line-height:24px;
+  max-width:440px;
+}
+
+
+@media (max-width: 920px){
+  .how__grid{
+    grid-template-columns:1fr;
+  }
+
+  .how__item{
+    max-width:100%;
+  }
+
+  .how__title{
+    font-size:32px;
+    margin-bottom:28px;
+  }
+}
+
+
+
+
+
+
+/* ===== MODAL STYLES ===== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal__backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.modal__panel {
+  position: relative;
+  z-index: 1001;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eaeaea;
+  margin-bottom: 1.5rem;
+}
+
+.modal__head strong {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.modal__head .btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  background: transparent;
+  border: 1px solid #eaeaea;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.modal__head .btn:hover {
+  background: #f5f5f5;
+  border-color: #ddd;
+  color: #333;
+}
+
+.modal .form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.modal select,
+.modal input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+  background: white;
+}
+
+.modal select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 16px;
+  padding-right: 2.5rem;
+}
+
+.modal select:focus,
+.modal input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.modal .btnPrimary {
+  margin-top: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.modal .muted.small {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 0.5rem;
+  }
+  
+  .modal__panel {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+  
+  .modal__head {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .modal__head strong {
+    font-size: 1.3rem;
+  }
+  
+  .modal .form {
+    gap: 1.25rem;
+  }
+  
+  .modal select,
+  .modal input {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+  .modal__panel {
+    background: rgba(30, 30, 35, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .modal__head {
+    border-bottom-color: #333;
+  }
+  
+  .modal__head strong {
+    color: #f0f0f0;
+  }
+  
+  .modal__head .btn {
+    border-color: #444;
+    color: #aaa;
+  }
+  
+  .modal__head .btn:hover {
+    background: #333;
+    border-color: #555;
+    color: #fff;
+  }
+  
+  .modal label {
+    color: #ccc;
+  }
+  
+  .modal select,
+  .modal input {
+    background: #222;
+    border-color: #444;
+    color: #f0f0f0;
+  }
+  
+  .modal select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  }
+  
+  .modal select:focus,
+  .modal input:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  }
+  
+  .modal .muted.small {
+    color: #aaa;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== FEATURES ENHANCEMENTS ===== */
+
+/* Бейдж над заголовком */
+.highlight-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 0.5rem 1.2rem;
+  border-radius: 50px;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.highlight-text {
+  color: white;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Выделенная фраза в тексте */
+.highlighted-text {
+  background: linear-gradient(120deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  color: #4f46e5;
+  font-weight: 600;
+  margin-left: 0.3rem;
+  position: relative;
+  display: inline-block;
+}
+
+/* Иконки в карточках */
+.feature-card {
+  position: relative;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 1.2rem;
+  color: white;
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+}
+
+.feature-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
+  color: #1a1a1a;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.feature-card h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 30px;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 1px;
+  transition: width 0.3s ease;
+}
+
+.feature-card:hover h3::after {
+  width: 50px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .highlight-badge {
+    padding: 0.4rem 1rem;
+  }
+  
+  .highlight-text {
+    font-size: 0.7rem;
+  }
+  
+  .highlighted-text {
+    display: inline-block;
+    margin-top: 0.3rem;
+    margin-left: 0;
+  }
+  
+  .feature-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.3rem;
+  }
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+  .feature-card {
+    background: rgba(30, 30, 35, 0.7);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .feature-card h3 {
+    color: #f0f0f0;
+  }
+  
+  .highlighted-text {
+    background: linear-gradient(120deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    color: #8b5cf6;
+  }
+  
+  .feature-card .muted {
+    color: #aaa;
+  }
+}
+
+
+
+
+
+
+/* ===== COMPACT BENEFIT CARDS ===== */
+
+/* Общий контейнер для карточек */
+.benefits-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Компактные карточки */
+.benefit-card.compact {
+  padding: 1rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Минимальный бордер слева */
+.benefit-card.compact::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+ background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+#benefits-bloggers .benefit-card.compact::before {
+  background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+}
+
+/* Эффект при наведении */
+.benefit-card.compact:hover {
+  transform: translateX(3px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.benefit-card.compact:hover::before {
+  opacity: 1;
+  width: 4px;
+}
+
+/* Заголовок карточки */
+.benefit-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: #1a1a1a;
+  line-height: 1.3;
+}
+
+/* Описание карточки */
+.benefit-desc {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #666;
+  margin: 0;
+}
+
+/* Минималистичный бейдж */
+.benefits-header .highlight-badge {
+  padding: 0.35rem 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.benefits-header .highlight-text {
+  font-size: 0.7rem;
+}
+
+/* Заголовок секции */
+.split__content .hl {
+  font-size: 1.8rem;
+  margin-bottom: 0.8rem;
+}
+
+/* Подзаголовок секции */
+.split__lead {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .benefit-card.compact {
+    padding: 0.9rem 1rem;
+  }
+  
+  .benefit-title {
+    font-size: 1rem;
+  }
+  
+  .benefit-desc {
+    font-size: 0.8rem;
+  }
+  
+  .split__content .hl {
+    font-size: 1.6rem;
+  }
+  
+  .benefits-cards {
+    gap: 0.8rem;
+  }
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+  .benefit-card.compact {
+    background: rgba(30, 30, 35, 0.6);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .benefit-title {
+    color: #f0f0f0;
+  }
+  
+  .benefit-desc {
+    color: #aaa;
+  }
+  
+  .benefit-card.compact:hover {
+    background: rgba(30, 30, 35, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}

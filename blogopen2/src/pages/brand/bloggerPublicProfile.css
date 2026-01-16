@@ -1,0 +1,160 @@
+.bpp {
+  padding: 20px;
+}
+
+.bpp__back {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  opacity: .75;
+  margin-bottom: 14px;
+}
+
+.bpp__error {
+  padding: 12px;
+  border: 1px solid rgba(220,20,60,.25);
+  background: rgba(220,20,60,.06);
+  color: crimson;
+}
+
+.bpp__card {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 18px;
+  align-items: start;
+
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.85);
+  padding: 16px;
+}
+
+@media (max-width: 900px) {
+  .bpp__card {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* LEFT */
+.bpp__left {
+  display: grid;
+  gap: 12px;
+}
+
+.bpp__photoWrap {
+  width: 100%;
+  height: 420px;          
+  background: rgba(0,0,0,.05);
+  overflow: hidden;
+}
+
+.bpp__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;      
+  object-position: center;
+  display: block;
+}
+
+.bpp__photoEmpty {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: rgba(0,0,0,.45);
+  font-weight: 600;
+}
+
+/* BUTTONS */
+.bpp__btn {
+  height: 44px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: rgba(255,255,255,.9);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.bpp__btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.bpp__btn--primary {
+  border-color: rgba(0,0,0,.22);
+  background: rgba(255,255,255,1);
+}
+
+/* RIGHT */
+.bpp__body {
+  display: grid;
+  gap: 12px;
+}
+
+.bpp__name {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+/* socials list */
+.bpp__socials {
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.75);
+}
+
+.bpp__social {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+
+.bpp__social:first-child {
+  border-top: none;
+}
+
+.bpp__socialName {
+  color: rgba(0,0,0,.55);
+  font-size: 13px;
+}
+
+.bpp__socialLink {
+  color: inherit;
+  text-decoration: none;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.bpp__socialLink:hover {
+  text-decoration: underline;
+}
+
+/* table like in screenshot */
+.bpp__table {
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.75);
+}
+
+.bpp__tr {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+
+.bpp__tr:first-child {
+  border-top: none;
+}
+
+.bpp__th {
+  color: rgba(0,0,0,.45);
+  font-size: 14px;
+}
+
+.bpp__td {
+  font-size: 15px;
+  font-weight: 600;
+}

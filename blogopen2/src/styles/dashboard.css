@@ -1,0 +1,110 @@
+/* ===== Layout ===== */
+.dash {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  min-height: 100vh;
+  background: #f4f6f9;
+}
+
+/* ===== Sidebar ===== */
+.dash__side {
+  background: #5B66B8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 16px;
+  gap: 12px;
+}
+
+/* Иконки */
+.dash__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cfd8df;
+  text-decoration: none;
+  font-size: 18px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dash__icon:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.dash__icon.active {
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+}
+
+/* ===== Content ===== */
+.dash__content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Topbar ===== */
+.dash__topbar {
+  height: 56px;
+  background: #ffffff;
+  border-bottom: 1px solid #e6e8eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  padding: 0 24px;
+}
+
+/* Логотип */
+.dash__brand {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2a33;
+  letter-spacing: 0.2px;
+}
+
+/* ===== Main ===== */
+.dash__main {
+  padding: 32px;
+}
+
+.cardBlogger {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.cardBlogger__photo {
+  width: 110px;
+  height: 110px;
+  background: #ddd;
+}
+
+.cardBlogger__name {
+  font-size: 14px;
+  line-height: 1.15;
+}
+.dash__link--active {
+  opacity: 1;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+
+.dash__logout {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5B66B8;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.dash__logout:hover {
+  background: rgba(91, 102, 184, 0.08);
+}

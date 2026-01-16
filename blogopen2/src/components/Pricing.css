@@ -1,0 +1,145 @@
+/* ===== GRID ===== */
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+/* ===== CARD ===== */
+.pricingCard {
+  position: relative;
+  background: #fff;
+  border-radius: 22px;
+  padding: 26px 24px;
+  border: 1px solid rgba(80, 100, 200, 0.15);
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== POPULAR ===== */
+.isPopular {
+  border: 2px solid rgba(96, 116, 255, 0.45);
+  box-shadow: 0 18px 45px rgba(96, 116, 255, 0.25);
+  transform: translateY(-6px);
+}
+
+.pricingPill {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(96, 116, 255, 0.15);
+  color: #3949c9;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+/* ===== TEXT ===== */
+.pricingName {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.pricingDesc {
+  font-size: 15px;
+  color: rgba(20, 25, 60, 0.65);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.pricingPrice {
+  font-size: 34px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+/* ===== FEATURES ===== */
+.pricingList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: grid;
+  gap: 10px;
+}
+
+.pricingItem {
+  position: relative;
+  padding-left: 28px;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+/* галочка */
+.pricingItem.isAvailable::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  background: rgba(96, 116, 255, 0.15);
+  color: #3949c9;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* крестик */
+.pricingItem.isUnavailable {
+  color: rgba(20, 25, 60, 0.35);
+}
+
+.pricingItem.isUnavailable::before {
+  content: "✕";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(20, 25, 60, 0.35);
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* ===== BUTTON ===== */
+.pricingBtn {
+  margin-top: auto;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(80, 100, 200, 0.2);
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.pricingBtn.primary {
+  background: linear-gradient(135deg, #5f6cff, #7b86ff);
+  color: #fff;
+  border: none;
+  box-shadow: 0 12px 28px rgba(96, 116, 255, 0.4);
+}
+
+.pricingBtn:hover {
+  transform: translateY(-1px);
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 960px) {
+  .pricingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .isPopular {
+    transform: none;
+  }
+}
