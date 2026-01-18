@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./bloggerBrands.css";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../api";
 
 
 const RUS_CITIES = [

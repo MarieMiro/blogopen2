@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./brandProfile.css";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../api";
 
 export default function BrandProfile() {
   const initial = useMemo(

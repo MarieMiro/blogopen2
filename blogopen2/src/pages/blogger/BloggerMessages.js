@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./bloggerMessage.css";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../api";
 
 function fmtTime(iso) {
   if (!iso) return "";
@@ -38,7 +38,7 @@ export default function BloggerMessages() {
   const listRef = useRef(null);
   const pollRef = useRef(null);
 
-  // если пришли со страницы "Написать"
+  
   const preferredConvId = location.state?.convId ?? null;
 
   // 1) список диалогов
@@ -79,7 +79,7 @@ export default function BloggerMessages() {
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   const activeDialog = useMemo(
@@ -140,7 +140,7 @@ export default function BloggerMessages() {
     const t = text.trim();
     if (!t || !activeId) return;
 
-    // optimistic
+ 
     const tempId = `tmp_${Date.now()}`;
     setMessages((p) => [
       ...p,
@@ -165,7 +165,7 @@ export default function BloggerMessages() {
         return;
       }
 
-      // обновим историю, чтобы убрать tmp и получить реальный id
+     
       const r2 = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
         credentials: "include",
       });

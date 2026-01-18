@@ -31,7 +31,7 @@ import RequireAuth from "./components/RequireAuth";
 import "./styles/main.css";
 
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "./api";
 
 function App() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./bloggerPublicProfile.css";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../api";
 
 export default function BloggerPublicProfile() {
   const { id } = useParams();

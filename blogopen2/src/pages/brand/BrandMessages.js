@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./brandMessages.css";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../api";
 
 function fmtTime(iso) {
   if (!iso) return "";

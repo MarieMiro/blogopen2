@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./bloggerProfile.css";
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../api";
 
 export default function BloggerProfile() {
   const initial = useMemo(

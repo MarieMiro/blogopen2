@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./brandBloggers.css";
 
-const API_BASE = "http://localhost:8000";
+import { API_BASE } from "../../api";
 
 
 const RUS_CITIES = [
