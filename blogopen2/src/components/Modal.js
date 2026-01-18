@@ -1,48 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+
+const API_BASE = (process.env.REACT_APP_API_BASE || "http://127.0.0.1:8000")
+  .replace(/\/$/, ""); // убираем слэш в конце, если есть
 
 const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
   const [formData, setFormData] = useState({
-    role: 'brand',
-    email: '',
-    password: '',
-    confirmPassword:''
+    role: "brand",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation(); 
-    console.log('SUBMIT CLICKED', formData);
+    e.stopPropagation();
 
-    setError('');
+    setError("");
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Пароли не совпадают");
+      return;
+    }
+
     setLoading(true);
-     if (formData.password !== formData.confirmPassword) {
-    setError("Пароли не совпадают");
-    setLoading(false);
-    return;
-  }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/register/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-        role: formData.role,
-        email: formData.email,
-        password: formData.password,
-      }),
+      const response = await fetch(`${API_BASE}/api/register/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          role: formData.role,
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
-     
       const text = await response.text();
       let data = {};
       try {
@@ -51,19 +54,16 @@ const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
         data = { raw: text };
       }
 
-      console.log('REGISTER RESPONSE', response.status, data);
-
       if (!response.ok) {
         setError(data.error || `Ошибка регистрации (status ${response.status})`);
-        setLoading(false);
         return;
       }
+
       onSuccess?.(data);
-         
-      onClose();
+      onClose?.();
     } catch (err) {
-      console.error('REGISTER ERROR', err);
-      setError('Не удалось подключиться к серверу Django (runserver).');
+      console.error("REGISTER ERROR", err);
+      setError("Не удалось подключиться к серверу.");
     } finally {
       setLoading(false);
     }
@@ -74,30 +74,24 @@ const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
       className="modal"
       id="modal"
       aria-hidden="true"
-      
       onKeyDown={(e) => {
-        if (e.key === 'Escape' && !loading) onClose();
+        if (e.key === "Escape" && !loading) onClose?.();
       }}
     >
-     
       <div
         className="modal__backdrop"
         onClick={() => {
-          if (!loading) onClose();
+          if (!loading) onClose?.();
         }}
-      ></div>
+      />
 
-      
-      <div
-        className="modal__panel card blur"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modal__panel card blur" onClick={(e) => e.stopPropagation()}>
         <div className="modal__head">
           <strong>Создать аккаунт</strong>
           <button
             className="btn"
             onClick={() => {
-              if (!loading) onClose();
+              if (!loading) onClose?.();
             }}
             type="button"
             aria-label="Закрыть"
@@ -162,46 +156,43 @@ const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
             />
           </label>
 
-
           {error && (
-            <p className="small" style={{ color: 'crimson', marginTop: 8 }}>
+            <p className="small" style={{ color: "crimson", marginTop: 8 }}>
               {error}
-            </p>
-          )}
+            </p>)}
 
           <button className="btn btnPrimary" type="submit" disabled={loading}>
-            {loading ? 'Создание...' : 'Продолжить'}
+            {loading ? "Создание..." : "Продолжить"}
           </button>
 
           <p className="muted small" style={{ marginTop: 12 }}>
-  Уже есть аккаунт?{" "}
-  <button
-    type="button"
-    onClick={() => {
-      onClose();
-      onOpenLogin?.();
-    }}
-    disabled={loading}
-    style={{
-      padding: 0,
-      margin: 0,
-      border: "none",
-      background: "none",
-      color: "inherit",
-      textDecoration: "underline",
-      cursor: "pointer",
-    }}
-  >
-    Войти
-  </button>
-</p>
+            Уже есть аккаунт?{" "}
+            <button
+              type="button"
+              onClick={() => {
+                onClose?.();
+                onOpenLogin?.();
+              }}
+              disabled={loading}
+              style={{
+                padding: 0,
+                margin: 0,
+                border: "none",
+                background: "none",
+                color: "inherit",
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+            >
+              Войти
+            </button>
+          </p>
 
-<p className="muted small">
-  Создавая аккаунт вы соглашаетесь с условиями сервиса.
-</p>
+          <p className="muted small">Создавая аккаунт вы соглашаетесь с условиями сервиса.</p>
         </form>
       </div>
     </div>
   );
 };
+
 export default Modal;
