@@ -12,8 +12,50 @@ const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const safeClose = () => {
+    if (typeof onClose === "function") onClose();
+  };
+
+  const safeSuccess = (payload) => {
+    if (typeof onSuccess === "function") onSuccess(payload);
+  };
+
+  const safeOpenLogin = () => {
+    if (typeof onOpenLogin === "function") onOpenLogin();
+  };
+
   const handleChange = (e) => {
     setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+  };
+
+  const buildErrorMessage = (data, rawText, status) => {
+    // 1) {"error": "..."}
+    if (data && typeof data === "object" && data.error) return String(data.error);
+
+    // 2) DRF {"detail": "..."}
+    if (data && typeof data === "object" && data.detail) return String(data.detail);
+
+    // 3) {"email":["..."], "password":["..."]}
+    if (data && typeof data === "object") {
+      const entries = Object.entries(data);
+      if (entries.length) {
+        const msg = entries
+          .map(([k, v]) => {
+            if (Array.isArray(v)) return `${k}: ${v.join(", ")}`;
+            if (v && typeof v === "object") return `${k}: ${JSON.stringify(v)}`;
+            return `${k}: ${String(v)}`;
+          })
+          .join(" | ");
+        if (msg.trim()) return msg;
+      }
+    }
+
+    // 4) если пришёл HTML/текст
+    if (typeof rawText === "string" && rawText.trim()) {
+      return rawText.slice(0, 500); // чтобы не залить весь HTML
+    }
+
+    return `Ошибка регистрации (status ${status})`;
   };
 
   const handleSubmit = async (e) => {
@@ -41,38 +83,24 @@ const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
         }),
       });
 
-      const text = await response.text();
+      const rawText = await response.text();
 
       let data = null;
       try {
-        data = text ? JSON.parse(text) : null;
+        data = rawText ? JSON.parse(rawText) : null;
       } catch {
         data = null;
       }
 
-      console.log("REGISTER RESPONSE", response.status, data ?? text);
+      console.log("REGISTER RESPONSE", response.status, data ?? rawText);
 
       if (!response.ok) {
-        const err1 = data?.error;   // {"error": "..."}
-        const err2 = data?.detail;  // {"detail": "..."}
-
-        const err3 =
-          data && typeof data === "object"
-            ? Object.entries(data)
-                .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`)
-                .join(" | ")
-            : null;
-
-        const err4 = typeof text === "string" && text.trim() ? text : null;
-
-        setError(
-          err1 || err2 || err3 || err4  `Ошибка регистрации (status ${response.status})`
-        );
+        setError(buildErrorMessage(data, rawText, response.status));
         return;
       }
 
-      onSuccess?.(data ?? {});
-      onClose?.();
+      safeSuccess(data ?? {});
+      safeClose();
     } catch (err) {
       console.error("REGISTER ERROR", err);
       setError("Не удалось подключиться к серверу API.");
@@ -83,12 +111,24 @@ const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
 
   return (
     <div className="modal" id="modal" aria-hidden="true">
-      <div className="modal__backdrop" onClick={() => !loading && onClose?.()} />
+      <div
+        className="modal__backdrop"
+        onClick={() => {
+          if (!loading) safeClose();
+        }}
+      />
 
       <div className="modal__panel card blur" onClick={(e) => e.stopPropagation()}>
         <div className="modal__head">
           <strong>Создать аккаунт</strong>
-          <button className="btn" onClick={() => !loading && onClose?.()} type="button">
+          <button
+            className="btn"
+            onClick={() => {
+              if (!loading) safeClose();
+            }}
+            type="button"
+            aria-label="Закрыть"
+          >
             ✕
           </button>
         </div>
@@ -151,6 +191,7 @@ const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
               {error}
             </p>
           )}
+
           <button className="btn btnPrimary" type="submit" disabled={loading}>
             {loading ? "Создание..." : "Продолжить"}
           </button>
@@ -161,8 +202,8 @@ const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
               type="button"
               onClick={() => {
                 if (loading) return;
-                onClose?.();
-                onOpenLogin?.();
+                safeClose();
+                safeOpenLogin();
               }}
               disabled={loading}
               style={{
