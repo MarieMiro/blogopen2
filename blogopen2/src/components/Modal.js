@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { api, API_BASE } from "../api";
+import { api } from "../api";
 
 const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
   const [formData, setFormData] = useState({
@@ -29,9 +29,7 @@ const Modal = ({ onClose, onSuccess, onOpenLogin }) => {
     setLoading(true);
 
     try {
-      // ВАЖНО: чтобы увидеть, куда реально стучится фронт (в проде тоже)
-      console.log("API_BASE =", API_BASE);
-
+    
       const response = await fetch(api("/api/register/"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
