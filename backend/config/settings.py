@@ -81,26 +81,32 @@ DATABASES = {
 }
 
 # ===== CORS/CSRF =====
-# 1) Сначала из env (если задала)
-CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "")
-CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "")
+def _split_env_urls(name: str):
+    raw = os.getenv(name, "")
+    items = []
+    for x in raw.split(","):
+        x = x.strip()
+        if not x:
+            continue
+        # убираем хвостовой слэш
+        if x.endswith("/"):
+            x = x[:-1]
+        items.append(x)
+    return items
 
-# 2) Добавим FRONTEND_URL, если задан
-if FRONTEND_URL:
-    if FRONTEND_URL not in CORS_ALLOWED_ORIGINS:
-        CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
-    if FRONTEND_URL not in CSRF_TRUSTED_ORIGINS:
-        CSRF_TRUSTED_ORIGINS.append(FRONTEND_URL)
+CORS_ALLOWED_ORIGINS = _split_env_urls("CORS_ALLOWED_ORIGINS")
 
-# 3) Локалхосты для разработки
-if DEBUG:
-    for u in ("http://localhost:3000", "http://127.0.0.1:3000"):
-        if u not in CORS_ALLOWED_ORIGINS:
-            CORS_ALLOWED_ORIGINS.append(u)
-        if u not in CSRF_TRUSTED_ORIGINS:
-            CSRF_TRUSTED_ORIGINS.append(u)
+# на всякий случай (если домен фронта меняется / есть preview-домены)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.onrender\.com$",
+]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = _split_env_urls("CSRF_TRUSTED_ORIGINS")
+
+# чтобы preflight (OPTIONS) точно проходил
+CORS_ALLOW_HEADERS = list(os.getenv("CORS_ALLOW_HEADERS", "").split(",")) if os.getenv("CORS_ALLOW_HEADERS") else None
 
 # ===== SECURITY for Render (reverse proxy HTTPS) =====
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
