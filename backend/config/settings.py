@@ -105,8 +105,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = _split_env_urls("CSRF_TRUSTED_ORIGINS")
 
-# чтобы preflight (OPTIONS) точно проходил
-CORS_ALLOW_HEADERS = list(os.getenv("CORS_ALLOW_HEADERS", "").split(",")) if os.getenv("CORS_ALLOW_HEADERS") else None
+
 
 # ===== SECURITY for Render (reverse proxy HTTPS) =====
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
