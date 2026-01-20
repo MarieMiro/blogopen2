@@ -2,6 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./bloggerProfile.css";
 import { API_BASE } from "../../api";
 
+const toAbsUrl = (u) => {
+  if (!u) return "";
+  if (u.startsWith("http://") || u.startsWith("https://")) return u;
+  return `${API_BASE}${u}`;
+};
+
 export default function BloggerProfile() {
   const initial = useMemo(
     () => ({
@@ -134,14 +140,16 @@ export default function BloggerProfile() {
         return;
       }
 
-      setForm((p) => ({
-        ...p,
-        avatarUrl: data.avatar_url
-        ? `${API_BASE}${data.avatar_url}`
-        : p.avatarUrl,
-        avatarFile: null,
-        progress: data.progress ?? p.progress,
-      }));
+      setForm((p) => {
+        const nextAvatar = data.avatar_url ? toAbsUrl(data.avatar_url) : p.avatarUrl;
+
+        return {
+          ...p,
+          avatarUrl: nextAvatar,
+          avatarFile: null,
+          progress: data.progress ?? p.progress,
+        };
+      });
 
       alert("Сохранено!");
     } catch {
