@@ -85,6 +85,9 @@ def register(request):
     else:
         BloggerProfile.objects.create(profile=profile)
 
+    # ✅ АВТО-ЛОГИН после регистрации (создаёт session cookie)
+    login(request, user)
+
     return Response(
         {"ok": True, "user_id": user.id, "email": user.email, "role": role},
         status=status.HTTP_201_CREATED
