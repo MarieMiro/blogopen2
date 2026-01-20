@@ -115,7 +115,7 @@ export default function BloggerBrands() {
     }
 
     // переходим в сообщения блогера и открываем нужный диалог
-    navigate("/dashboard/blogger/blmessages", { state: { convId: data.conversation_id } });
+    navigate("/dashboard/blogger/messages", { state: { convId: data.conversation_id } });
   } finally {
     setOpeningChatId(null);
   }
