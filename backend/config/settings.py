@@ -125,15 +125,17 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ===== COOKIES =====
-# Критично: если фронт и бэк на разных доменах, и ты используешь session cookies:
-# нужно SameSite=None и Secure=True
+## --- COOKIES for cross-site (frontend != backend domain) ---
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # если вдруг будешь читать CSRF из JS
+
 if DEBUG:
     SESSION_COOKIE_SAMESITE = "Lax"
     CSRF_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 else:
+    # ВАЖНО для Render (https + другой домен)
     SESSION_COOKIE_SAMESITE = "None"
     CSRF_COOKIE_SAMESITE = "None"
     SESSION_COOKIE_SECURE = True
