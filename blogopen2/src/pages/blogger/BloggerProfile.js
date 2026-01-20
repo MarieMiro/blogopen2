@@ -83,7 +83,9 @@ export default function BloggerProfile() {
           formats: data.formats || "",
           email: data.email || "",
           inn: data.inn || "",
-          avatarUrl: data.avatar_url || "",
+          avatarUrl: data.avatar_url
+          ? `${API_BASE}${data.avatar_url}`
+          : p.avatarUrl,
           avatarFile: null,
           progress: data.progress ?? 0,
         }));
@@ -134,7 +136,9 @@ export default function BloggerProfile() {
 
       setForm((p) => ({
         ...p,
-        avatarUrl: data.avatar_url || p.avatarUrl,
+        avatarUrl: data.avatar_url
+        ? `${API_BASE}${data.avatar_url}`
+        : p.avatarUrl,
         avatarFile: null,
         progress: data.progress ?? p.progress,
       }));
