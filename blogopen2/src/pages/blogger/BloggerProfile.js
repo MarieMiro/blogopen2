@@ -4,8 +4,14 @@ import { API_BASE } from "../../api";
 
 const toAbsUrl = (u) => {
   if (!u) return "";
+  // локальный превью-файл
+  if (u.startsWith("blob:")) return u;
+  // уже абсолютная ссылка
   if (u.startsWith("http://") || u.startsWith("https://")) return u;
-  return `${API_BASE}${u}`;
+  // относительная (/media/...)
+  if (u.startsWith("/")) return `${API_BASE}${u}`;
+  // на всякий случай
+  return `${API_BASE}/${u}`;
 };
 
 export default function BloggerProfile() {
@@ -43,11 +49,14 @@ export default function BloggerProfile() {
   const onAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // (не обязательно, но приятно) разрешим выбирать тот же файл повторно
+    e.target.value = "";
+
     const url = URL.createObjectURL(file);
     setForm((p) => ({ ...p, avatarUrl: url, avatarFile: file }));
   };
 
-  
   const localProgress = useMemo(() => {
     const keys = ["nick", "platform", "platformUrl", "followers", "topic", "formats", "inn"];
     const filled = keys.filter((k) => String(form[k] ?? "").trim().length > 0).length;
@@ -70,7 +79,7 @@ export default function BloggerProfile() {
           credentials: "include",
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
           if (alive) setError(data.error || "Не удалось загрузить профиль");
@@ -89,9 +98,7 @@ export default function BloggerProfile() {
           formats: data.formats || "",
           email: data.email || "",
           inn: data.inn || "",
-          avatarUrl: data.avatar_url
-          ? `${API_BASE}${data.avatar_url}`
-          : p.avatarUrl,
+          avatarUrl: toAbsUrl(data.avatar_url || ""),
           avatarFile: null,
           progress: data.progress ?? 0,
         }));
@@ -116,7 +123,6 @@ export default function BloggerProfile() {
     try {
       const fd = new FormData();
 
-      
       fd.append("nickname", form.nick);
       fd.append("platform", form.platform);
       fd.append("platform_url", form.platformUrl);
@@ -133,24 +139,19 @@ export default function BloggerProfile() {
         body: fd,
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         setError(data.error || "Ошибка сохранения");
         return;
       }
 
-      setForm((p) => {
-        const nextAvatar = data.avatar_url ? toAbsUrl(data.avatar_url) : p.avatarUrl;
-
-        return {
-          ...p,
-          avatarUrl: nextAvatar,
-          avatarFile: null,
-          progress: data.progress ?? p.progress,
-        };
-      });
-
+      setForm((p) => ({
+        ...p,
+        avatarUrl: data.avatar_url ? toAbsUrl(data.avatar_url) : p.avatarUrl,
+        avatarFile: null,
+        progress: data.progress ?? p.progress,
+      }));
       alert("Сохранено!");
     } catch {
       setError("Не удалось сохранить (ошибка соединения)");
@@ -165,7 +166,8 @@ export default function BloggerProfile() {
     <form className="bp" onSubmit={onSave}>
       <section className="bp__left card">
         <div className="bp__avatarWrap">
-          {form.avatarUrl ? (<img className="bp__avatar" src={form.avatarUrl} alt="Аватар" />
+          {form.avatarUrl ? (
+            <img className="bp__avatar" src={form.avatarUrl} alt="Аватар" />
           ) : (
             <div className="bp__avatar bp__avatar--empty">
               <span>Фото</span>
@@ -191,11 +193,15 @@ export default function BloggerProfile() {
           <div className="bp__chips">
             <span className="chip">{form.platform || "Платформа"}</span>
             <span className="chip">
-              {String(form.followers).trim() ? `${form.followers} подписчиков` : "Подписчики"}
+              {String(form.followers).trim()
+                ? `${form.followers} подписчиков`
+                : "Подписчики"}
             </span>
           </div>
 
-          <p className="bp__about muted">{form.topic?.trim() || "Тематика (то, что увидят бренды)."}</p>
+          <p className="bp__about muted">
+            {form.topic?.trim() || "Тематика (то, что увидят бренды)."}
+          </p>
 
           {form.platformUrl?.trim() && (
             <a className="bp__link" href={form.platformUrl} target="_blank" rel="noreferrer">
@@ -268,7 +274,6 @@ export default function BloggerProfile() {
                 disabled={saving}
               />
             </label>
-
             <label className="field">
               <span className="field__label">Подписчики</span>
               <input
