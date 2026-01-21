@@ -231,12 +231,11 @@ def blogger_profile_update(request):
     bp, _ = BloggerProfile.objects.get_or_create(profile=p)
     data = request.data
 
-    # аватар общий
-   avatar = request.FILES.get("avatar")
+    # аватар общий (ImageField)
+    avatar = request.FILES.get("avatar")
     if avatar:
-    profile.avatar_blob = avatar.read()
-    profile.avatar_mime = avatar.content_type or ""
-    profile.avatar_name = avatar.name or ""
+        p.avatar = avatar
+        p.save()
 
     # поля блогера
     bp.nickname = data.get("nickname", bp.nickname)
@@ -246,7 +245,7 @@ def blogger_profile_update(request):
     followers = data.get("followers", bp.followers)
     try:
         bp.followers = int(followers) if followers not in (None, "") else 0
-    except:
+    except (TypeError, ValueError):
         pass
 
     bp.topic = data.get("topic", bp.topic)
@@ -518,11 +517,8 @@ def conversations_list(request):
             "id": c.id,
             "avatar_url": other.avatar.url if other.avatar else "",
             "title": display_name(other),
-
-            # чтобы совпало с фронтом:
             "last_message": last_text,
             "last_message_at": last_at,
-
             "unread_count": unread_count_for(me, c),
         })
 
