@@ -125,23 +125,19 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-## --- COOKIES for cross-site (frontend != backend domain) ---
+# --- Cookies for cross-site (frontend != backend domain, Render HTTPS) ---
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False  # если вдруг будешь читать CSRF из JS
 
-if DEBUG:
-    SESSION_COOKIE_SAMESITE = "Lax"
-    CSRF_COOKIE_SAMESITE = "Lax"
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-else:
-    # ВАЖНО для Render (https + другой домен)
-    SESSION_COOKIE_SAMESITE = "None"
-    CSRF_COOKIE_SAMESITE = "None"
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
 
-CSRF_COOKIE_HTTPONLY = False  # пусть фронт при необходимости может читать csrftoken
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Render / reverse proxy
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 # ===== DRF =====
 REST_FRAMEWORK = {
