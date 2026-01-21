@@ -169,10 +169,11 @@ def brand_profile_update(request):
     p.city = data.get("city", p.city)
     p.about = data.get("about", p.about)
 
+     # аватар общий (ImageField)
     avatar = request.FILES.get("avatar")
     if avatar:
         p.avatar = avatar
-    p.save()
+        p.save()
 
     # брендовые
     bp.brand_name = data.get("brand_name", bp.brand_name)
