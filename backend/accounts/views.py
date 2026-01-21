@@ -221,46 +221,49 @@ def blogger_profile_get(request):
     })
 
 
+
 @api_view(["POST"])
 @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
-def blogger_profile_update(request):
-    p = ensure_profile_and_role_models(request.user, role_default="blogger")
-    if p.role != "blogger":
-        return Response({"error": "Not a blogger"}, status=status.HTTP_403_FORBIDDEN)
+def brand_profile_update(request):
+    p = ensure_profile_and_role_models(request.user, role_default="brand")
+    if p.role != "brand":
+        return Response({"error": "Not a brand"}, status=status.HTTP_403_FORBIDDEN)
 
-    bp, _ = BloggerProfile.objects.get_or_create(profile=p)
+    bp, _ = BrandProfile.objects.get_or_create(profile=p)
     data = request.data
 
-    # аватар общий (ImageField)
+    # ---------- АВАТАР (общий Profile.avatar) ----------
     avatar = request.FILES.get("avatar")
     if avatar:
         p.avatar = avatar
         p.save()
 
-    # поля блогера
-    bp.nickname = data.get("nickname", bp.nickname)
-    bp.platform = data.get("platform", bp.platform)
-    bp.platform_url = data.get("platform_url", bp.platform_url)
+    # ---------- общие поля ----------
+    p.city = data.get("city", p.city)
+    p.about = data.get("about", p.about)
+    p.save()
 
-    followers = data.get("followers", bp.followers)
-    try:
-        bp.followers = int(followers) if followers not in (None, "") else 0
-    except (TypeError, ValueError):
-        pass
-
-    bp.topic = data.get("topic", bp.topic)
-    bp.formats = data.get("formats", bp.formats)
+    # ---------- поля бренда ----------
+    bp.brand_name = data.get("brand_name", bp.brand_name)
+    bp.sphere = data.get("sphere", bp.sphere)
+    bp.budget = data.get("budget", bp.budget)
     bp.inn = data.get("inn", bp.inn)
+    bp.contact_person = data.get("contact_person", bp.contact_person)
     bp.save()
-
-    progress = calc_blogger_progress(p, bp)
 
     return Response({
         "ok": True,
         "avatar_url": p.avatar.url if p.avatar else "",
-        "progress": progress,
     })
+
+
+
+
+
+
+
+
 
 
 @api_view(["GET"])
