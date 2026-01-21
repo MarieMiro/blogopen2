@@ -74,9 +74,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 # ===== DB =====
 DATABASES = {
     "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        os.environ["DATABASE_URL"],
         conn_max_age=600,
-        ssl_require=not DEBUG,  # для render/postgres обычно нужно
+        ssl_require=True,  # для render/postgres обычно нужно
     )
 }
 

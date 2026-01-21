@@ -13,8 +13,14 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="brand")
 
-    # общие поля
+    # старое (можно оставить, но больше не использовать на проде)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+
+    # ✅ новое: храним в Postgres
+    avatar_bytes = models.BinaryField(blank=True, null=True)
+    avatar_mime = models.CharField(max_length=100, blank=True, default="")  # image/jpeg
+    avatar_name = models.CharField(max_length=255, blank=True, default="")  # original name
+
     city = models.CharField(max_length=120, blank=True, default="")
     about = models.TextField(blank=True, default="")
 
