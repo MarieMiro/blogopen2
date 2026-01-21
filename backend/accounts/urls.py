@@ -7,7 +7,8 @@ from .views import (
     bloggers_list, brands_list,
     blogger_public, brand_public,
     conversations_list, conversation_messages, 
-    conversation_mark_read, conversation_with_profile
+    conversation_mark_read, conversation_with_profile,
+    profile_avatar
 )
 
 urlpatterns = [
@@ -37,4 +38,6 @@ urlpatterns = [
     path("conversations/with/<int:profile_id>/", conversation_with_profile),
     path("conversations/<int:conv_id>/messages/", conversation_messages),
     path("conversations/<int:conv_id>/read/", conversation_mark_read),
+    path("profiles/<int:profile_id>/avatar/", profile_avatar),
+
 ]

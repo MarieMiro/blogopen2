@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -232,10 +232,11 @@ def blogger_profile_update(request):
     data = request.data
 
     # аватар общий
-    avatar = request.FILES.get("avatar")
+   avatar = request.FILES.get("avatar")
     if avatar:
-        p.avatar = avatar
-        p.save()
+    profile.avatar_blob = avatar.read()
+    profile.avatar_mime = avatar.content_type or ""
+    profile.avatar_name = avatar.name or ""
 
     # поля блогера
     bp.nickname = data.get("nickname", bp.nickname)
@@ -625,3 +626,15 @@ def conversation_with_profile(request, profile_id: int):
 
     conv, _ = Conversation.objects.get_or_create(brand=brand, blogger=blogger)
     return Response({"ok": True, "conversation_id": conv.id})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def profile_avatar(request, profile_id):
+    profile = get_object_or_404(Profile, id=profile_id)
+
+    if not profile.avatar_blob:
+        return HttpResponse(status=404)
+
+    content_type = profile.avatar_mime or "image/jpeg"
+    return HttpResponse(profile.avatar_blob, content_type=content_type)
