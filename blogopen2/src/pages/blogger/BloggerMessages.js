@@ -251,12 +251,11 @@ export default function BloggerMessages() {
         messages.map((m) => {
           const mine = m.is_mine ?? false;
           return (
-            <div
-              key={m.id}
-              className={`bubble ${mine ? "bubble--mine" : "bubble--their"}`}
-            >
-              <div className="bubble__text">{m.text}</div>
-              <div className="bubble__meta">{fmtTime(m.created_at)}</div>
+            <div key={m.id} className={`bubbleRow ${mine ? "bubbleRow--mine" : "bubbleRow--their"}`}>
+              <div className={`bubble ${mine ? "bubble--mine" : "bubble--their"}`}>
+                <div className="bubble__text">{m.text}</div>
+                <div className="bubble__meta">{fmtTime(m.created_at)}</div>
+              </div>
             </div>
           );
         })
@@ -271,11 +270,7 @@ export default function BloggerMessages() {
         onChange={(e) => setText(e.target.value)}
         disabled={!activeId}
       />
-      <button
-        className="msg__send"
-        type="submit"
-        disabled={!activeId || !text.trim()}
-      >
+      <button className="msg__send" type="submit" disabled={!activeId || !text.trim()}>
         Отправить
       </button>
     </form>
