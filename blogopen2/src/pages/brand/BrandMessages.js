@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./brandMessages.css";
-
 import { API_BASE } from "../../api";
 
 function fmtTime(iso) {
@@ -11,13 +10,7 @@ function fmtTime(iso) {
 }
 
 function dialogName(d) {
-  return (
-    d?.other?.name ||
-    d?.title ||
-    d?.nickname ||
-    d?.brand_name ||
-    "Диалог"
-  );
+  return d?.other?.name || d?.title || d?.nickname || d?.brand_name || "Диалог";
 }
 
 function dialogAvatarUrl(d) {
@@ -40,10 +33,19 @@ export default function BrandMessages() {
   const listRef = useRef(null);
   const pollRef = useRef(null);
 
-
+  const [q, setQ] = useState("");
   const preferredConvId = location.state?.convId ?? null;
 
-  // 1) грузим список диалогов
+  const filteredDialogs = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return dialogs;
+    return dialogs.filter((d) => dialogName(d).toLowerCase().includes(s));
+  }, [q, dialogs]);
+
+  // ✅ ВАЖНО: openDialog должен быть вне useEffect
+  const openDialog = (id) => setActiveId(id);
+
+  // 1) загрузка списка диалогов
   useEffect(() => {
     let alive = true;
 
@@ -52,9 +54,7 @@ export default function BrandMessages() {
         setError("");
         setLoadingDialogs(true);
 
-        const res = await fetch(`${API_BASE}/api/chat/`, {
-          credentials: "include",
-        });
+        const res = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
@@ -67,16 +67,12 @@ export default function BrandMessages() {
 
         setDialogs(results);
 
-        
         if (preferredConvId) {
           setActiveId(preferredConvId);
           return;
         }
 
-        // 2) первый диалог
-        if (!activeId && results.length > 0) {
-          setActiveId(results[0].id);
-        }
+        if (results.length > 0) setActiveId((prev) => prev ?? results[0].id);
       } catch {
         if (alive) setError("Ошибка соединения с сервером");
       } finally {
@@ -84,14 +80,10 @@ export default function BrandMessages() {
       }
     })();
 
-    const openDialog = (id) => {
-      setActiveId(id);
-    };
-
     return () => {
       alive = false;
     };
-    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const activeDialog = useMemo(
@@ -99,7 +91,7 @@ export default function BrandMessages() {
     [dialogs, activeId]
   );
 
-  // грузим сообщения 
+  // 2) загрузка сообщений + polling
   const loadMessages = async (convId, aliveFlag = { alive: true }) => {
     try {
       setError("");
@@ -115,16 +107,13 @@ export default function BrandMessages() {
         return;
       }
 
-     
       const results = data.results || data.messages || [];
       if (!aliveFlag.alive) return;
 
       setMessages(results);
 
       requestAnimationFrame(() => {
-        if (listRef.current) {
-          listRef.current.scrollTop = listRef.current.scrollHeight;
-        }
+        if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
       });
     } catch {
       if (aliveFlag.alive) setError("Ошибка соединения с сервером");
@@ -133,20 +122,15 @@ export default function BrandMessages() {
     }
   };
 
-  // 2) грузим сообщения выбранного диалога 
   useEffect(() => {
     if (!activeId) return;
 
     const aliveFlag = { alive: true };
 
-    
     loadMessages(activeId, aliveFlag);
 
-
     if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = setInterval(() => {
-      loadMessages(activeId, aliveFlag);
-    }, 2500);
+    pollRef.current = setInterval(() => loadMessages(activeId, aliveFlag), 2500);
 
     return () => {
       aliveFlag.alive = false;
@@ -154,7 +138,7 @@ export default function BrandMessages() {
     };
   }, [activeId]);
 
-  // 3) отправка сообщения 
+  // 3) отправка сообщения
   const onSend = async (e) => {
     e.preventDefault();
 
@@ -164,11 +148,7 @@ export default function BrandMessages() {
     const tempId = `tmp_${Date.now()}`;
     setMessages((p) => [
       ...p,
-      {
-        id: tempId,text: t,
-        created_at: new Date().toISOString(),
-        is_mine: true,
-      },
+      { id: tempId, text: t, created_at: new Date().toISOString(), is_mine: true },
     ]);
     setText("");
 
@@ -190,10 +170,9 @@ export default function BrandMessages() {
         return;
       }
 
-      // обновляем сообщения с сервера 
       await loadMessages(activeId, { alive: true });
 
-      // и обновляем список диалогов
+      // обновляем список диалогов (последнее сообщение/время)
       const rChat = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
       const dChat = await rChat.json().catch(() => ({}));
       if (rChat.ok) setDialogs(dChat.results || []);
@@ -204,103 +183,110 @@ export default function BrandMessages() {
 
   return (
     <div className="msg">
-      {/* LEFT: dialogs */}
+      {/* LEFT */}
       <section className="msg__left">
-  <div className="msg__leftHead">
-    <div className="msg__leftTop">
-      <div className="msg__title">Диалоги</div>
-    </div>
+        <div className="msg__leftHead">
+          <div className="msg__leftTop">
+            <div className="msg__title">Диалоги</div>
+          </div>
 
-    <div className="msg__search">
-      <input
-        className="msg__searchInput"
-        placeholder="Поиск"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-      />
-    </div>
-  </div>
+          <div className="msg__search">
+            <input
+              className="msg__searchInput"
+              placeholder="Поиск"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
+        </div>
 
-  <div className="msgList">
-    {loadingDialogs ? (
-      <div className="msg__muted">Загрузка диалогов…</div>
-    ) : filteredDialogs.length === 0 ? (
-      <div className="msg__muted">Ничего не найдено</div>
-    ) : (
-      filteredDialogs.map((d) => {
-        const ava = dialogAvatarUrl(d);
-        return (
-          <button
-            key={d.id}
-            className={`msgItem ${activeId === d.id ? "isActive" : ""}`}
-            onClick={() => openDialog(d.id)}
-            type="button"
-          >
-            <div className="msgItem__avatar">
-              {ava ? (
-                <img className="msgItem__avatarImg" src={ava} alt="" />
-              ) : (
-                <div className="msgItem__avatarEmpty">👤</div>
-              )}
-            </div>
+        <div className="msgList">
+          {loadingDialogs ? (
+            <div className="msg__muted">Загрузка диалогов…</div>
+          ) : filteredDialogs.length === 0 ? (
+            <div className="msg__muted">Ничего не найдено</div>
+          ) : (
+            filteredDialogs.map((d) => {
+              const ava = dialogAvatarUrl(d);
+              return (
+                <button
+                  key={d.id}
+                  className={`msgItem ${activeId === d.id ? "isActive" : ""}`}
+                  onClick={() => openDialog(d.id)}
+                  type="button"
+                >
+                  <div className="msgItem__avatar">
+                    {ava ? (
+                      <img className="msgItem__avatarImg" src={ava} alt="" />
+                    ) : (
+                      <div className="msgItem__avatarEmpty">👤</div>
+                    )}
+                  </div>
 
-            <div className="msgItem__body">
-              <div className="msgItem__top">
-                <div className="msgItem__name">{dialogName(d)}</div>
-                <div className="msgItem__time">{fmtTime(d.last_message_at)}</div>
-              </div>
+                  <div className="msgItem__body">
+                    <div className="msgItem__top">
+                      <div className="msgItem__name">{dialogName(d)}</div>
+                      <div className="msgItem__time">{fmtTime(d.last_message_at)}</div>
+                    </div>
 
-             
-            </div>
-          </button>
-        );
-      })
-    )}
-  </div>
-</section>
-      {/* RIGHT: chat */}
-<section className="msg__right">
-  <header className="msg__topbar">
-    <div className="msg__chatTitle">
-      {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
-    </div>
-  </header>
+                    {/* ✅ Вернули превью, но БЕЗ счётчика */}
+                    <div className="msgItem__bottom">
+                      <div className="msgItem__preview">{d.last_message || "Без сообщений"}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </section>
 
-  <div className="msg__chat">
-    <div className="msg__messages" ref={listRef}>
-      {loadingChat ? (
-        <div className="msg__muted">Загрузка сообщений…</div>
-      ) : !activeId ? (
-        <div className="msg__muted">Выберите диалог слева</div>
-      ) : (
-        messages.map((m) => {
-          const mine = m.is_mine ?? false;
-          return (
-            <div key={m.id} className={`bubbleRow ${mine ? "bubbleRow--mine" : "bubbleRow--their"}`}>
-              <div className={`bubble ${mine ? "bubble--mine" : "bubble--their"}`}>
-                <div className="bubble__text">{m.text}</div>
-                <div className="bubble__meta">{fmtTime(m.created_at)}</div>
-              </div>
-            </div>
-          );
-        })
-      )}
-    </div>
+      {/* RIGHT */}
+      <section className="msg__right">
+        <header className="msg__topbar">
+          <div className="msg__chatTitle">
+            {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
+          </div>
+        </header>
 
-    <form className="msg__composer" onSubmit={onSend}>
-      <input
-        className="msg__input"
-        placeholder={activeId ? "Написать сообщение…" : "Выберите диалог слева"}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        disabled={!activeId}
-      />
-      <button className="msg__send" type="submit" disabled={!activeId || !text.trim()}>
-        Отправить
-      </button>
-    </form>
-  </div>
-</section>
+        <div className="msg__chat">
+          <div className="msg__messages" ref={listRef}>
+            {loadingChat ? (
+              <div className="msg__muted">Загрузка сообщений…</div>
+            ) : !activeId ? (
+              <div className="msg__muted">Выберите диалог слева</div>
+            ) : (
+              messages.map((m) => {
+                const mine = m.is_mine ?? false;
+                return (
+                  <div
+                    key={m.id}
+                    className={`bubbleRow ${mine ? "bubbleRow--mine" : "bubbleRow--their"}`}
+                  >
+                    <div className={`bubble ${mine ? "bubble--mine" : "bubble--their"}`}>
+                      <div className="bubble__text">{m.text}</div>
+                      <div className="bubble__meta">{fmtTime(m.created_at)}</div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <form className="msg__composer" onSubmit={onSend}>
+            <input
+              className="msg__input"
+              placeholder={activeId ? "Написать сообщение…" : "Выберите диалог слева"}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              disabled={!activeId}
+            />
+            <button className="msg__send" type="submit" disabled={!activeId || !text.trim()}>
+              Отправить
+            </button>
+          </form>
+        </div>
+      </section>
     </div>
   );
 }
