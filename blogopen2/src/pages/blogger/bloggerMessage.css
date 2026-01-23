@@ -135,3 +135,10 @@
   opacity: .55;
   cursor: not-allowed;
 }
+.msg{
+  height: calc(100vh - 74px);
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+}
