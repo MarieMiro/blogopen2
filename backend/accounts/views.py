@@ -352,7 +352,7 @@ def mark_read_for(me: Profile, conv: Conversation):
 @api_view(["GET"])
 @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
-def conversations_list(request):
+def bloggers_list(request):
     me = ensure_profile_and_role_models(request.user, role_default="brand")
 
     qs = (
