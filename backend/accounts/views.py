@@ -13,19 +13,12 @@ from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 # ---------------- HELPERS ----------------
 
-def ensure_profile_and_role_models(user: User, role_default="brand"):
-    """
-    Гарантирует, что:
-    - есть Profile у пользователя
-    - есть role
-    - создан BrandProfile или BloggerProfile в зависимости от role
-    """
-    profile, created = Profile.objects.get_or_create(
+def ensure_profile_and_role_models(user: User, role_default="brand") -> Profile:
+    profile, _ = Profile.objects.get_or_create(
         user=user,
         defaults={"role": role_default},
     )
 
-    # если вдруг role пустой — подстрахуемся
     if not profile.role:
         profile.role = role_default
         profile.save()
@@ -39,23 +32,56 @@ def ensure_profile_and_role_models(user: User, role_default="brand"):
 
 
 def calc_blogger_progress(profile: Profile, bp: BloggerProfile) -> int:
-    """
-    Примерная оценка заполненности профиля блогера.
-    Можно менять веса как захочешь.
-    """
     fields = [
-        bool(profile.avatar),
-        bool(bp.nickname.strip()),
-        bool(bp.platform.strip()),
-        bool(bp.platform_url.strip()),
+        bool(get_avatar_url(profile)),
+        bool((bp.nickname or "").strip()),
+        bool((bp.platform or "").strip()),
+        bool((bp.platform_url or "").strip()),
         bool(bp.followers),
-        bool(bp.topic.strip()),
-        bool(bp.formats.strip()),
-        bool(bp.inn.strip()),
+        bool((bp.topic or "").strip()),
+        bool((bp.formats or "").strip()),
+        bool((bp.inn or "").strip()),
     ]
     filled = sum(fields)
     total = len(fields)
     return int(round((filled / total) * 100)) if total else 0
+
+
+def get_avatar_url(p: Profile) -> str:
+    """
+    Возвращает URL аватарки:
+    - если аватарка хранится в Postgres (avatar_blob) -> отдаём через /api/profiles/<id>/avatar/
+    - иначе если ImageField -> отдаём p.avatar.url
+    """
+    if hasattr(p, "avatar_blob") and p.avatar_blob:
+        return f"/api/profiles/{p.id}/avatar/"
+    if getattr(p, "avatar", None):
+        try:
+            return p.avatar.url
+        except Exception:
+            return ""
+    return ""
+
+
+def save_avatar_to_profile(p: Profile, uploaded_file) -> None:
+    """
+    Сохраняем аватар:
+    - если есть avatar_blob поля -> кладём в Postgres
+    - иначе -> в ImageField
+    """
+    if not uploaded_file:
+        return
+
+    if hasattr(p, "avatar_blob"):
+        p.avatar_blob = uploaded_file.read()
+        p.avatar_mime = getattr(uploaded_file, "content_type", "") or "image/jpeg"
+        p.avatar_name = getattr(uploaded_file, "name", "") or ""
+        # если у тебя ещё остался ImageField avatar и он мешает — можно очистить:
+        # p.avatar = None
+        p.save()
+    else:
+        p.avatar = uploaded_file
+        p.save()
 
 
 # ---------------- AUTH ----------------
@@ -78,19 +104,17 @@ def register(request):
 
     user = User.objects.create_user(username=email, email=email, password=password)
 
-    # создаём общий профиль + расширение по роли
     profile = Profile.objects.create(user=user, role=role)
     if role == "brand":
         BrandProfile.objects.create(profile=profile)
     else:
         BloggerProfile.objects.create(profile=profile)
 
-    # ✅ АВТО-ЛОГИН после регистрации (создаёт session cookie)
     login(request, user)
 
     return Response(
         {"ok": True, "user_id": user.id, "email": user.email, "role": role},
-        status=status.HTTP_201_CREATED
+        status=status.HTTP_201_CREATED,
     )
 
 
@@ -98,16 +122,13 @@ def register(request):
 @authentication_classes([CsrfExemptSessionAuthentication])
 def login_view(request):
     email = (request.data.get("email") or "").strip().lower()
-    password = request.data.get("password") or ""
-
-    user = authenticate(request, username=email, password=password)
+    password = request.data.get("password") or ""user = authenticate(request, username=email, password=password)
     if user is None:
         return Response({"error": "Неверный email или пароль"}, status=status.HTTP_400_BAD_REQUEST)
 
     login(request, user)
 
     profile = ensure_profile_and_role_models(user, role_default="brand")
-
     return Response({"ok": True, "email": user.email, "role": profile.role})
 
 
@@ -144,7 +165,7 @@ def brand_profile_get(request):
 
         "city": p.city,
         "about": p.about,
-        "avatar_url": p.avatar.url if p.avatar else "",
+        "avatar_url": get_avatar_url(p),
 
         "brand_name": bp.brand_name,
         "sphere": bp.sphere,
@@ -165,15 +186,15 @@ def brand_profile_update(request):
     bp, _ = BrandProfile.objects.get_or_create(profile=p)
     data = request.data
 
+    # avatar
+    avatar = request.FILES.get("avatar")
+    if avatar:
+        save_avatar_to_profile(p, avatar)
+
     # общие
     p.city = data.get("city", p.city)
     p.about = data.get("about", p.about)
-
-     # аватар общий (ImageField)
-    avatar = request.FILES.get("avatar")
-    if avatar:
-        p.avatar = avatar
-        p.save()
+    p.save()
 
     # брендовые
     bp.brand_name = data.get("brand_name", bp.brand_name)
@@ -183,7 +204,7 @@ def brand_profile_update(request):
     bp.contact_person = data.get("contact_person", bp.contact_person)
     bp.save()
 
-    return Response({"ok": True, "avatar_url": p.avatar.url if p.avatar else ""})
+    return Response({"ok": True, "avatar_url": get_avatar_url(p)})
 
 
 # ---------------- BLOGGER PROFILE ----------------
@@ -202,229 +223,38 @@ def blogger_profile_get(request):
     return Response({
         "role": p.role,
         "email": request.user.email,
+        "avatar_url": get_avatar_url(p),
 
-        "avatar_url": p.avatar.url if p.avatar else "",
-
-        # публично
         "nickname": bp.nickname,
         "platform": bp.platform,
         "platform_url": bp.platform_url,
         "followers": bp.followers,
         "topic": bp.topic,
         "formats": bp.formats,
-
-        # для платформы
         "inn": bp.inn,
 
-        # прогресс
         "progress": progress,
     })
-
 
 
 @api_view(["POST"])
 @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def blogger_profile_update(request):
-    p = ensure_profile_and_role_models(request.user, role_default="brand")
-    if p.role != "brand":
-        return Response({"error": "Not a brand"}, status=status.HTTP_403_FORBIDDEN)
+    p = ensure_profile_and_role_models(request.user, role_default="blogger")
+    if p.role != "blogger":
+        return Response({"error": "Not a blogger"}, status=status.HTTP_403_FORBIDDEN)
 
-    bp, _ = BrandProfile.objects.get_or_create(profile=p)
+    bp, _ = BloggerProfile.objects.get_or_create(profile=p)
     data = request.data
 
-    # ---------- АВАТАР (общий Profile.avatar) ----------
+    # avatar
     avatar = request.FILES.get("avatar")
     if avatar:
-        p.avatar = avatar
-        p.save()
+        save_avatar_to_profile(p, avatar)
 
-    # ---------- общие поля ----------
-    p.city = data.get("city", p.city)
-    p.about = data.get("about", p.about)
-    p.save()
-
-    # ---------- поля бренда ----------
-    bp.brand_name = data.get("brand_name", bp.brand_name)
-    bp.sphere = data.get("sphere", bp.sphere)
-    bp.budget = data.get("budget", bp.budget)
-    bp.inn = data.get("inn", bp.inn)
-    bp.contact_person = data.get("contact_person", bp.contact_person)
-    bp.save()
-
-    return Response({
-        "ok": True,
-        "avatar_url": p.avatar.url if p.avatar else "",
-    })
-
-
-
-
-
-
-
-
-
-
-@api_view(["GET"])
-@authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([IsAuthenticated])
-def bloggers_list(request):
-    # доступ только бренду
-    p = ensure_profile_and_role_models(request.user, role_default="brand")
-    if p.role != "brand":
-        return Response({"error": "Not a brand"}, status=status.HTTP_403_FORBIDDEN)
-
-    # --- query params ---
-    city = (request.GET.get("city") or "").strip()
-    platform = (request.GET.get("platform") or "").strip()
-    topic = (request.GET.get("topic") or "").strip()
-    followers_min = (request.GET.get("followers_min") or "").strip()
-    followers_max = (request.GET.get("followers_max") or "").strip()
-
-    qs = Profile.objects.filter(role="blogger").select_related("user", "blogger")
-
-    # city (в Profile)
-    if city:
-        qs = qs.filter(city__iexact=city)
-
-    # platform/topic/followers (в BloggerProfile)
-    if platform:
-        qs = qs.filter(blogger__platform__iexact=platform)
-
-    if topic:
-        # поиск по вхождению (можно заменить на exact если надо)
-        qs = qs.filter(blogger__topic__icontains=topic)
-
-    # followers range
-    try:
-        if followers_min != "":
-            qs = qs.filter(blogger__followers__gte=int(followers_min))
-    except ValueError:
-        pass
-
-    try:
-        if followers_max != "":
-            qs = qs.filter(blogger__followers__lte=int(followers_max))
-    except ValueError:
-        pass
-
-    qs = qs.order_by("id")  # без “релевантности”, стабильно
-
-    items = []
-    for prof in qs:
-        bp = getattr(prof, "blogger", None)
-        items.append({
-            "id": prof.id,
-            "avatar_url": prof.avatar.url if prof.avatar else "",
-            "city": prof.city,
-
-            "nickname": getattr(bp, "nickname", "") if bp else "",
-            "platform": getattr(bp, "platform", "") if bp else "",
-            "platform_url": getattr(bp, "platform_url", "") if bp else "",
-            "followers": getattr(bp, "followers", 0) if bp else 0,
-            "topic": getattr(bp, "topic", "") if bp else "",
-            "formats": getattr(bp, "formats", "") if bp else "",
-        })
-
-    return Response({"ok": True, "results": items})
-
-
-@api_view(["GET"])
-@authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([IsAuthenticated])
-def brands_list(request):
-    # доступ только блогеру
-    p = ensure_profile_and_role_models(request.user, role_default="blogger")
-    if p.role != "blogger":
-        return Response({"error": "Not a blogger"}, status=status.HTTP_403_FORBIDDEN)
-
-    qs = Profile.objects.filter(role="brand").select_related("user", "brand").order_by("id")
-
-    items = []
-    for prof in qs:
-        bp = getattr(prof, "brand", None)  # BrandProfile
-        items.append({
-            "id": prof.id,
-            "email": prof.user.email,
-            "avatar_url": prof.avatar.url if prof.avatar else "",
-
-            "brand_name": getattr(bp, "brand_name", "") if bp else "",
-            "sphere": getattr(bp, "sphere", "") if bp else "",
-            "budget": getattr(bp, "budget", "") if bp else "",
-
-            "city": prof.city,
-            "about": prof.about,
-        })
-
-    return Response({"ok": True, "results": items})
-
-
-
-@api_view(["GET"])
-@authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([IsAuthenticated])
-def blogger_public(request, profile_id: int):
-    # доступ только бренду
-    p = ensure_profile_and_role_models(request.user, role_default="brand")
-    if p.role != "brand":
-        return Response({"error": "Not a brand"}, status=status.HTTP_403_FORBIDDEN)
-
-    qs = Profile.objects.select_related("user", "blogger").filter(role="blogger")
-
-    # 1) пробуем как Profile.id
-    prof = qs.filter(id=profile_id).first()
-
-    # 2) если не нашли — пробуем как User.id
-    if prof is None:
-        prof = get_object_or_404(qs, user__id=profile_id)
-
-    bp = getattr(prof, "blogger", None)
-
-    return Response({
-        "ok": True,
-        "id": prof.id,
-        "avatar_url": prof.avatar.url if prof.avatar else "",
-        "city": prof.city,
-
-        "nickname": getattr(bp, "nickname", "") if bp else "",
-        "platform": getattr(bp, "platform", "") if bp else "",
-        "platform_url": getattr(bp, "platform_url", "") if bp else "",
-        "followers": getattr(bp, "followers", 0) if bp else 0,
-        "topic": getattr(bp, "topic", "") if bp else "",
-        "formats": getattr(bp, "formats", "") if bp else "",
-    })
-
-@api_view(["GET"])
-@authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([IsAuthenticated])
-def brand_public(request, profile_id: int):
-    # доступ только блогеру
-    p = ensure_profile_and_role_models(request.user, role_default="blogger")
-    if p.role != "blogger":
-        return Response({"error": "Not a blogger"}, status=status.HTTP_403_FORBIDDEN)
-
-    prof = get_object_or_404(
-        Profile.objects.select_related("user", "brand"),
-        id=profile_id,
-        role="brand",
-    )
-
-    bp = getattr(prof, "brand", None)
-
-    return Response({
-        "ok": True,
-        "id": prof.id,
-        "avatar_url": prof.avatar.url if prof.avatar else "",
-        "city": prof.city,
-        "about": prof.about,
-
-        "brand_name": getattr(bp, "brand_name", "") if bp else "",
-        "sphere": getattr(bp, "sphere", "") if bp else "",
-        "budget": getattr(bp, "budget", "") if bp else "",
-        "contact_person": getattr(bp, "contact_person", "") if bp else "",
-    })
-
+    # поля блогера
+    bp.nickname = data.
 
 
 # =============== CHAT HELPERS + CHAT API ===============
