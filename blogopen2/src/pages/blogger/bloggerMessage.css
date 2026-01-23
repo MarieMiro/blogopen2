@@ -135,10 +135,9 @@
 
 /* RIGHT */
 .msg .msg__right {
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.7);
-  display: flex;
+   display: flex;
   flex-direction: column;
+  height: 100%;
   min-height: 0;
 }
 
@@ -153,8 +152,9 @@
 }
 
 .msg .msg__chat {
-  display: grid;
-  grid-template-rows: 1fr auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
 }
 
@@ -163,11 +163,9 @@
    ========================= */
 
 .msg .msg__messages {
-  padding: 14px 14px 10px;
-  overflow: auto;
-  display: flex;              /* важно: чтобы align-self работал */
-  flex-direction: column;
-  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .msg .bubble {
@@ -216,6 +214,7 @@
   padding: 12px;
   border-top: 1px solid rgba(0,0,0,.08);
   background: rgba(255,255,255,.65);
+  flex: 0 0 auto;
 }
 
 .msg .msg__input {

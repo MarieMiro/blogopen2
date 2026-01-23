@@ -233,45 +233,54 @@ export default function BloggerMessages() {
         )}
       </aside>
 
-      {/* RIGHT */}
-      <section className="msg__right">
-        <header className="msg__topbar">
-          <div className="msg__chatTitle">{activeDialog? dialogName(activeDialog): "Выберите диалог"}</div>
-        </header>
+     {/* RIGHT */}
+<section className="msg__right">
+  <header className="msg__topbar">
+    <div className="msg__chatTitle">
+      {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
+    </div>
+  </header>
 
-        <div className="msg__chat">
-          {loadingChat ? (
-            <div className="msg__muted">Загрузка сообщений…</div>
-          ) : !activeId ? (
-            <div className="msg__muted">Выберите диалог слева</div>
-          ) : (
-            <div className="msg__messages" ref={listRef}>
-              {messages.map((m) => {
-                const mine = m.is_mine ?? false;
-                return (
-                  <div key={m.id} className={`bubble ${mine ? "bubble--mine" : "bubble--their"}`}>
-                    <div className="bubble__text">{m.text}</div>
-                    <div className="bubble__meta">{fmtTime(m.created_at)}</div>
-                  </div>
-                );
-              })}
+  <div className="msg__chat">
+    <div className="msg__messages" ref={listRef}>
+      {loadingChat ? (
+        <div className="msg__muted">Загрузка сообщений…</div>
+      ) : !activeId ? (
+        <div className="msg__muted">Выберите диалог слева</div>
+      ) : (
+        messages.map((m) => {
+          const mine = m.is_mine ?? false;
+          return (
+            <div
+              key={m.id}
+              className={`bubble ${mine ? "bubble--mine" : "bubble--their"}`}
+            >
+              <div className="bubble__text">{m.text}</div>
+              <div className="bubble__meta">{fmtTime(m.created_at)}</div>
             </div>
-          )}
+          );
+        })
+      )}
+    </div>
 
-          <form className="msg__composer" onSubmit={onSend}>
-            <input
-              className="msg__input"
-              placeholder={activeId ? "Написать сообщение…" : "Выберите диалог слева"}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              disabled={!activeId}
-            />
-            <button className="msg__send" type="submit" disabled={!activeId || !text.trim()}>
-              Отправить
-            </button>
-          </form>
-        </div>
-      </section>
+    <form className="msg__composer" onSubmit={onSend}>
+      <input
+        className="msg__input"
+        placeholder={activeId ? "Написать сообщение…" : "Выберите диалог слева"}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        disabled={!activeId}
+      />
+      <button
+        className="msg__send"
+        type="submit"
+        disabled={!activeId || !text.trim()}
+      >
+        Отправить
+      </button>
+    </form>
+  </div>
+</section>
     </div>
   );
 }
