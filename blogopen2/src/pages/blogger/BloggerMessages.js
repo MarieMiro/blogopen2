@@ -235,10 +235,7 @@ const openDialog = (id) => {
                 <div className="msgItem__time">{fmtTime(d.last_message_at)}</div>
               </div>
 
-              <div className="msgItem__bottom">
-                <div className="msgItem__preview">{d.last_message || "Без сообщений"}</div>
-                {!!d.unread_count && <div className="msgItem__badge">{d.unread_count}</div>}
-              </div>
+             
             </div>
           </button>
         );

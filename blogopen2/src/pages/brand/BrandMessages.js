@@ -84,6 +84,10 @@ export default function BrandMessages() {
       }
     })();
 
+    const openDialog = (id) => {
+      setActiveId(id);
+    };
+
     return () => {
       alive = false;
     };
@@ -201,62 +205,59 @@ export default function BrandMessages() {
   return (
     <div className="msg">
       {/* LEFT: dialogs */}
-      <aside className="msg__left">
-        <div className="msg__leftHead">
-          <div className="msg__title">Диалоги</div>
-        </div>
+      <section className="msg__left">
+  <div className="msg__leftHead">
+    <div className="msg__leftTop">
+      <div className="msg__title">Диалоги</div>
+    </div>
 
-        {loadingDialogs ? (
-          <div className="msg__muted">Загрузка…</div>
-        ) : error ? (
-          <div className="msg__error">{error}</div>
-        ) : dialogs.length === 0 ? (
-          <div className="msg__muted">Диалогов пока нет</div>
-        ) : (
-          <div className="msgList">
-            {dialogs.map((d) => {
-              const other = d.other || {};
-              const last = d.last_message || null;
+    <div className="msg__search">
+      <input
+        className="msg__searchInput"
+        placeholder="Поиск"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
+    </div>
+  </div>
 
-              return (
-                <button
-                  key={d.id}
-                  type="button"
-                  className={`msgItem ${d.id === activeId ? "isActive" : ""}`}
-                  onClick={() => setActiveId(d.id)}
-                >
-                  <div className="msgItem__avatar">
-                    {other.avatar_url ? (
-                      <img
-                        src={`${API_BASE}${other.avatar_url}`}
-                        alt=""
-                        className="msgItem__avatarImg"
-                      />
-                    ) : (
-                      <div className="msgItem__avatarEmpty">👤</div>
-                    )}
-                  </div>
+  <div className="msgList">
+    {loadingDialogs ? (
+      <div className="msg__muted">Загрузка диалогов…</div>
+    ) : filteredDialogs.length === 0 ? (
+      <div className="msg__muted">Ничего не найдено</div>
+    ) : (
+      filteredDialogs.map((d) => {
+        const ava = dialogAvatarUrl(d);
+        return (
+          <button
+            key={d.id}
+            className={`msgItem ${activeId === d.id ? "isActive" : ""}`}
+            onClick={() => openDialog(d.id)}
+            type="button"
+          >
+            <div className="msgItem__avatar">
+              {ava ? (
+                <img className="msgItem__avatarImg" src={ava} alt="" />
+              ) : (
+                <div className="msgItem__avatarEmpty">👤</div>
+              )}
+            </div>
 
-                  <div className="msgItem__body">
-                    <div className="msgItem__top">
-                      <div className="msgItem__name">{dialogName(d)}</div>
-                      <div className="msgItem__time">{fmtTime(last?.created_at)}</div>
-                      
-                    </div>
-                    
+            <div className="msgItem__body">
+              <div className="msgItem__top">
+                <div className="msgItem__name">{dialogName(d)}</div>
+                <div className="msgItem__time">{fmtTime(d.last_message_at)}</div>
+              </div>
 
-                    <div className="msgItem__bottom">
-                      <div className="msgItem__preview">{last?.text || "Без сообщений"}</div>
-                      {!!d.unread && <div className="msgItem__badge">{d.unread}</div>}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </aside>
-
+             
+            </div>
+          </button>
+        );
+      })
+    )}
+  </div>
+</section>
       {/* RIGHT: chat */}
 <section className="msg__right">
   <header className="msg__topbar">
