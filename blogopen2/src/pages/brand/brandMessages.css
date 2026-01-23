@@ -1,13 +1,8 @@
-.msg {
-  height: calc(100vh - 74px); /* если топбар в layout есть — подстрой */
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 14px;
-  padding: 16px;
-}
+/* =========================
+   RIGHT (Telegram-like)
+   ========================= */
 
-/* LEFT */
-.msg__left {
+.msg__right{
   border: 1px solid rgba(0,0,0,.12);
   background: rgba(255,255,255,.7);
   display: flex;
@@ -15,292 +10,135 @@
   min-height: 0;
 }
 
-.msg__leftHead {
-  padding: 12px 12px;
-  border-bottom: 1px solid rgba(0,0,0,.08);
-}
-
-.msg__title {
-  font-weight: 800;
-  font-size: 16px;
-}
-
-.msgList {
-  overflow: auto;
-  padding: 6px;
-}
-
-.msgItem {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 10px;
-  padding: 10px 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-}
-
-.msgItem:hover {
-  background: rgba(255,255,255,.75);
-  border-color: rgba(0,0,0,.08);
-}
-
-.msgItem.isActive {
-  background: rgba(255,255,255,.95);
-  border-color: rgba(0,0,0,.12);
-}
-
-.msgItem__avatar {
-  width: 44px;
-  height: 44px;
-  background: rgba(0,0,0,.05);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-}
-
-.msgItem__avatarImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.msgItem__avatarEmpty {
-  opacity: .7;
-}
-
-.msgItem__body {
-  min-width: 0;
-  display: grid;
-  gap: 6px;
-}
-
-.msgItem__top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.msgItem__name {
-  font-weight: 800;
-  font-size: 14px;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.msgItem__time {
-  margin-left: auto;
-  font-size: 12px;
-  opacity: .6;
-}
-
-.msgItem__bottom {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.msgItem__preview {
-  min-width: 0;
-  font-size: 12px;
-  opacity: .75;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.msgItem__badge {
-  margin-left: auto;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: rgba(79,124,255,.18);
-  border: 1px solid rgba(79,124,255,.35);
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-/* RIGHT */
-
-
-.msg__topbar {
+/* topbar */
+.msg__topbar{
+  flex: 0 0 auto;
   padding: 12px 14px;
   border-bottom: 1px solid rgba(0,0,0,.08);
-}
-
-.msg__chatTitle {
-  font-weight: 800;
-  font-size: 16px;
-}
-
-
-
-.bubble {
-  max-width: min(520px, 90%);
-  padding: 10px 12px;
-  border: 1px solid rgba(0,0,0,.10);
   background: rgba(255,255,255,.85);
 }
 
-.bubble--mine {
-  margin-left: auto;
-  border-color: rgba(79,124,255,.22);
-  background: rgba(79,124,255,.10);
+.msg__chatTitle{
+  font-weight: 800;
+  font-size: 16px;
 }
 
-.bubble__text {
-  font-size: 14px;
-  line-height: 1.35;
-  white-space: pre-wrap;
+/* chat layout: messages (scroll) + composer (bottom) */
+ .msg__chat{
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.bubble__meta {
-  margin-top: 6px;
-  font-size: 12px;
-  opacity: .6;
-  text-align: right;
+/* =========================
+   MESSAGES AREA
+   ========================= */
+
+ .msg__messages{
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* НЕ слипались */
 }
 
-
-
-
-.msg__input {
-  height: 40px;
-  padding: 0 12px;
-  border: 1px solid rgba(0,0,0,.12);
-  outline: none;
-  background: rgba(255,255,255,.9);
+/* row wrapper (нужно если ты добавила bubbleRow в разметке) */
+ .bubbleRow{
+  display: flex;
+  width: 100%;
 }
 
-.msg__send {
-  height: 40px;
-  border: 1px solid rgba(0,0,0,.16);
-  background: rgba(255,255,255,.95);
-  font-weight: 700;
-  cursor: pointer;
-}
+.bubbleRow--mine{ justify-content: flex-end; }
+.bubbleRow--their{ justify-content: flex-start; }
 
-.msg__send:disabled {
-  opacity: .55;
-  cursor: not-allowed;
-}
-
-
-.msg__muted {
-  padding: 12px;
-  opacity: .7;
-}
-
-.msg__error {
-  padding: 12px;
-  color: crimson;
-  border-bottom: 1px solid rgba(220,20,60,.25);
-}
-
-
-@media (max-width: 900px) {
-  .msg {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ===== Chat bubbles ===== */
-
-
-.bubble{
-  max-width: 68%;
-  padding: 9px 12px 7px;
+/* bubble itself */
+ .bubble{
+  width: fit-content;               /* важное: ширина по контенту */
+  max-width: min(520px, 78%);       /* чтобы не было одинаковых/на всю ширину */
+  padding: 10px 12px 8px;
   border-radius: 16px;
-  line-height: 1.25;
+  line-height: 1.35;
   font-size: 14px;
-  position: relative;
   box-shadow: 0 1px 0 rgba(0,0,0,.06);
   border: 1px solid rgba(0,0,0,.06);
+  background: #fff;
 }
 
-/* левый (партнёр) */
-.bubble--their{
-  align-self: flex-start;
+ .bubble--their{
   background: #ffffff;
   color: #111;
-  border-top-left-radius: 6px; 
+  border-top-left-radius: 8px;
 }
 
-/* правый (я) */
-.bubble--mine{
-  align-self: flex-end;
-  background: #d9f0ff; 
+ .bubble--mine{
+  background: #d9f0ff;
   color: #0b1a2a;
-  border-top-right-radius: 6px;
+  border-top-right-radius: 8px;
 }
 
-/* текст */
-.bubble__text{
+ .bubble__text{
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-/* время */
 .bubble__meta{
-  margin-top: 4px;
+  margin-top: 6px;
   font-size: 11px;
-  opacity: .55;
+  opacity: .6;
   text-align: right;
 }
 
+/* если ты НЕ добавляла bubbleRow, а пузыри стоят прямо в msg__messages,
+   тогда оставь align-self, чтобы выравнивались */
+ .msg__messages > .bubble--mine{ align-self: flex-end; }
+ .msg__messages > .bubble--their{ align-self: flex-start; }
 
+/* =========================
+   COMPOSER pinned bottom
+   ========================= */
 
-.msg {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-
-
-.msg__input {
-  flex: 1;
-  padding: 10px 12px;
-}
-
-.msg__send {
-  padding: 0 16px;
-}
-
-.msg__right {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-}
-
-.msg__chat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.msg__messages {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-.msg__composer {
+.msg__composer{
   flex: 0 0 auto;
-  /* по желанию: фон/бордер, чтобы отделить от чата */
-  /* border-top: 1px solid rgba(0,0,0,.08); */
-  /* background: #fff; */
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(0,0,0,.08);
+  background: rgba(255,255,255,.95);
+  position: sticky;
+  bottom: 0;
 }
 
-@media (max-width: 520px){
-  .bubble{ max-width: 82%; }
+ .msg__input{
+  flex: 1;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(0,0,0,.12);
+  outline: none;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.msg__send{
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(0,0,0,.16);
+  background: rgba(255,255,255,.95);
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.msg__send:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+}
+.msg{
+  height: calc(100vh - 74px);
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
 }
