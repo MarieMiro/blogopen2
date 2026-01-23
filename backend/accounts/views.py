@@ -249,13 +249,35 @@ def blogger_profile_update(request):
     bp, _ = BloggerProfile.objects.get_or_create(profile=p)
     data = request.data
 
-    # avatar
+    # ---------- АВАТАР (общий Profile.avatar) ----------
     avatar = request.FILES.get("avatar")
     if avatar:
-        save_avatar_to_profile(p, avatar)
+        p.avatar = avatar
+        p.save()
 
-    # поля блогера
-    bp.nickname = data.
+    # ---------- поля блогера ----------
+    bp.nickname = data.get("nickname", bp.nickname)
+    bp.platform = data.get("platform", bp.platform)
+    bp.platform_url = data.get("platform_url", bp.platform_url)
+
+    followers = data.get("followers", bp.followers)
+    try:
+        bp.followers = int(followers) if followers not in (None, "") else 0
+    except (TypeError, ValueError):
+        pass
+
+    bp.topic = data.get("topic", bp.topic)
+    bp.formats = data.get("formats", bp.formats)
+    bp.inn = data.get("inn", bp.inn)
+    bp.save()
+
+    progress = calc_blogger_progress(p, bp)
+
+    return Response({
+        "ok": True,
+        "avatar_url": p.avatar.url if p.avatar else "",
+        "progress": progress,
+    })
 
 
 # =============== CHAT HELPERS + CHAT API ===============
