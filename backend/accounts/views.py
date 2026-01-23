@@ -122,7 +122,8 @@ def register(request):
 @authentication_classes([CsrfExemptSessionAuthentication])
 def login_view(request):
     email = (request.data.get("email") or "").strip().lower()
-    password = request.data.get("password") or ""user = authenticate(request, username=email, password=password)
+    password = request.data.get("password") or ""
+    user = authenticate(request, username=email, password=password)
     if user is None:
         return Response({"error": "Неверный email или пароль"}, status=status.HTTP_400_BAD_REQUEST)
 
