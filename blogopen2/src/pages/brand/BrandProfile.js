@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./brandProfile.css";
-
 import { API_BASE } from "../../api";
+
+const toAbsUrl = (u) => {
+  if (!u) return "";
+  if (u.startsWith("http://") || u.startsWith("https://")) return u;
+  return `${API_BASE}${u}`; // /media/... -> https://<backend>/media/...
+};
 
 export default function BrandProfile() {
   const initial = useMemo(
@@ -27,9 +32,7 @@ export default function BrandProfile() {
 
   const fileRef = useRef(null);
 
-  const setField = (name, value) => {
-    setForm((p) => ({ ...p, [name]: value }));
-  };
+  const setField = (name, value) => setForm((p) => ({ ...p, [name]: value }));
 
   const onPickAvatar = () => fileRef.current?.click();
 
@@ -37,10 +40,12 @@ export default function BrandProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // локальный превью-URL (после сохранения заменим на URL с бэка)
     const url = URL.createObjectURL(file);
     setForm((p) => ({ ...p, avatarUrl: url, avatarFile: file }));
   };
 
+  // загрузка профиля
   useEffect(() => {
     let alive = true;
 
@@ -53,7 +58,7 @@ export default function BrandProfile() {
           credentials: "include",
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
           if (alive) setError(data.error || "Не удалось загрузить профиль");
@@ -72,7 +77,7 @@ export default function BrandProfile() {
           email: data.email || "",
           inn: data.inn || "",
           contactPerson: data.contact_person || "",
-          avatarUrl: data.avatar_url || "",
+          avatarUrl: toAbsUrl(data.avatar_url),
           avatarFile: null,
         }));
       } catch {
@@ -87,6 +92,7 @@ export default function BrandProfile() {
     };
   }, []);
 
+  // сохранение профиля
   const onSave = async (e) => {
     e.preventDefault();
     setError("");
@@ -110,18 +116,19 @@ export default function BrandProfile() {
         body: fd,
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         setError(data.error || "Ошибка сохранения");
         return;
       }
 
-      if (data.avatar_url) {
-        setForm((p) => ({ ...p, avatarUrl: data.avatar_url, avatarFile: null }));
-      } else {
-        setForm((p) => ({ ...p, avatarFile: null }));
-      }
+      // важно: после сохранения ставим URL с бэка (абсолютный)
+      setForm((p) => ({
+        ...p,
+        avatarUrl: data.avatar_url ? toAbsUrl(data.avatar_url) : p.avatarUrl,
+        avatarFile: null,
+      }));
 
       alert("Сохранено!");
     } catch {
@@ -153,12 +160,18 @@ export default function BrandProfile() {
             style={{ display: "none" }}
           />
 
-          <button className="btn bp__btn" type="button" onClick={onPickAvatar} disabled={saving}>
+          <button
+            className="btn bp__btn"
+            type="button"
+            onClick={onPickAvatar}
+            disabled={saving}
+          >
             Загрузить фото
           </button>
         </div>
 
-        <div className="bp__public"><h2 className="bp__title">{form.brandName?.trim() || "Название бренда"}</h2>
+        <div className="bp__public">
+          <h2 className="bp__title">{form.brandName?.trim() || "Название бренда"}</h2>
 
           <div className="bp__chips">
             <span className="chip">{form.city?.trim() || "Город"}</span>
@@ -166,7 +179,8 @@ export default function BrandProfile() {
           </div>
 
           <p className="bp__about muted">
-            {form.about?.trim() || "Короткое описание компании — это увидят блогеры в каталоге/профиле."}
+            {form.about?.trim() ||
+              "Короткое описание компании — это увидят блогеры в каталоге/профиле."}
           </p>
         </div>
       </section>
@@ -187,38 +201,53 @@ export default function BrandProfile() {
           <div className="bp__grid">
             <label className="field">
               <span className="field__label">Название бренда</span>
-              <input className="field__input" value={form.brandName}
-                     onChange={(e) => setField("brandName", e.target.value)}
-                     disabled={saving} />
+              <input
+                className="field__input"
+                value={form.brandName}
+                onChange={(e) => setField("brandName", e.target.value)}
+                disabled={saving}
+              />
             </label>
 
             <label className="field">
               <span className="field__label">Город</span>
-              <input className="field__input" value={form.city}
-                     onChange={(e) => setField("city", e.target.value)}
-                     disabled={saving} />
+              <input
+                className="field__input"
+                value={form.city}
+                onChange={(e) => setField("city", e.target.value)}
+                disabled={saving}
+              />
             </label>
 
             <label className="field">
               <span className="field__label">Сфера</span>
-              <input className="field__input" value={form.sphere}
-                     onChange={(e) => setField("sphere", e.target.value)}
-                     disabled={saving} />
+              <input
+                className="field__input"
+                value={form.sphere}
+                onChange={(e) => setField("sphere", e.target.value)}
+                disabled={saving}
+              />
             </label>
 
             <label className="field field--full">
               <span className="field__label">Описание компании</span>
-              <textarea className="field__input field__textarea" rows={5}
-                        value={form.about}
-                        onChange={(e) => setField("about", e.target.value)}
-                        disabled={saving} />
+              <textarea
+                className="field__input field__textarea"
+                rows={5}
+                value={form.about}
+                onChange={(e) => setField("about", e.target.value)}
+                disabled={saving}
+              />
             </label>
 
             <label className="field">
               <span className="field__label">Бюджет</span>
-              <input className="field__input" value={form.budget}
-                     onChange={(e) => setField("budget", e.target.value)}
-                     disabled={saving} />
+              <input
+                className="field__input"
+                value={form.budget}
+                onChange={(e) => setField("budget", e.target.value)}
+                disabled={saving}
+              />
             </label>
           </div>
         </div>
@@ -237,16 +266,22 @@ export default function BrandProfile() {
 
             <label className="field">
               <span className="field__label">ИНН</span>
-              <input className="field__input" value={form.inn}
-                     onChange={(e) => setField("inn", e.target.value)}
-                     disabled={saving} />
+              <input
+                className="field__input"
+                value={form.inn}
+                onChange={(e) => setField("inn", e.target.value)}
+                disabled={saving}
+              />
             </label>
 
             <label className="field field--full">
               <span className="field__label">Контактное лицо</span>
-              <input className="field__input" value={form.contactPerson}
-                     onChange={(e) => setField("contactPerson", e.target.value)}
-                     disabled={saving} />
+              <input
+                className="field__input"
+                value={form.contactPerson}
+                onChange={(e) => setField("contactPerson", e.target.value)}
+                disabled={saving}
+              />
             </label>
           </div>
 
