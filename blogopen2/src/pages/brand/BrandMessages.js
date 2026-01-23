@@ -284,23 +284,28 @@ export default function BrandMessages() {
               })}
             </div>
           )}
+<div className="msg">
+  <div className="msg__messages">
+    {/* тут список сообщений */}
+  </div>
 
-          <form className="msg__composer" onSubmit={onSend}>
-            <input
-              className="msg__input"
-              placeholder={activeId ? "Написать сообщение…" : "Выберите диалог слева"}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              disabled={!activeId}
-            />
-            <button
-              className="msg__send"
-              type="submit"
-              disabled={!activeId || !text.trim()}
-            >
-              Отправить
-            </button>
-          </form>
+  <form className="msg__composer" onSubmit={onSend}>
+    <input
+      className="msg__input"
+      placeholder={activeId ? "Написать сообщение…" : "Выберите диалог слева"}
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      disabled={!activeId}
+    />
+    <button
+      className="msg__send"
+      type="submit"
+      disabled={!activeId || !text.trim()}
+    >
+      Отправить
+    </button>
+  </form>
+</div>
         </div>
       </section>
     </div>
