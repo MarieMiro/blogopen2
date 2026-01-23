@@ -336,7 +336,7 @@ def bloggers_list(request):
         bp = getattr(prof, "blogger", None)
         items.append({
             "id": prof.id,
-            "avatar_url": get_avatar_url(request, prof),
+            "avatar_url": prof.avatar.url if prof.avatar else "",
             "city": prof.city,
 
             "nickname": getattr(bp, "nickname", "") if bp else "",
@@ -366,7 +366,7 @@ def brands_list(request):
         items.append({
             "id": prof.id,
             "email": prof.user.email,
-            "avatar_url": get_avatar_url(request, prof),
+            "avatar_url": prof.avatar.url if prof.avatar else "",
 
             "brand_name": getattr(bp, "brand_name", "") if bp else "",
             "sphere": getattr(bp, "sphere", "") if bp else "",
@@ -397,7 +397,7 @@ def blogger_public(request, profile_id: int):
     return Response({
         "ok": True,
         "id": prof.id,
-        "avatar_url": get_avatar_url(request, prof),
+        "avatar_url": prof.avatar.url if prof.avatar else "",
         "city": prof.city,
 
         "nickname": getattr(bp, "nickname", "") if bp else "",
@@ -428,7 +428,7 @@ def brand_public(request, profile_id: int):
     return Response({
         "ok": True,
         "id": prof.id,
-        "avatar_url": get_avatar_url(request, prof),
+        "avatar_url": prof.avatar.url if prof.avatar else "",
         "city": prof.city,
         "about": prof.about,
 
@@ -605,15 +605,13 @@ def conversation_with_profile(request, profile_id: int):
     return Response({"ok": True, "conversation_id": conv.id})
 
 
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def profile_avatar(request, profile_id: int):
-    """
-    Отдаёт аватар из Postgres (avatar_blob). Если у тебя blob-колонки нет — просто будет 404.
-    """
+def profile_avatar(request, profile_id):
     profile = get_object_or_404(Profile, id=profile_id)
 
-    if not hasattr(profile, "avatar_blob") or not profile.avatar_blob:
+    if not profile.avatar_blob:
         return HttpResponse(status=404)
 
     content_type = profile.avatar_mime or "image/jpeg"
