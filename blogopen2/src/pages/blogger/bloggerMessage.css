@@ -294,12 +294,14 @@
 }
 
 .msg{
-  height: 100vh;            /* вместо calc(100vh - 74px) */
+  height: 100vh;            
   display: grid;
-  grid-template-columns: 420px 1fr;  /* левый блок шире как в TG */
-  gap: 0;                   /* без зазора между колонками */
-  padding: 0;               /* без внешних отступов */
-  background: #f3f4f6;      /* общий фон как у приложения */
+  grid-template-columns: 420px 1fr;  
+  gap: 0;                   
+  padding: 0;             
+  background: #f3f4f6;      
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 
 
