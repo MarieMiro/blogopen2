@@ -44,13 +44,9 @@
   flex-direction: column;
   gap: 10px; 
     /* 💜 фиолетовый градиент */
-  background: linear-gradient(
-    180deg,
-    #f3efff 0%,
-    #ede8ff 35%,
-    #e6deff 65%,
+  background: 
     #e0d6ff 100%
-  );
+  
 }
 
 /* row wrapper (нужно если ты добавила bubbleRow в разметке) */
