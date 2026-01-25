@@ -36,7 +36,7 @@ export default function BrandLayout() {
         </header>
 
         {/* СТРАНИЦЫ */}
-        <main className="dash__main">
+         <main className="dash__main dash__main--messages">
           <Outlet />
         </main>
       </div>

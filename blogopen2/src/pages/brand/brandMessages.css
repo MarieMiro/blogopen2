@@ -161,16 +161,15 @@
   margin-bottom: 10px;
 }
 
- .msg .msg__title{
+ .msg__title{
   font-weight: 800;
   font-size: 18px; /* чуть крупнее */
 }
 
-.msg .msg__search{
+ .msg__search{
   margin-top: 10px;
 }
-
-.msg .msg__searchInput{
+.msg__searchInput{
   width: 100%;
   height: 40px;
   border-radius: 999px;
