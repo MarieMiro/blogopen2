@@ -35,7 +35,7 @@ export default function BloggerLayout() {
         </header>
 
         {/* СТРАНИЦЫ */}
-        <main className="dash__main">
+        <main className="dash__main dash__main--messages">
           <Outlet />
         </main>
       </div>

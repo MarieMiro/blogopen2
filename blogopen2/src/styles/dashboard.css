@@ -108,3 +108,8 @@
 .dash__logout:hover {
   background: rgba(91, 102, 184, 0.08);
 }
+.dash__main--messages{
+  padding: 0;
+  height: calc(100vh - 56px); /* высота topbar */
+  overflow: hidden;
+}
