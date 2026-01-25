@@ -3,13 +3,12 @@
    ========================= */
 
 .msg .msg__right{
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.7);
+  border: none;
+  background: transparent; /* пусть фон задаёт msg__messages */
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
-
 /* topbar */
 .msg .msg__topbar{
   flex: 0 0 auto;
@@ -142,8 +141,9 @@
 /* LEFT like Telegram */
 
 .msg .msg__left{
-  border: 1px solid rgba(0,0,0,.12);
-  background: rgba(255,255,255,.85);
+  border: none;
+  border-right: 1px solid rgba(0,0,0,.10); /* разделитель как в TG */
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -291,11 +291,12 @@
 }
 
 .msg{
-  height: calc(100vh - 74px);
+  height: 100vh;            /* вместо calc(100vh - 74px) */
   display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 14px;
-  padding: 16px;
+  grid-template-columns: 420px 1fr;  /* левый блок шире как в TG */
+  gap: 0;                   /* без зазора между колонками */
+  padding: 0;               /* без внешних отступов */
+  background: #f3f4f6;      /* общий фон как у приложения */
 }
 
 
