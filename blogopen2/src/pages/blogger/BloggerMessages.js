@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./bloggerMessage.css";
-import chatBg from "../../Assets/chat-bg.jpg"
+
 import { API_BASE } from "../../api";
 
 function fmtTime(iso) {
@@ -255,11 +255,7 @@ const openDialog = (id) => {
   <div className="msg__chat">
     <div
   className="msg__messages"
-  ref={listRef}
-  style={{
-    backgroundImage: `url(${chatBg})`,
-  }}
->
+  ref={listRef}>
       {loadingChat ? (
         <div className="msg__muted">Загрузка сообщений…</div>
       ) : !activeId ? (

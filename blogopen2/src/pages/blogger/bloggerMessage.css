@@ -43,10 +43,14 @@
   display: flex;
   flex-direction: column;
   gap: 10px; 
-   /* === ФОН ЧАТА === */
-   background-repeat: repeat;
-  background-size: auto;
-  background-position: center;
+    /* 💜 фиолетовый градиент */
+  background: linear-gradient(
+    180deg,
+    #f3efff 0%,
+    #ede8ff 35%,
+    #e6deff 65%,
+    #e0d6ff 100%
+  );
 }
 
 /* row wrapper (нужно если ты добавила bubbleRow в разметке) */
@@ -95,8 +99,7 @@
   text-align: right;
 }
 
-/* если ты НЕ добавляла bubbleRow, а пузыри стоят прямо в msg__messages,
-   тогда оставь align-self, чтобы выравнивались */
+
 .msg .msg__messages > .bubble--mine{ align-self: flex-end; }
 .msg .msg__messages > .bubble--their{ align-self: flex-start; }
 
