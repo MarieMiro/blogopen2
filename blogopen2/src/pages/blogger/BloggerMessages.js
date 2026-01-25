@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./bloggerMessage.css";
-
+import chatBg from "../../Assets/chat-bg.jpg"
 import { API_BASE } from "../../api";
 
 function fmtTime(iso) {
@@ -188,12 +188,12 @@ const openDialog = (id) => {
 
   return (
     <div className="msg">
-      {/* LEFT */}
+     
      {/* LEFT */}
 <section className="msg__left">
   <div className="msg__leftHead">
     <div className="msg__leftTop">
-      <div className="msg__title">Диалоги</div>
+      <div className="msg__title">Все чаты</div>
     </div>
 
     <div className="msg__search">
@@ -253,7 +253,13 @@ const openDialog = (id) => {
   </header>
 
   <div className="msg__chat">
-    <div className="msg__messages" ref={listRef}>
+    <div
+  className="msg__messages"
+  ref={listRef}
+  style={{
+    backgroundImage: `url(${chatBg})`,
+  }}
+>
       {loadingChat ? (
         <div className="msg__muted">Загрузка сообщений…</div>
       ) : !activeId ? (

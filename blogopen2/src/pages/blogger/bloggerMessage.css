@@ -42,7 +42,11 @@
   padding: 16px 16px 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px; /* НЕ слипались */
+  gap: 10px; 
+   /* === ФОН ЧАТА === */
+   background-repeat: repeat;
+  background-size: auto;
+  background-position: center;
 }
 
 /* row wrapper (нужно если ты добавила bubbleRow в разметке) */
@@ -293,4 +297,13 @@
   grid-template-columns: 340px 1fr;
   gap: 14px;
   padding: 16px;
+}
+
+
+.msg .bubble {
+  background: rgba(255,255,255,0.92);
+}
+
+.msg .bubble--mine {
+  background: rgba(217,240,255,0.95);
 }

@@ -187,7 +187,7 @@ export default function BrandMessages() {
       <section className="msg__left">
         <div className="msg__leftHead">
           <div className="msg__leftTop">
-            <div className="msg__title">Диалоги</div>
+            <div className="msg__title">Все чаты</div>
           </div>
 
           <div className="msg__search">
