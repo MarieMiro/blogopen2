@@ -285,7 +285,7 @@ export default function BloggerProfile() {
         {/* RIGHT: info */}
         <div className="bp__infoCol">
           
-
+          <h3 className="bp__h3">Личная информация</h3>
           <div className="bp__grid2">
             <label className="field">
               <span className="field__label">Ник</span>
@@ -385,7 +385,7 @@ export default function BloggerProfile() {
                 </a>
               )}
               <div className="muted small">
-                Сейчас сохраняем только первую соцсеть (позже сделаем несколько на бэке).
+              
               </div>
             </div>
           </div>
@@ -428,6 +428,8 @@ export default function BloggerProfile() {
               />
             </label>
           </div>
+
+          <div className="bp__divider"/>
 
           {/* platform-only */}
           <div className="bp__section">

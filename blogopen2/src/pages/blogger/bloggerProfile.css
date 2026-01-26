@@ -276,3 +276,15 @@
   height: 18px;
   transform: none;
 }
+
+.bp__divider{
+  height: 1px;
+  width: 100%;
+  margin: 6px 0 6px;
+  background: linear-gradient(
+    to right,
+    rgba(91,102,184,0)
+    rgba(91,102,184,0.6)
+    rgba(91,102,184, 0)
+  );
+}
