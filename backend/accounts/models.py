@@ -52,6 +52,10 @@ class BloggerProfile(models.Model):
     topic = models.CharField(max_length=200, blank=True, default="")
     formats = models.CharField(max_length=200, blank=True, default="")
 
+    topics = models.JSONField(default=list, blank=True)
+
+    formats = models.CharField(max_length=200, blank=True, default="")
+    inn = models.CharField(max_length=20, blank=True, default="")
     # для платформы
     inn = models.CharField(max_length=20, blank=True, default="")
 
@@ -112,3 +116,5 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Msg {self.id} conv={self.conversation_id}"
+
+

@@ -246,6 +246,7 @@ def blogger_profile_get(request):
         "formats": bp.formats,
         "inn": bp.inn,
 
+        "topics": bp.topics or [],
         "progress": progress,
     })
 
@@ -263,6 +264,18 @@ def blogger_profile_update(request):
 
     bp, _ = BloggerProfile.objects.get_or_create(profile=p)
     data = request.data
+
+    topics = data.get("topics")
+    if isinstance(topics, str):
+        # если фронт вдруг прислал строку JSON
+        try:
+            import json
+            topics = json.loads(topics)
+        except Exception:
+            topics = None
+
+    if isinstance(topics, list):
+        bp.topics = topics
 
     avatar = request.FILES.get("avatar")
     if avatar:
@@ -289,6 +302,7 @@ def blogger_profile_update(request):
         "ok": True,
         "avatar_url": get_avatar_url(request, p),
         "progress": progress,
+        "topics": bp.topics or [],
     })
 
 

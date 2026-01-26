@@ -10,14 +10,7 @@ const toAbsUrl = (u) => {
   return `${API_BASE}/${u}`;
 };
 
-const TOPIC_OPTIONS = [
-  "Красота",
-  "Lifestyle",
-  "Еда",
-  "Путешествия",
-  "Образование",
-  "Одежда",
-];
+const TOPIC_OPTIONS = ["Красота", "Lifestyle", "Еда", "Путешествия", "Образование", "Одежда"];
 
 const PLATFORM_OPTIONS = [
   { value: "instagram", label: "Instagram" },
@@ -32,7 +25,7 @@ export default function BloggerProfile() {
     () => ({
       nick: "",
       city: "",
-      gender: "", // "female" | "male" | ""
+      gender: "",
 
       avatarUrl: "",
       avatarFile: null,
@@ -40,15 +33,12 @@ export default function BloggerProfile() {
       followers: "",
       formats: "",
 
-      // соцсети (можно несколько)
       socials: [{ platform: "telegram", url: "" }],
 
-      // тематики (чекбоксы)
       topics: [],
 
       email: "",
       inn: "",
-
       progress: 0,
     }),
     []
@@ -76,25 +66,16 @@ export default function BloggerProfile() {
   const toggleTopic = (label) => {
     setForm((p) => {
       const has = p.topics.includes(label);
-      return {
-        ...p,
-        topics: has ? p.topics.filter((t) => t !== label) : [...p.topics, label],
-      };
+      return { ...p, topics: has ? p.topics.filter((t) => t !== label) : [...p.topics, label] };
     });
   };
 
   const addSocial = () => {
-    setForm((p) => ({
-      ...p,
-      socials: [...p.socials, { platform: "telegram", url: "" }],
-    }));
+    setForm((p) => ({ ...p, socials: [...p.socials, { platform: "telegram", url: "" }] }));
   };
 
   const removeSocial = (idx) => {
-    setForm((p) => ({
-      ...p,
-      socials: p.socials.filter((_, i) => i !== idx),
-    }));
+    setForm((p) => ({ ...p, socials: p.socials.filter((_, i) => i !== idx) }));
   };
 
   const updateSocial = (idx, patch) => {
@@ -106,7 +87,7 @@ export default function BloggerProfile() {
 
   const primarySocial = form.socials?.[0] || { platform: "telegram", url: "" };
 
-  // загрузка профиля
+  // ---- LOAD PROFILE ----
   useEffect(() => {
     let alive = true;
 
@@ -115,39 +96,47 @@ export default function BloggerProfile() {
       setLoading(true);
 
       try {
-        const res = await fetch(`${API_BASE}/api/blogger/profile/`, {
-          credentials: "include",
-        });
-
+        const res = await fetch(`${API_BASE}/api/blogger/profile/`, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
+
         if (!res.ok) {
           if (alive) setError(data.error || "Не удалось загрузить профиль");
           return;
         }
         if (!alive) return;
 
-        const loadedTopic = (data.topic || "").trim();
-        const topicsArr =
-          loadedTopic && loadedTopic.includes(",")
-            ? loadedTopic.split(",").map((x) => x.trim()).filter(Boolean)
-            : loadedTopic
+        // 1) Тематики: сначала пробуем массив data.topics, иначе парсим data.topic строку
+        let topics = [];
+        if (Array.isArray(data.topics)) {
+          topics = data.topics;
+        } else {
+          const loadedTopic = String(data.topic || "").trim();
+          topics =
+            loadedTopic && loadedTopic.includes(",")
+              ? loadedTopic
+                  .split(",")
+                  .map((x) => x.trim())
+                  .filter(Boolean)
+              : loadedTopic
               ? [loadedTopic]
               : [];
+        }
 
+        // 2) Соцсети: пока бэк у тебя хранит одну platform/platform_url — кладём в первую строку
         const loadedPlatform = data.platform || "telegram";
         const loadedUrl = data.platform_url || "";
 
         setForm((p) => ({
           ...p,
           nick: data.nickname || "",
-          city: data.city || "",       // если бэк пока не отдает — останется ""
-          gender: data.gender || "",   // если бэк пока не отдает — останется ""
+          city: data.city || "",
+          gender: data.gender || "",
 
           followers: data.followers ?? "",
           formats: data.formats || "",
 
           socials: [{ platform: loadedPlatform, url: loadedUrl }],
-          topics: topicsArr,
+          topics,
 
           email: data.email || "",
           inn: data.inn || "",
@@ -159,7 +148,7 @@ export default function BloggerProfile() {
         }));
       } catch {
         if (alive) setError("Ошибка соединения с сервером");
-} finally {
+      } finally {
         if (alive) setLoading(false);
       }
     })();
@@ -169,7 +158,7 @@ export default function BloggerProfile() {
     };
   }, []);
 
-  // сохранение профиля
+  // ---- SAVE PROFILE ----
   const onSave = async (e) => {
     e.preventDefault();
     setError("");
@@ -183,14 +172,17 @@ export default function BloggerProfile() {
       fd.append("formats", form.formats);
       fd.append("inn", form.inn);
 
-      // 👇 совместимость с текущим бэком:
+      // совместимость со старым бэком (одна соцсеть)
       fd.append("platform", primarySocial.platform);
       fd.append("platform_url", primarySocial.url);
 
-      // тематики чекбоксами -> строка
-      fd.append("topic", form.topics.join(", "));
+      // ✅ тематики отправляем ДВУМЯ способами:
+      // 1) старое поле topic (строка)
+      fd.append("topic", (form.topics || []).join(", "));
+      // 2) новое поле topics (JSON массив) — если бэк уже умеет, он возьмёт это
+      fd.append("topics", JSON.stringify(form.topics || []));
 
-      // можно отправить и это — если бэк игнорирует, ничего страшного
+      // если на бэке добавишь эти поля — будут сохраняться
       fd.append("city", form.city);
       fd.append("gender", form.gender);
 
@@ -203,7 +195,6 @@ export default function BloggerProfile() {
       });
 
       const data = await res.json().catch(() => ({}));
-
       if (!res.ok) {
         setError(data.error || "Ошибка сохранения");
         return;
@@ -237,55 +228,46 @@ export default function BloggerProfile() {
       )}
 
       <section className="card bp__card">
-        {/* LEFT: photo */}
-        
-  <div className="bp__photoCol">
-    <div className="bp__avatarWrap">
-      {form.avatarUrl ? (
-        <img className="bp__avatar" src={form.avatarUrl} alt="Аватар" />
-      ) : (
-        <div className="bp__avatar bp__avatar--empty">
-          <span>Фото</span>
+        {/* LEFT */}
+        <div className="bp__photoCol">
+          <div className="bp__avatarWrap">
+            {form.avatarUrl ? (
+              <img className="bp__avatar" src={form.avatarUrl} alt="Аватар" />
+            ) : (
+              <div className="bp__avatar bp__avatar--empty">
+                <span>Фото</span>
+              </div>
+            )}
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              onChange={onAvatarChange}
+              style={{ display: "none" }}
+            />
+
+            <button className="btn bp__btn" type="button" onClick={onPickAvatar} disabled={saving}>
+              Загрузить фото
+            </button>
+          </div>
+
+          {/* ✅ под фото */}
+          <div className="bp__sideSummary">
+            <h2 className="bp__sideName">{form.nick?.trim() || "Ник"}</h2>
+            <div className="bp__sideChips">
+              <span className="chip">{form.city?.trim() || "Город"}</span>
+              <span className="chip">
+                {String(form.followers).trim() ? `${form.followers} подписчиков` : "Подписчики"}
+              </span>
+            </div>
+          </div>
         </div>
-      )}
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        onChange={onAvatarChange}
-        style={{ display: "none" }}
-      />
-
-      <button
-        className="btn bp__btn"
-        type="button"
-        onClick={onPickAvatar}
-        disabled={saving}
-      >
-        Загрузить фото
-      </button>
-    </div>
-
-    {/* ✅ ВОТ ЭТО ДОБАВЬ: ник/город/подписчики под фото */}
-    <div className="bp__sideSummary">
-      <h2 className="bp__sideName">{form.nick?.trim() || "Ник"}</h2>
-
-      <div className="bp__sideChips">
-        <span className="chip">{form.city?.trim() || "Город"}</span>
-        <span className="chip">
-          {String(form.followers).trim()
-            ? `${form.followers} подписчиков`
-            : "Подписчики"}
-        </span>
-      </div>
-    </div>
-  </div>
-
-        {/* RIGHT: info */}
+        {/* RIGHT */}
         <div className="bp__infoCol">
-          
           <h3 className="bp__h3">Личная информация</h3>
+
           <div className="bp__grid2">
             <label className="field">
               <span className="field__label">Ник</span>
@@ -344,50 +326,42 @@ export default function BloggerProfile() {
               </button>
             </div>
 
-            <div className="bp__socials">
-              {form.socials.map((s, idx) => (
-                <div className="bp__socialRow" key={idx}>
-                  <select
-                    className="field__input"
-                    value={s.platform}
-                    onChange={(e) => updateSocial(idx, { platform: e.target.value })}
+            {form.socials.map((s, idx) => (
+              <div className="bp__socialRow" key={idx}>
+                <select
+                  className="field__input"
+                  value={s.platform}
+                  onChange={(e) => updateSocial(idx, { platform: e.target.value })}
+                  disabled={saving}
+                >
+                  {PLATFORM_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  className="field__input"
+                  value={s.url}
+                  onChange={(e) => updateSocial(idx, { url: e.target.value })}
+                  placeholder="Ссылка на профиль"
+                  disabled={saving}
+                />
+
+                {form.socials.length > 1 && (
+                  <button
+                    type="button"
+                    className="bp__removeBtn"
+                    onClick={() => removeSocial(idx)}
                     disabled={saving}
+                    aria-label="Удалить соцсеть"
                   >
-                    {PLATFORM_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-
-                  <input
-                    className="field__input"
-                    value={s.url}
-                    onChange={(e) => updateSocial(idx, { url: e.target.value })}
-                    placeholder="Ссылка на профиль"
-                    disabled={saving}
-                  />
-
-                  {form.socials.length > 1 && (
-                    <button
-                      type="button"
-                      className="bp__removeBtn"
-                      onClick={() => removeSocial(idx)}
-                      disabled={saving}
-                      aria-label="Удалить соцсеть"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
-              {!!primarySocial?.url?.trim() && (
-                <a className="bp__link" href={primarySocial.url} target="_blank" rel="noreferrer">
-                  Открыть профиль
-                </a>
-              )}
-              <div className="muted small">
-              
+                    ✕
+                  </button>
+                )}
               </div>
-            </div>
+            ))}
           </div>
 
           {/* topics */}
@@ -397,17 +371,13 @@ export default function BloggerProfile() {
               <div className="muted small">Можно выбрать несколько</div>
             </div>
 
+            {/* Если НЕ хочешь "в боксах" — скажи, я сделаю простой список чекбоксов без карточек */}
             <div className="bp__topics">
               {TOPIC_OPTIONS.map((t) => {
                 const checked = form.topics.includes(t);
                 return (
                   <label key={t} className={`bp__topic ${checked ? "isChecked" : ""}`}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleTopic(t)}
-                      disabled={saving}
-                    />
+                    <input type="checkbox" checked={checked} onChange={() => toggleTopic(t)} disabled={saving} />
                     <span>{t}</span>
                   </label>
                 );
@@ -415,7 +385,6 @@ export default function BloggerProfile() {
             </div>
           </div>
 
-          {/* formats + platform data */}
           <div className="bp__grid2">
             <label className="field field--full">
               <span className="field__label">Форматы</span>
@@ -429,13 +398,13 @@ export default function BloggerProfile() {
             </label>
           </div>
 
-          
+          {/* divider */}
+          <div className="bp__divider" />
 
           {/* platform-only */}
           <div className="bp__section">
             <div className="bp__sectionHead">
-              <div className="bp__divider"/>
-              <h3 className="bp__h3">Для платформы</h3>
+              <h3 className="bp__h3">Информация для платформы</h3>
               <div className="muted small">Не показывается брендам</div>
             </div>
 
