@@ -31,8 +31,7 @@ export default function BrandProfile() {
       inn: "",
       contactPerson: "",
 
-      // старое поле (совместимость)
-      sphere: "",
+      
 
       // новое: массив тематик
       topics: [],
@@ -113,8 +112,7 @@ export default function BrandProfile() {
           inn: data.inn || "",
           contactPerson: data.contact_person || "",
 
-          sphere: data.sphere || "",
-          topics: topicsArr,
+          topics: Array.isArray(data.topics) ? data.topics : [],
 
           avatarUrl: toAbsUrl(data.avatar_url || ""),
           avatarFile: null,
@@ -229,9 +227,11 @@ export default function BrandProfile() {
         </h2>
 
         <div className="bp__sideChips">
-          <span className="chip">{form.city || "Город"}</span>
-          <span className="chip">{form.sphere || "Сфера"}</span>
-        </div>
+  <span className="chip">{form.city || "Город"}</span>
+  <span className="chip">
+    {form.topics?.length ? form.topics.join(", ") : "Тематика"}
+  </span>
+</div>
 
         <p className="bp__sideAbout muted">
           {form.about || "Краткое описание бренда"}
@@ -263,14 +263,29 @@ export default function BrandProfile() {
           />
         </label>
 
-        <label className="field">
-          <span className="field__label">Сфера</span>
+        <div className="bp__section">
+  <div className="bp__sectionHead">
+    <h3 className="bp__h3">Тематика бренда</h3>
+    <div className="muted small">Можно выбрать несколько</div>
+  </div>
+
+  <div className="bp__topics">
+    {TOPIC_OPTIONS.map((t) => {
+      const checked = form.topics.includes(t);
+      return (
+        <label key={t} className={`bp__topic ${checked ? "isChecked" : ""}`}>
           <input
-            className="field__input"
-            value={form.sphere}
-            onChange={(e) => setField("sphere", e.target.value)}
+            type="checkbox"
+            checked={checked}
+            onChange={() => toggleTopic(t)}
+            disabled={saving}
           />
+          <span>{t}</span>
         </label>
+      );
+    })}
+  </div>
+</div>
 
         <label className="field">
           <span className="field__label">Бюджет</span>

@@ -175,7 +175,7 @@ def brand_profile_get(request):
         "city": p.city,
         "about": p.about,
         "avatar_url": get_avatar_url(request, p),
-
+        "topics": bp.topics,
         "brand_name": bp.brand_name,
         "sphere": bp.sphere,
         "budget": bp.budget,
@@ -194,7 +194,12 @@ def brand_profile_update(request):
 
     bp, _ = BrandProfile.objects.get_or_create(profile=p)
     data = request.data
-
+    topics_raw = request.data.get("topics")
+    if topics_raw:
+        try:
+            bp.topics = json.loads(topics_raw)
+        except Exception:
+            bp.topics = []
     # avatar (общий)
     avatar = request.FILES.get("avatar")
     if avatar:
@@ -302,7 +307,7 @@ def blogger_profile_update(request):
         "ok": True,
         "avatar_url": get_avatar_url(request, p),
         "progress": progress,
-        "topics": bp.topics or [],
+        "topics": bp.topics or [],``
     })
 
 
