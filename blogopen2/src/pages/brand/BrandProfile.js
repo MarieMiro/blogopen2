@@ -187,165 +187,148 @@ export default function BrandProfile() {
 
   return (
     <form className="bp" onSubmit={onSave}>
-      <section className="bp__left card">
-        <div className="bp__avatarWrap">
-          {form.avatarUrl ? (
-            <img className="bp__avatar" src={form.avatarUrl} alt="Аватар" />
-          ) : (
-            <div className="bp__avatar bp__avatar--empty">
-              <span>Фото</span>
-            </div>
-          )}
+  {error && (
+    <div className="card bp__error">
+      <p className="small">{error}</p>
+    </div>
+  )}
 
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            onChange={onAvatarChange}
-            style={{ display: "none" }}
-          />
+  <section className="card bp__card">
 
-          <button className="btn bp__btn" type="button" onClick={onPickAvatar} disabled={saving}>
-            Загрузить фото
-          </button>
-        </div>
-
-        <div className="bp__public">
-          <h2 className="bp__title">{form.brandName?.trim() || "Название бренда"}</h2>
-
-          <div className="bp__chips">
-            <span className="chip">{form.city?.trim() || "Город"}</span>
-            <span className="chip">
-              {form.topics.length ? form.topics.join(", ") : (form.sphere?.trim() || "Тематика")}
-            </span>
-          </div>
-
-          <p className="bp__about muted">
-            {form.about?.trim() || "Короткое описание компании — это увидят блогеры в каталоге/профиле."}
-          </p>
-        </div>
-      </section>
-
-      <section className="bp__right">
-        {error && (
-          <div className="card" style={{ borderColor: "rgba(220,20,60,.35)" }}>
-            <p className="small" style={{ color: "crimson", margin: 0 }}>
-              {error}
-            </p>
-          </div>
+    {/* ===== LEFT колонка ===== */}
+    <div className="bp__photoCol">
+      <div className="bp__avatarWrap">
+        {form.avatarUrl ? (
+          <img className="bp__avatar" src={form.avatarUrl} alt="Аватар" />
+        ) : (
+          <div className="bp__avatar bp__avatar--empty">Фото</div>
         )}
 
-        <div className="card bp__block">
-          <div className="bp__blockHead">
-            <h3>Информация для блогера</h3>
-            <p className="muted small">Это будет видно блогерам в твоём профиле.</p>
-          </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          onChange={onAvatarChange}
+          style={{ display: "none" }}
+        />
 
-          <div className="bp__grid">
-            <label className="field">
-              <span className="field__label">Название бренда</span>
-              <input
-                className="field__input"
-                value={form.brandName}
-                onChange={(e) => setField("brandName", e.target.value)}
-                disabled={saving}
-              />
-            </label>
+        <button
+          className="btn bp__btn"
+          type="button"
+          onClick={onPickAvatar}
+          disabled={saving}
+        >
+          Загрузить фото
+        </button>
+      </div>
 
-            <label className="field">
-              <span className="field__label">Город</span>
-              <input
-                className="field__input"
-                value={form.city}
-                onChange={(e) => setField("city", e.target.value)}
-                disabled={saving}
-              />
-            </label>
+      {/* инфа под фото */}
+      <div className="bp__sideSummary">
+        <h2 className="bp__sideName">
+          {form.brandName || "Название бренда"}
+        </h2>
 
-            {/* ✅ Тематики как чекбоксы */}
-            <div className="field field--full">
-              <span className="field__label">Тематики бренда (можно несколько)</span>
-              <div className="bp__topics">
-                {TOPIC_OPTIONS.map((t) => {
-                  const checked = form.topics.includes(t);
-                  return (
-                    <label key={t} className={`bp__topic ${checked ? "isChecked" : ""}`}>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleTopic(t)}
-                        disabled={saving}
-                      />
-                      <span>{t}</span>
-                    </label>
-                  );
-                })}
-              </div>
-              </div>
-
-            <label className="field field--full">
-              <span className="field__label">Описание компании</span>
-              <textarea
-                className="field__input field__textarea"
-                rows={5}
-                value={form.about}
-                onChange={(e) => setField("about", e.target.value)}
-                disabled={saving}
-              />
-            </label>
-
-            <label className="field">
-              <span className="field__label">Бюджет</span>
-              <input
-                className="field__input"
-                value={form.budget}
-                onChange={(e) => setField("budget", e.target.value)}
-                disabled={saving}
-              />
-            </label>
-          </div>
+        <div className="bp__sideChips">
+          <span className="chip">{form.city || "Город"}</span>
+          <span className="chip">{form.sphere || "Сфера"}</span>
         </div>
 
-        <div className="card bp__block">
-          <div className="bp__blockHead">
-            <h3>Личная информация (для платформы)</h3>
-            <p className="muted small">Эти данные не показываются другим пользователям.</p>
-          </div>
+        <p className="bp__sideAbout muted">
+          {form.about || "Краткое описание бренда"}
+        </p>
+      </div>
+    </div>
 
-          <div className="bp__grid">
-            <label className="field">
-              <span className="field__label">Email</span>
-              <input className="field__input" value={form.email} disabled />
-            </label>
+    {/* ===== RIGHT колонка ===== */}
+    <div className="bp__infoCol">
 
-            <label className="field">
-              <span className="field__label">ИНН</span>
-              <input
-                className="field__input"
-                value={form.inn}
-                onChange={(e) => setField("inn", e.target.value)}
-                disabled={saving}
-              />
-            </label>
+      <h3 className="bp__h3">Информация для блогера</h3>
 
-            <label className="field field--full">
-              <span className="field__label">Контактное лицо</span>
-              <input
-                className="field__input"
-                value={form.contactPerson}
-                onChange={(e) => setField("contactPerson", e.target.value)}
-                disabled={saving}
-              />
-            </label>
-          </div>
+      <div className="bp__grid2">
+        <label className="field">
+          <span className="field__label">Название бренда</span>
+          <input
+            className="field__input"
+            value={form.brandName}
+            onChange={(e) => setField("brandName", e.target.value)}
+          />
+        </label>
 
-          <div className="bp__actions">
-            <button className="btn btnPrimary" type="submit" disabled={saving}>
-              {saving ? "Сохранение..." : "Сохранить"}
-            </button>
-          </div>
-        </div>
-      </section>
-    </form>
+        <label className="field">
+          <span className="field__label">Город</span>
+          <input
+            className="field__input"
+            value={form.city}
+            onChange={(e) => setField("city", e.target.value)}
+          />
+        </label>
+
+        <label className="field">
+          <span className="field__label">Сфера</span>
+          <input
+            className="field__input"
+            value={form.sphere}
+            onChange={(e) => setField("sphere", e.target.value)}
+          />
+        </label>
+
+        <label className="field">
+          <span className="field__label">Бюджет</span>
+          <input
+            className="field__input"
+            value={form.budget}
+            onChange={(e) => setField("budget", e.target.value)}
+          />
+        </label>
+
+        <label className="field field--full">
+          <span className="field__label">Описание компании</span>
+          <textarea
+            className="field__input field__textarea"
+            value={form.about}
+            onChange={(e) => setField("about", e.target.value)}
+          />
+        </label>
+      </div>
+
+      {/* разделитель как у блогера */}
+      <div className="bp__divider" />
+
+      <h3 className="bp__h3">Для платформы</h3>
+
+      <div className="bp__grid2">
+        <label className="field">
+          <span className="field__label">Email</span>
+          <input className="field__input" value={form.email} disabled />
+        </label>
+
+        <label className="field">
+          <span className="field__label">ИНН</span>
+          <input
+            className="field__input"
+            value={form.inn}
+            onChange={(e) => setField("inn", e.target.value)}
+          />
+        </label>
+
+        <label className="field field--full">
+          <span className="field__label">Контактное лицо</span>
+          <input
+            className="field__input"
+            value={form.contactPerson}
+            onChange={(e) => setField("contactPerson", e.target.value)}
+          />
+        </label>
+      </div>
+
+      {/* КНОПКА СОХРАНИТЬ */}
+      <div className="bp__actions">
+        <button className="btn btnPrimary" type="submit" disabled={saving}>
+          {saving ? "Сохранение..." : "Сохранить"}
+        </button>
+      </div>
+    </div>
+    </section>
+</form>
   );
 }
