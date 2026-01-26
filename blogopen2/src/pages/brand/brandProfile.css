@@ -1,150 +1,159 @@
-.bp {
+.bp{
+  padding: 24px;
+  max-width: 1100px;
+}
+
+/* общий one-card layout */
+.bp__card{
   display: grid;
   grid-template-columns: 320px 1fr;
-  gap: 20px;
+  gap: 22px;
+  padding: 18px;
   align-items: start;
 }
 
-.card {
-  background: rgba(255,255,255,0.7);
-  border: 1px solid rgba(0,0,0,0.06);
-  border-radius: 16px;
-  padding: 16px;
-  backdrop-filter: blur(10px);
+/* left */
+.bp__photoCol{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.bp__left {
-  position: sticky;
-  top: 88px; 
-}
-
-.bp__avatarWrap {
+.bp__avatarWrap{
   display: grid;
-  gap: 10px;
-  justify-items: start;
+  gap: 12px;
 }
 
-.bp__avatar {
+.bp__avatar{
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 16px;
   object-fit: cover;
-  overflow: hidden;
-  background: rgba(0,0,0,0.06);
+  border-radius: 14px;
+  background: rgba(0,0,0,.04);
+  border: 1px solid rgba(0,0,0,.08);
 }
 
-.bp__avatar--empty {
+.bp__avatar--empty{
   display: grid;
   place-items: center;
-  color: rgba(0,0,0,0.45);
-  font-weight: 600;
+  color: rgba(0,0,0,.5);
 }
 
-.bp__btn {
+.bp__btn{
   width: 100%;
+  border-radius: 12px;
 }
 
-.bp__public {
-  margin-top: 14px;
+/* summary under photo */
+.bp__sideSummary{
+  display: grid;
+  gap: 10px;
 }
 
-.bp__title {
-  margin: 0 0 10px;
-  font-size: 20px;
+.bp__sideName{
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
 }
 
-.bp__chips {
+.bp__sideChips{
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
 }
 
-.chip {
+.chip{
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.06);
+  background: rgba(91,102,184,.10);
+  border: 1px solid rgba(91,102,184,.18);
   font-size: 12px;
 }
 
-.bp__about {
+.bp__sideAbout{
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
-.bp__right {
-  display: grid;
+/* right */
+.bp__infoCol{
+  display: flex;
+  flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
-.bp__blockHead h3 {
+.bp__section{
+  display: grid;
+  gap: 10px;
+}
+
+.bp__sectionHead{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bp__h3{
   margin: 0;
   font-size: 16px;
+  font-weight: 800;
 }
 
-.bp__blockHead .small {
-  margin: 6px 0 0;
-}
-
-.bp__grid {
+/* form grid */
+.bp__grid2{
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 14px;
 }
 
-.field {
+.field--full{ grid-column: 1 / -1; }
+
+.field{
   display: grid;
   gap: 6px;
 }
 
-.field--full {
-  grid-column: 1 / -1;
-}
-
-.field__label {
+.field__label{
+  display: block;
   font-size: 12px;
-  opacity: 0.75;
+  opacity: .75;
 }
 
-.field__input {
+.field__input{
   width: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.10);
   padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.85);
   outline: none;
-  background: rgba(255,255,255,0.8);
 }
 
-.field__input:focus {
-  border-color: rgba(80, 120, 255, 0.45);
-  box-shadow: 0 0 0 4px rgba(80, 120, 255, 0.12);
-}
-
-.field__textarea {
+.field__textarea{
   resize: vertical;
   min-height: 110px;
 }
 
-.bp__actions {
+/* divider like blogger */
+.bp__divider{
+  height: 1px;
+  background: rgba(91,102,184,.35);
+  margin: 6px 0;
+}
+
+/* actions */
+.bp__actions{
   display: flex;
   justify-content: flex-end;
-  margin-top: 12px;
+  padding-top: 6px;
 }
 
-
-@media (max-width: 980px) {
-  .bp {
-    grid-template-columns: 1fr;
-  }
-  .bp__left {
-    position: static;
-  }
-  .bp__grid {
-    grid-template-columns: 1fr;
-  }
+/* responsive */
+@media (max-width: 900px){
+  .bp__card{ grid-template-columns: 1fr; }
+  .bp__grid2{ grid-template-columns: 1fr; }
 }
-
 
 /* =========================
    TOPICS (brand)
