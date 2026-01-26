@@ -237,30 +237,49 @@ export default function BloggerProfile() {
       )}
 
       <section className="card bp__card">
-        {/* LEFT: photo */}
-        <div className="bp__photoCol">
-          <div className="bp__avatarWrap">
-            {form.avatarUrl ? (
-              <img className="bp__avatar" src={form.avatarUrl} alt="Аватар" />
-            ) : (
-              <div className="bp__avatar bp__avatar--empty">
-                <span>Фото</span>
-              </div>
-            )}
-
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              onChange={onAvatarChange}
-              style={{ display: "none" }}
-            />
-
-            <button className="btn bp__btn" type="button" onClick={onPickAvatar} disabled={saving}>
-              Загрузить фото
-            </button>
-          </div>
+        {/* LEFT: photo + summary */}
+  <div className="bp__photoCol">
+    <div className="bp__avatarWrap">
+      {form.avatarUrl ? (
+        <img className="bp__avatar" src={form.avatarUrl} alt="Аватар" />
+      ) : (
+        <div className="bp__avatar bp__avatar--empty">
+          <span>Фото</span>
         </div>
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        onChange={onAvatarChange}
+        style={{ display: "none" }}
+      />
+
+      <button
+        className="btn bp__btn"
+        type="button"
+        onClick={onPickAvatar}
+        disabled={saving}
+      >
+        Загрузить фото
+      </button>
+    </div>
+
+   
+    <div className="bp__sideSummary">
+      <h2 className="bp__sideName">{form.nick?.trim() || "Ник"}</h2>
+
+      <div className="bp__sideChips">
+        <span className="chip">{form.city?.trim() || "Город"}</span>
+        <span className="chip">
+          {String(form.followers).trim()
+            ? `${form.followers} подписчиков`
+            : "Подписчики"}
+        </span>
+      </div>
+    </div>
+  </div>
 
         {/* RIGHT: info */}
         <div className="bp__infoCol">
@@ -373,7 +392,7 @@ export default function BloggerProfile() {
                 </a>
               )}
               <div className="muted small">
-                Сейчас сохраняем только первую соцсеть (позже сделаем несколько на бэке).
+               
               </div>
             </div>
           </div>
