@@ -144,3 +144,52 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================
+   TOPICS (brand)
+   ========================= */
+
+.bp__topics{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.bp__topic{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.65);
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+}
+
+.bp__topic input{
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.bp__topic.isChecked{
+  border-color: rgba(91, 102, 184, 0.45);
+  background: rgba(91, 102, 184, 0.12);
+}
+
+/* чтобы sticky корректно работал и не "вылезал" */
+.bp__left{
+  max-height: calc(100vh - 100px);
+  overflow: auto;
+}
+
+/* scrollbar аккуратнее (не обязательно) */
+.bp__left::-webkit-scrollbar{ width: 8px; }
+.bp__left::-webkit-scrollbar-thumb{
+  background: rgba(0,0,0,.12);
+  border-radius: 999px;
+}

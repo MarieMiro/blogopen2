@@ -4,21 +4,39 @@ import { API_BASE } from "../../api";
 
 const toAbsUrl = (u) => {
   if (!u) return "";
+  if (u.startsWith("blob:")) return u;
   if (u.startsWith("http://") || u.startsWith("https://")) return u;
-  return `${API_BASE}${u}`; // /media/... -> https://<backend>/media/...
+  if (u.startsWith("/")) return `${API_BASE}${u}`;
+  return `${API_BASE}/${u}`;
 };
+
+// Тематики бренда (можно поменять список)
+const TOPIC_OPTIONS = [
+  "Красота",
+  "Lifestyle",
+  "Еда",
+  "Путешествия",
+  "Образование",
+  "Одежда",
+];
 
 export default function BrandProfile() {
   const initial = useMemo(
     () => ({
       brandName: "",
       city: "",
-      sphere: "",
       about: "",
       budget: "",
       email: "",
       inn: "",
       contactPerson: "",
+
+      // старое поле (совместимость)
+      sphere: "",
+
+      // новое: массив тематик
+      topics: [],
+
       avatarUrl: "",
       avatarFile: null,
     }),
@@ -34,13 +52,22 @@ export default function BrandProfile() {
 
   const setField = (name, value) => setForm((p) => ({ ...p, [name]: value }));
 
+  const toggleTopic = (label) => {
+    setForm((p) => {
+      const has = p.topics.includes(label);
+      return {
+        ...p,
+        topics: has ? p.topics.filter((t) => t !== label) : [...p.topics, label],
+      };
+    });
+  };
+
   const onPickAvatar = () => fileRef.current?.click();
 
   const onAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // локальный превью-URL (после сохранения заменим на URL с бэка)
+    e.target.value = "";
     const url = URL.createObjectURL(file);
     setForm((p) => ({ ...p, avatarUrl: url, avatarFile: file }));
   };
@@ -64,20 +91,32 @@ export default function BrandProfile() {
           if (alive) setError(data.error || "Не удалось загрузить профиль");
           return;
         }
-
         if (!alive) return;
+
+        // 1) пробуем взять массив topics с бэка (если уже появится)
+        let topicsArr = [];
+        if (Array.isArray(data.topics)) {
+          topicsArr = data.topics.filter(Boolean);
+        } else {
+          // 2) иначе парсим sphere как строку "A, B, C"
+          const s = String(data.sphere || "").trim();
+          if (s) topicsArr = s.split(",").map((x) => x.trim()).filter(Boolean);
+        }
 
         setForm((p) => ({
           ...p,
           brandName: data.brand_name || "",
           city: data.city || "",
-          sphere: data.sphere || "",
           about: data.about || "",
           budget: data.budget || "",
           email: data.email || "",
           inn: data.inn || "",
           contactPerson: data.contact_person || "",
-          avatarUrl: toAbsUrl(data.avatar_url),
+
+          sphere: data.sphere || "",
+          topics: topicsArr,
+
+          avatarUrl: toAbsUrl(data.avatar_url || ""),
           avatarFile: null,
         }));
       } catch {
@@ -100,16 +139,22 @@ export default function BrandProfile() {
 
     try {
       const fd = new FormData();
+
       fd.append("brand_name", form.brandName);
       fd.append("city", form.city);
-      fd.append("sphere", form.sphere);
       fd.append("about", form.about);
       fd.append("budget", form.budget);
       fd.append("inn", form.inn);
       fd.append("contact_person", form.contactPerson);
 
-      if (form.avatarFile) fd.append("avatar", form.avatarFile);
+      // ✅ совместимость со старым бэком: sphere как строка
+      const sphereStr = form.topics.join(", ");
+      fd.append("sphere", sphereStr);
 
+      // ✅ на будущее (если бэк начнет принимать JSONField)
+      fd.append("topics", JSON.stringify(form.topics));
+
+      if (form.avatarFile) fd.append("avatar", form.avatarFile);
       const res = await fetch(`${API_BASE}/api/brand/profile/update/`, {
         method: "POST",
         credentials: "include",
@@ -123,9 +168,9 @@ export default function BrandProfile() {
         return;
       }
 
-      // важно: после сохранения ставим URL с бэка (абсолютный)
       setForm((p) => ({
         ...p,
+        sphere: sphereStr,
         avatarUrl: data.avatar_url ? toAbsUrl(data.avatar_url) : p.avatarUrl,
         avatarFile: null,
       }));
@@ -160,12 +205,7 @@ export default function BrandProfile() {
             style={{ display: "none" }}
           />
 
-          <button
-            className="btn bp__btn"
-            type="button"
-            onClick={onPickAvatar}
-            disabled={saving}
-          >
+          <button className="btn bp__btn" type="button" onClick={onPickAvatar} disabled={saving}>
             Загрузить фото
           </button>
         </div>
@@ -175,12 +215,13 @@ export default function BrandProfile() {
 
           <div className="bp__chips">
             <span className="chip">{form.city?.trim() || "Город"}</span>
-            <span className="chip">{form.sphere?.trim() || "Сфера"}</span>
+            <span className="chip">
+              {form.topics.length ? form.topics.join(", ") : (form.sphere?.trim() || "Тематика")}
+            </span>
           </div>
 
           <p className="bp__about muted">
-            {form.about?.trim() ||
-              "Короткое описание компании — это увидят блогеры в каталоге/профиле."}
+            {form.about?.trim() || "Короткое описание компании — это увидят блогеры в каталоге/профиле."}
           </p>
         </div>
       </section>
@@ -188,7 +229,9 @@ export default function BrandProfile() {
       <section className="bp__right">
         {error && (
           <div className="card" style={{ borderColor: "rgba(220,20,60,.35)" }}>
-            <p className="small" style={{ color: "crimson", margin: 0 }}>{error}</p>
+            <p className="small" style={{ color: "crimson", margin: 0 }}>
+              {error}
+            </p>
           </div>
         )}
 
@@ -219,15 +262,26 @@ export default function BrandProfile() {
               />
             </label>
 
-            <label className="field">
-              <span className="field__label">Сфера</span>
-              <input
-                className="field__input"
-                value={form.sphere}
-                onChange={(e) => setField("sphere", e.target.value)}
-                disabled={saving}
-              />
-            </label>
+            {/* ✅ Тематики как чекбоксы */}
+            <div className="field field--full">
+              <span className="field__label">Тематики бренда (можно несколько)</span>
+              <div className="bp__topics">
+                {TOPIC_OPTIONS.map((t) => {
+                  const checked = form.topics.includes(t);
+                  return (
+                    <label key={t} className={`bp__topic ${checked ? "isChecked" : ""}`}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleTopic(t)}
+                        disabled={saving}
+                      />
+                      <span>{t}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              </div>
 
             <label className="field field--full">
               <span className="field__label">Описание компании</span>
