@@ -1,92 +1,27 @@
-.bp {
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 18px;
-  align-items: start;
-}
-
-.bp__left { padding: 18px; display: grid; gap: 14px; }
-.bp__right { display: grid; gap: 18px; }
-
-.bp__avatarWrap { display: grid; gap: 10px; justify-items: start; }
-.bp__avatar {
-  width: 320px; height: 340px;
-  border-radius: 18px;
-  object-fit: cover;
-  border: 1px solid rgba(255,255,255,.12);
-}
-.bp__avatar--empty {
-  display: grid; place-items: center;
-  background: rgba(255,255,255,.06);
-}
-
-.bp__btn { padding: 8px 12px; border-radius: 10px; }
-
-.bp__title { margin: 0 0 8px; font-size: 22px; }
-.bp__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-
-.bp__about { margin: 0; }
-
-.bp__link {
-  display: inline-block;
-  margin-top: 10px;
-  text-decoration: none;
-  opacity: .9;
-}
-.bp__link:hover { opacity: 1; text-decoration: underline; }
-
-.bp__block { padding: 16px; }
-.bp__blockHead h3 { margin: 0; }
-.bp__blockHead p { margin: 6px 0 0; }
-
-.bp__grid {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.field--full { grid-column: 1 / -1; }
-
-.field__label { display: block; font-size: 12px; opacity: .75; margin-bottom: 6px; }
-
-.field__input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.04);
-  color: inherit;
-}
-
-.bp__actions { margin-top: 14px; display: flex; justify-content: flex-end; }
-
-.bp__progress {
-  padding: 14px;
-  border: 1px solid rgba(255,255,255,.10);
-}
-
-.bp__progressHead { display: grid; gap: 6px; margin-bottom: 10px; }
-
-.bar {
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.08);
-  overflow: hidden;
-}
-
-.bar__fill {
-  height: 100%;
-  border-radius: 999px;
-  background: rgba(80, 160, 255, .9);
-}
-
+/* =========================
+   BLOGGER PROFILE (NEW)
+   ========================= */
 
 .bp{
   padding: 24px;
   max-width: 1100px;
+  margin: 0 auto;
+  display: block; /* важно: НЕ grid, т.к. теперь сетка внутри bp__card */
 }
 
+/* если у тебя есть общий .card — можно не трогать.
+   но на всякий случай сделаем мягко */
+.card{
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 16px;
+}
+
+.bp__error{
+  margin-bottom: 14px;
+}
+
+/* основной блок: фото + инфо */
 .bp__card{
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -95,6 +30,7 @@
   align-items: start;
 }
 
+/* LEFT */
 .bp__photoCol{
   display: flex;
   flex-direction: column;
@@ -108,19 +44,25 @@
 
 .bp__avatar{
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1 / 1; /* квадрат как в примере */
   object-fit: cover;
   border-radius: 14px;
   background: rgba(0,0,0,.04);
   border: 1px solid rgba(0,0,0,.08);
 }
 
-.bp__avatar--empty{
+.bp__avatar.bp__avatar--empty{
   display: grid;
   place-items: center;
-  color: rgba(0,0,0,.5);
+  color: rgba(0,0,0,.55);
 }
 
+.bp__btn{
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+/* RIGHT */
 .bp__infoCol{
   display: flex;
   flex-direction: column;
@@ -145,6 +87,20 @@
   flex-wrap: wrap;
 }
 
+/* chips (если у тебя уже есть .chip — можешь убрать) */
+.chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(91,102,184,.10);
+  border: 1px solid rgba(91,102,184,.22);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* grid for inputs */
 .bp__grid2{
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -155,6 +111,29 @@
   grid-column: 1 / -1;
 }
 
+.field__label{
+  display: block;
+  font-size: 12px;
+  opacity: .72;
+  margin-bottom: 6px;
+}
+
+.field__input{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.96);
+  color: inherit;
+  outline: none;
+}
+
+.field__input:focus{
+  border-color: rgba(91,102,184,.45);
+  box-shadow: 0 0 0 3px rgba(91,102,184,.12);
+}
+
+/* sections */
 .bp__section{
   display: grid;
   gap: 10px;
@@ -173,17 +152,23 @@
   font-weight: 800;
 }
 
+/* socials */
 .bp__addBtn{
   border: none;
   background: transparent;
   color: #5B66B8;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   padding: 6px 8px;
   border-radius: 8px;
 }
 .bp__addBtn:hover{
   background: rgba(91,102,184,.08);
+}
+
+.bp__socials{
+  display: grid;
+  gap: 10px;
 }
 
 .bp__socialRow{
@@ -194,26 +179,30 @@
 }
 
 .bp__removeBtn{
-  height: 40px;
+  height: 42px;
   width: 36px;
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,.12);
-  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.10);
+  background: rgba(255,255,255,.96);
   cursor: pointer;
 }
 .bp__removeBtn:hover{
   background: rgba(0,0,0,.03);
 }
 
+/* link */
 .bp__link{
   display: inline-flex;
-  margin-top: 6px;
+  margin-top: 4px;
   color: #5B66B8;
-  font-weight: 700;
+  font-weight: 800;
   text-decoration: none;
 }
-.bp__link:hover{ text-decoration: underline; }
+.bp__link:hover{
+  text-decoration: underline;
+}
 
+/* topics */
 .bp__topics{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -225,17 +214,23 @@
   align-items: center;
   gap: 10px;
   border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.7);
+  background: rgba(255,255,255,.75);
   border-radius: 12px;
   padding: 10px 12px;
   cursor: pointer;
+  user-select: none;
 }
-.bp__topic input{ transform: translateY(1px); }
+
+.bp__topic input{
+  transform: translateY(1px);
+}
+
 .bp__topic.isChecked{
   border-color: rgba(91,102,184,.35);
   background: rgba(91,102,184,.10);
 }
 
+/* actions */
 .bp__actions{
   display: flex;
   justify-content: flex-end;
@@ -244,8 +239,9 @@
 
 /* responsive */
 @media (max-width: 900px){
+  .bp{ padding: 16px; }
   .bp__card{ grid-template-columns: 1fr; }
+  .bp__grid2{ grid-template-columns: 1fr; }
   .bp__socialRow{ grid-template-columns: 1fr; }
   .bp__topics{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .bp__grid2{ grid-template-columns: 1fr; }
 }
