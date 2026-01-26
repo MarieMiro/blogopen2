@@ -159,7 +159,7 @@ export default function BloggerProfile() {
         }));
       } catch {
         if (alive) setError("Ошибка соединения с сервером");
-        } finally {
+} finally {
         if (alive) setLoading(false);
       }
     })();
@@ -237,7 +237,8 @@ export default function BloggerProfile() {
       )}
 
       <section className="card bp__card">
-        {/* LEFT: photo + summary */}
+        {/* LEFT: photo */}
+        
   <div className="bp__photoCol">
     <div className="bp__avatarWrap">
       {form.avatarUrl ? (
@@ -266,7 +267,7 @@ export default function BloggerProfile() {
       </button>
     </div>
 
-   
+    {/* ✅ ВОТ ЭТО ДОБАВЬ: ник/город/подписчики под фото */}
     <div className="bp__sideSummary">
       <h2 className="bp__sideName">{form.nick?.trim() || "Ник"}</h2>
 
@@ -283,15 +284,7 @@ export default function BloggerProfile() {
 
         {/* RIGHT: info */}
         <div className="bp__infoCol">
-          <div className="bp__head">
-            <h2 className="bp__name">{form.nick?.trim() || "Ник"}</h2>
-            <div className="bp__metaLine">
-              <span className="chip">{form.city?.trim() || "Город"}</span>
-              <span className="chip">
-                {String(form.followers).trim() ? `${form.followers} подписчиков` : "Подписчики"}
-              </span>
-            </div>
-          </div>
+          
 
           <div className="bp__grid2">
             <label className="field">
@@ -392,7 +385,7 @@ export default function BloggerProfile() {
                 </a>
               )}
               <div className="muted small">
-               
+                Сейчас сохраняем только первую соцсеть (позже сделаем несколько на бэке).
               </div>
             </div>
           </div>
