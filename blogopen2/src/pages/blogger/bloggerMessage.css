@@ -3,11 +3,15 @@
    ========================= */
 
 .msg .msg__right{
+  min-height: 0;
+  height: 100%;
+  position: sticky;
+  align-self: start; 
   border: none;
   background: transparent; /* пусть фон задаёт msg__messages */
   display: flex;
   flex-direction: column;
-  min-height: 0;
+ 
 }
 /* topbar */
 .msg .msg__topbar{
@@ -104,6 +108,8 @@
 
 .msg .msg__composer{
   flex: 0 0 auto;
+  position: sticky;
+  z-index: 2;
   display: flex;
   gap: 10px;
   padding: 12px 16px;
@@ -141,12 +147,15 @@
 /* LEFT like Telegram */
 
 .msg .msg__left{
+  min-height: 0;
+  height: 100%;
+  overflow: hidden; 
   border: none;
   border-right: 1px solid rgba(0,0,0,.10); /* разделитель как в TG */
   background: #ffffff;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+ 
 }
 
 .msg .msg__leftHead{
@@ -192,6 +201,7 @@
 
 .msg .msgList{
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 6px;
 }
@@ -294,11 +304,12 @@
 }
 
 .msg{
-  height: 100vh;            
+   height: calc(100vh - 56px);           
   display: grid;
   grid-template-columns: 420px 1fr;  
   gap: 0;                   
-  padding: 0;             
+  padding: 0;   
+   min-height: 0;           
     background: linear-gradient(
     180deg,
     #f3efff 0%,
@@ -306,7 +317,7 @@
     #e6deff 65%,
     #e0d6ff 100%
   );     
-  gap: 0;
+  
 }
 
 

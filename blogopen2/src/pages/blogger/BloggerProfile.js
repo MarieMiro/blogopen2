@@ -429,11 +429,12 @@ export default function BloggerProfile() {
             </label>
           </div>
 
-          <div className="bp__divider"/>
+          
 
           {/* platform-only */}
           <div className="bp__section">
             <div className="bp__sectionHead">
+              <div className="bp__divider"/>
               <h3 className="bp__h3">Для платформы</h3>
               <div className="muted small">Не показывается брендам</div>
             </div>
