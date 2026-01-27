@@ -383,7 +383,7 @@ def bloggers_list(request):
         bp = getattr(prof, "blogger", None)
         items.append({
             "id": prof.id,
-            "avatar_url": get_avatar_url(request, prof),
+            "avatar_url": prof.avatar.url if prof.avatar else "",
             "city": prof.city,
 
             "nickname": getattr(bp, "nickname", "") if bp else "",
@@ -402,15 +402,31 @@ def bloggers_list(request):
 @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def brands_list(request):
+    # доступ только блогеру
     p = ensure_profile_and_role_models(request.user, role_default="blogger")
     if p.role != "blogger":
         return Response({"error": "Not a blogger"}, status=status.HTTP_403_FORBIDDEN)
 
-    qs = Profile.objects.filter(role="brand").select_related("user", "brand").order_by("id")
+    # ✅ 1) базовый qs
+    qs = Profile.objects.filter(role="brand").select_related("user", "brand")
+
+    # ✅ 2) авто-рекомендация по тематикам блогера
+    blogger_bp, _ = BloggerProfile.objects.get_or_create(profile=p)
+    blogger_topics = blogger_bp.topics or []
+
+    if blogger_topics:
+        topic_q = Q()
+        for t in blogger_topics:
+            if t:
+                topic_q |= Q(brand__topics__contains=[t])
+        if topic_q:
+            qs = qs.filter(topic_q)
+
+    qs = qs.order_by("id")
 
     items = []
     for prof in qs:
-        bp = getattr(prof, "brand", None)
+        bp = getattr(prof, "brand", None)  # BrandProfile
         items.append({
             "id": prof.id,
             "email": prof.user.email,
@@ -422,6 +438,9 @@ def brands_list(request):
 
             "city": prof.city,
             "about": prof.about,
+
+            # (опционально, удобно для отладки/интерфейса)
+            "topics": getattr(bp, "topics", []) if bp else [],
         })
 
     return Response({"ok": True, "results": items})
