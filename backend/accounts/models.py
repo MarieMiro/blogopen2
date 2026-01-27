@@ -36,7 +36,7 @@ class BrandProfile(models.Model):
     budget = models.CharField(max_length=120, blank=True, default="")
     inn = models.CharField(max_length=20, blank=True, default="")
     contact_person = models.CharField(max_length=200, blank=True, default="")
-
+    topics = models.JSONField(default=list, blank=True)
     def __str__(self):
         return f"BrandProfile: {self.profile.user.email}"
 
@@ -54,8 +54,7 @@ class BloggerProfile(models.Model):
 
     topics = models.JSONField(default=list, blank=True)
 
-    formats = models.CharField(max_length=200, blank=True, default="")
-    inn = models.CharField(max_length=20, blank=True, default="")
+    
     # для платформы
     inn = models.CharField(max_length=20, blank=True, default="")
 

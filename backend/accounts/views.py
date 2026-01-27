@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404
 
 from .models import Profile, BrandProfile, BloggerProfile, Conversation, Message
 from .auth import CsrfExemptSessionAuthentication
-
+import json
 
 # ---------------- HELPERS ----------------
 
@@ -175,7 +175,10 @@ def brand_profile_get(request):
         "city": p.city,
         "about": p.about,
         "avatar_url": get_avatar_url(request, p),
-        "topics": bp.topics,
+
+        # ✅ важно
+        "topics": bp.topics or [],
+
         "brand_name": bp.brand_name,
         "sphere": bp.sphere,
         "budget": bp.budget,
@@ -194,25 +197,32 @@ def brand_profile_update(request):
 
     bp, _ = BrandProfile.objects.get_or_create(profile=p)
     data = request.data
-    topics_raw = request.data.get("topics")
-    if topics_raw:
+
+    # -------- topics (JSONField) --------
+    topics = data.get("topics")
+    if isinstance(topics, str):
+        # если фронт прислал строку JSON
         try:
-            bp.topics = json.loads(topics_raw)
+            topics = json.loads(topics)
         except Exception:
-            bp.topics = []
-    # avatar (общий)
+            topics = None
+
+    if isinstance(topics, list):
+        bp.topics = topics
+
+    # -------- avatar --------
     avatar = request.FILES.get("avatar")
     if avatar:
         save_avatar_to_profile(p, avatar)
 
-    # общие
+    # -------- общие поля Profile --------
     p.city = data.get("city", p.city)
     p.about = data.get("about", p.about)
     p.save()
 
-    # брендовые
+    # -------- поля BrandProfile --------
     bp.brand_name = data.get("brand_name", bp.brand_name)
-    bp.sphere = data.get("sphere", bp.sphere)
+    
     bp.budget = data.get("budget", bp.budget)
     bp.inn = data.get("inn", bp.inn)
     bp.contact_person = data.get("contact_person", bp.contact_person)
@@ -221,8 +231,8 @@ def brand_profile_update(request):
     return Response({
         "ok": True,
         "avatar_url": get_avatar_url(request, p),
+        "topics": bp.topics or [],
     })
-
 
 # ---------------- BLOGGER PROFILE ----------------
 
