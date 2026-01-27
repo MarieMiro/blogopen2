@@ -307,7 +307,7 @@ def blogger_profile_update(request):
         "ok": True,
         "avatar_url": get_avatar_url(request, p),
         "progress": progress,
-        "topics": bp.topics or [],``
+        "topics": bp.topics or [],
     })
 
 
