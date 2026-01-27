@@ -333,6 +333,11 @@ def bloggers_list(request):
     
     brand_bp, _ = BrandProfile.objects.get_or_create(profile=p)
     brand_topics = brand_bp.topics or []
+    
+    return Response({
+        "debug_brand_topics": brand_topics,
+        "debug_type":str(type(brand_topics)),
+    })
     qs = Profile.objects.filter(role="blogger").select_related("user", "blogger")
     if brand_topics:
         topics_q = Q()
