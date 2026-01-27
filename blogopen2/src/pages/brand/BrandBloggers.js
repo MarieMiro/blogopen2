@@ -47,7 +47,7 @@ export default function BrandBloggers() {
 
   const [error, setError] = useState("");
   const [openingChatId, setOpeningChatId] = useState(null);
-
+  const [mode, setMode] = useState("rec");
   const setField = (name, value) => setFilters((p) => ({ ...p, [name]: value }));
 
   const resetFilters = () =>
@@ -75,7 +75,7 @@ export default function BrandBloggers() {
         setError("");
         setLoading(true);
 
-        const url = `${API_BASE}/api/bloggers/${queryString ? `?${queryString}` : ""}`;
+        const url = `${API_BASE}/api/bloggers/${mode === "all" ? "?mode=all" : ""}`;
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
 
@@ -95,7 +95,7 @@ export default function BrandBloggers() {
     return () => {
       alive = false;
     };
-  }, [queryString]);
+  }, [queryString, mode]);
 
   // Открыть/создать диалог и перейти в Messages
   const openChat = async (profileId) => {
@@ -207,6 +207,24 @@ map((p) => (
       </div>
 
       {error && <div className="bb__error">{error}</div>}
+
+      <div className="bbTabs">
+  <button
+    type="button"
+    className={`bbTab ${mode === "rec" ? "isActive" : ""}`}
+    onClick={() => setMode("rec")}
+  >
+    Рекомендации
+  </button>
+
+  <button
+    type="button"
+    className={`bbTab ${mode === "all" ? "isActive" : ""}`}
+    onClick={() => setMode("all")}
+  >
+    Все блогеры
+  </button>
+</div>
 
       {loading ? (
         <div className="bb__loading">Загрузка…</div>

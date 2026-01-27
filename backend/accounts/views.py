@@ -331,7 +331,7 @@ def bloggers_list(request):
     p = ensure_profile_and_role_models(request.user, role_default="brand")
     if p.role != "brand":
         return Response({"error": "Not a brand"}, status=status.HTTP_403_FORBIDDEN)
-
+    mode = (request.GET.get("mode") or "").strip()  
     # --- query params ---
     city = (request.GET.get("city") or "").strip()
     platform = (request.GET.get("platform") or "").strip()
@@ -346,7 +346,7 @@ def bloggers_list(request):
     brand_bp, _ = BrandProfile.objects.get_or_create(profile=p)
     brand_topics = brand_bp.topics or []
 
-    if brand_topics:
+    if mode != "all" and brand_topics:
         topic_q = Q()
         for t in brand_topics:
             if t:

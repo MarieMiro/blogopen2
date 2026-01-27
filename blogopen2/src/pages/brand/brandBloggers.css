@@ -214,3 +214,24 @@
 .bbBtn:disabled {
   opacity: .5;
 }
+
+.bbTabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.bbTab{
+  border:none;
+  background: transparent;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  opacity: .65;
+}
+
+.bbTab.isActive{
+  background: rgba(91, 102, 184, .12);
+  opacity: 1;
+}
