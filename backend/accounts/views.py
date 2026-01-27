@@ -334,16 +334,12 @@ def bloggers_list(request):
     brand_bp, _ = BrandProfile.objects.get_or_create(profile=p)
     brand_topics = brand_bp.topics or []
     
-    return Response({
-        "debug_brand_topics": brand_topics,
-        "debug_type":str(type(brand_topics)),
-    })
-    qs = Profile.objects.filter(role="blogger").select_related("user", "blogger")
+    
     if brand_topics:
-        topics_q = Q()
+        topic_q = Q()
         for t in brand_topics:
-            topics_q |= Q(blogger__topics__contains=[t])
-        qs = qs.filter(topics_q)
+            topic_q |= Q(blogger__topics__contains=[t])
+        qs = qs.filter(topic_q)
 
     city = (request.GET.get("city") or "").strip()
     platform = (request.GET.get("platform") or "").strip()
