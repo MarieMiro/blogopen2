@@ -407,20 +407,21 @@ def brands_list(request):
     if p.role != "blogger":
         return Response({"error": "Not a blogger"}, status=status.HTTP_403_FORBIDDEN)
 
+    mode = (request.GET.get("mode") or "").strip()  # "" | "all"
+
     # ✅ 1) базовый qs
     qs = Profile.objects.filter(role="brand").select_related("user", "brand")
 
-    # ✅ 2) авто-рекомендация по тематикам блогера
+    # ✅ 2) авто-рекомендация по тематикам блогера (ТОЛЬКО если не mode=all)
     blogger_bp, _ = BloggerProfile.objects.get_or_create(profile=p)
     blogger_topics = blogger_bp.topics or []
 
-    if blogger_topics:
+    if mode != "all" and blogger_topics:
         topic_q = Q()
         for t in blogger_topics:
             if t:
                 topic_q |= Q(brand__topics__contains=[t])
-        if topic_q:
-            qs = qs.filter(topic_q)
+        qs = qs.filter(topic_q)
 
     qs = qs.order_by("id")
 
@@ -430,7 +431,7 @@ def brands_list(request):
         items.append({
             "id": prof.id,
             "email": prof.user.email,
-            "avatar_url": prof.avatar.url if prof.avatar else "",
+            "avatar_url": get_avatar_url(request, prof),
 
             "brand_name": getattr(bp, "brand_name", "") if bp else "",
             "sphere": getattr(bp, "sphere", "") if bp else "",
@@ -439,8 +440,8 @@ def brands_list(request):
             "city": prof.city,
             "about": prof.about,
 
-            # (опционально, удобно для отладки/интерфейса)
-            "topics": getattr(bp, "topics", []) if bp else [],
+           
+            "topics": (getattr(bp, "topics", None) or []) if bp else [],
         })
 
     return Response({"ok": True, "results": items})
