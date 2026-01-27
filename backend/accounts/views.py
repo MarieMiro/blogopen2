@@ -327,32 +327,40 @@ def blogger_profile_update(request):
 @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def bloggers_list(request):
+    # доступ только бренду
     p = ensure_profile_and_role_models(request.user, role_default="brand")
     if p.role != "brand":
         return Response({"error": "Not a brand"}, status=status.HTTP_403_FORBIDDEN)
-    
-    brand_bp, _ = BrandProfile.objects.get_or_create(profile=p)
-    brand_topics = brand_bp.topics or []
-    
-    
-    if brand_topics:
-        topic_q = Q()
-        for t in brand_topics:
-            topic_q |= Q(blogger__topics__contains=[t])
-        qs = qs.filter(topic_q)
 
+    # --- query params ---
     city = (request.GET.get("city") or "").strip()
     platform = (request.GET.get("platform") or "").strip()
     topic = (request.GET.get("topic") or "").strip()
     followers_min = (request.GET.get("followers_min") or "").strip()
     followers_max = (request.GET.get("followers_max") or "").strip()
 
+    # ✅ 1) СНАЧАЛА создаём qs
     qs = Profile.objects.filter(role="blogger").select_related("user", "blogger")
 
+    # ✅ 2) авто-рекомендация по тематикам бренда (если у бренда есть topics)
+    brand_bp, _ = BrandProfile.objects.get_or_create(profile=p)
+    brand_topics = brand_bp.topics or []
+
+    if brand_topics:
+        topic_q = Q()
+        for t in brand_topics:
+            if t:
+                topic_q |= Q(blogger__topics__contains=[t])
+        if topic_q:
+            qs = qs.filter(topic_q)
+
+    # ✅ 3) дальше твои ручные фильтры
     if city:
         qs = qs.filter(city__iexact=city)
+
     if platform:
         qs = qs.filter(blogger__platform__iexact=platform)
+
     if topic:
         qs = qs.filter(blogger__topic__icontains=topic)
 
@@ -375,7 +383,7 @@ def bloggers_list(request):
         bp = getattr(prof, "blogger", None)
         items.append({
             "id": prof.id,
-            "avatar_url": prof.avatar.url if prof.avatar else "",
+            "avatar_url": get_avatar_url(request, prof),
             "city": prof.city,
 
             "nickname": getattr(bp, "nickname", "") if bp else "",
@@ -384,6 +392,7 @@ def bloggers_list(request):
             "followers": getattr(bp, "followers", 0) if bp else 0,
             "topic": getattr(bp, "topic", "") if bp else "",
             "formats": getattr(bp, "formats", "") if bp else "",
+            "topics": getattr(bp, "topics", []) if bp else [],
         })
 
     return Response({"ok": True, "results": items})
