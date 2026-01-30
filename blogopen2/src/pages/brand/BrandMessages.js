@@ -130,7 +130,7 @@ export default function BrandMessages() {
     loadMessages(activeId, aliveFlag);
 
     if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = setInterval(() => loadMessages(activeId, aliveFlag), 2500);
+    pollRef.current = setInterval(() => loadMessages(activeId, aliveFlag), 10000);
 
     return () => {
       aliveFlag.alive = false;
