@@ -35,7 +35,7 @@ export default function BloggerMessages() {
   const isAtBottomRef = useRef(true);
 
   const pollMessagesRef = useRef(null);
-  const pollDialogsRef = useRef(null);
+  
   const lastMsgKeyRef = useRef("");
 
   const [q, setQ] = useState("");
@@ -58,71 +58,48 @@ export default function BloggerMessages() {
   // 1) ДИАЛОГИ: initial + polling 20s (pause on hidden)
   // =========================
   useEffect(() => {
-    let alive = true;
+  let alive = true;
 
-    const loadDialogs = async () => {
-      try {
-        setError("");
-        setLoadingDialogs(true);
+  const loadDialogs = async () => {
+    try {
+      setError("");
+      setLoadingDialogs(true);
 
-        const res = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
-        const data = await res.json().catch(() => ({}));
+      const res = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
+      const data = await res.json().catch(() => ({}));
 
-        if (!res.ok) {
-          if (alive) setError(data.error || "Не удалось загрузить диалоги");
-          return;
-        }
-
-        if (!alive) return;
-
-        const results = data.results || [];
-        setDialogs(results);
-
-        // если пришли с convId — откроем его один раз
-        if (preferredConvId) {
-          setActiveId(preferredConvId);
-          return;
-        }
-
-        // если диалог не выбран — выберем первый
-        if (!activeId && results.length) {
-          setActiveId(results[0].id);
-        }
-      } catch {
-        if (alive) setError("Ошибка соединения с сервером");
-      } finally {
-        if (alive) setLoadingDialogs(false);
+      if (!res.ok) {
+        if (alive) setError(data.error || "Не удалось загрузить диалоги");
+        return;
       }
-    };
+      if (!alive) return;
 
-    // старт
-    loadDialogs();
+      const results = data.results || [];
+      setDialogs(results);
 
-    const startPolling = () => {
-      if (pollDialogsRef.current) clearInterval(pollDialogsRef.current);
-      pollDialogsRef.current = setInterval(loadDialogs, 20000);
-    };
-    startPolling();
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        if (pollDialogsRef.current) clearInterval(pollDialogsRef.current);
-      } else {
-        loadDialogs();
-        startPolling();
+      // открыть convId один раз (если пришли из "Открыть чат")
+      if (preferredConvId) {
+        setActiveId(preferredConvId);
+        return;
       }
-    };
 
-    document.addEventListener("visibilitychange", onVisibilityChange);
+      // если активный диалог ещё не выбран — выберем первый
+      setActiveId((prev) => (prev ? prev : (results[0]?.id ?? null)));
+    } catch {
+      if (alive) setError("Ошибка соединения с сервером");
+    } finally {
+      if (alive) setLoadingDialogs(false);
+    }
+  };
 
-    return () => {
-      alive = false;
-      if (pollDialogsRef.current) clearInterval(pollDialogsRef.current);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-    // preferredConvId специально НЕ в deps, чтобы не пересоздавать polling
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  loadDialogs();
+
+  return () => {
+    alive = false;
+  };
+  // preferredConvId специально не добавляем, чтобы не перезагружать диалоги
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   // =========================
   // 2) СООБЩЕНИЯ: initial + polling 10s (pause on hidden)
