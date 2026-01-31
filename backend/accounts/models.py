@@ -24,6 +24,16 @@ class Profile(models.Model):
     city = models.CharField(max_length=120, blank=True, default="")
     about = models.TextField(blank=True, default="")
 
+    GENDER_CHOICES = (
+        ("", "—"),
+        ("female", "female"),
+        ("male", "male"),
+    )
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, default="")
+
+    def __str__(self):
+        return f"{self.user.email} ({self.role})"
+
     def __str__(self):
         return f"{self.user.email} ({self.role})"
 
