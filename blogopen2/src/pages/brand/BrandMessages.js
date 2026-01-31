@@ -17,6 +17,34 @@ function dialogAvatarUrl(d) {
   return d?.other?.avatar_url || d?.avatar_url || "";
 }
 
+// ✅ проверка: пользователь почти внизу?
+function isNearBottom(el, px = 120) {
+  if (!el) return true;
+  const { scrollTop, scrollHeight, clientHeight } = el;
+  return scrollHeight - (scrollTop + clientHeight) <= px;
+}
+
+// ✅ шаблон для бренда
+function buildBrandTemplate(activeDialog) {
+  const name = activeDialog ? dialogName(activeDialog) : "";
+  return `Привет${name ? `, ${name}` : ""}! 👋
+
+Я пишу с платформы BlogOpen. Хочу предложить сотрудничество.
+
+Коротко о задаче:
+— продукт/услуга: ________
+— формат: ________
+— сроки: ________
+— бюджет: ________
+
+Если интересно — подскажи, пожалуйста:
+1) прайс/условия
+2) свободные даты
+3) куда удобнее прислать ТЗ
+
+Спасибо!`;
+}
+
 export default function BrandMessages() {
   const location = useLocation();
 
@@ -30,10 +58,18 @@ export default function BrandMessages() {
   const [loadingChat, setLoadingChat] = useState(false);
   const [error, setError] = useState("");
 
-  const listRef = useRef(null);
-  const pollRef = useRef(null);
-
   const [q, setQ] = useState("");
+
+  const listRef = useRef(null);
+
+  // ✅ refs для “умного” polling/скролла
+  const pollRef = useRef(null);
+  const isAtBottomRef = useRef(true);
+  const lastMsgKeyRef = useRef("");
+
+  // ✅ чтобы шаблон вставлялся один раз на диалог
+  const didPrefillRef = useRef(false);
+
   const preferredConvId = location.state?.convId ?? null;
 
   const filteredDialogs = useMemo(() => {
@@ -42,10 +78,14 @@ export default function BrandMessages() {
     return dialogs.filter((d) => dialogName(d).toLowerCase().includes(s));
   }, [q, dialogs]);
 
-  // ✅ ВАЖНО: openDialog должен быть вне useEffect
   const openDialog = (id) => setActiveId(id);
 
-  // 1) загрузка списка диалогов
+  const activeDialog = useMemo(
+    () => dialogs.find((d) => d.id === activeId) || null,
+    [dialogs, activeId]
+  );
+
+  // ✅ 1) ДИАЛОГИ — загружаем один раз (без polling)
   useEffect(() => {
     let alive = true;
 
@@ -86,59 +126,101 @@ export default function BrandMessages() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const activeDialog = useMemo(
-    () => dialogs.find((d) => d.id === activeId) || null,
-    [dialogs, activeId]
-  );
+  // ✅ 1.5) при смене диалога разрешаем снова вставить шаблон
+  useEffect(() => {
+    didPrefillRef.current = false;
+  }, [activeId]);
 
-  // 2) загрузка сообщений + polling
-  const loadMessages = async (convId, aliveFlag = { alive: true }) => {
-    try {
-      setError("");
-      setLoadingChat(true);
+  // ✅ 1.6) вставляем шаблон (один раз), если поле пустое
+  useEffect(() => {
+    if (!activeId || !activeDialog) return;
+    if (didPrefillRef.current) return;
 
-      const res = await fetch(`${API_BASE}/api/chat/${convId}/messages/`, {
-        credentials: "include",
-      });
-      const data = await res.json().catch(() => ({}));
+    setText((prev) => {
+      if (prev && prev.trim().length > 0) return prev;
+      return buildBrandTemplate(activeDialog);
+    });
 
-      if (!res.ok) {
-        if (aliveFlag.alive) setError(data.error || "Не удалось загрузить сообщения");
-        return;
-      }
+    didPrefillRef.current = true;
+  }, [activeId, activeDialog]);
 
-      const results = data.results || data.messages || [];
-      if (!aliveFlag.alive) return;
-
-      setMessages(results);
-
-      requestAnimationFrame(() => {
-        if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
-      });
-    } catch {
-      if (aliveFlag.alive) setError("Ошибка соединения с сервером");
-    } finally {
-      if (aliveFlag.alive) setLoadingChat(false);
-    }
-  };
-
+  // ✅ 2) MESSAGES + polling 10 сек + пауза на hidden + без “прыжков” скролла
   useEffect(() => {
     if (!activeId) return;
 
-    const aliveFlag = { alive: true };
+    let alive = true;
+    lastMsgKeyRef.current = "";
 
-    loadMessages(activeId, aliveFlag);
+    const load = async () => {
+      try {
+        setError("");
+        setLoadingChat(true);
 
-    if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = setInterval(() => loadMessages(activeId, aliveFlag), 10000);
+        const res = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
+          credentials: "include",
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          if (alive) setError(data.error || "Не удалось загрузить сообщения");
+          return;
+        }
+
+        const results = data.messages || data.results || [];
+        if (!alive) return;
+
+        // ✅ обновляем state только если реально изменилось последнее сообщение
+        const last = results.length ? results[results.length - 1] : null;
+        const key = last ? `${last.id}_${last.created_at}` : `empty_${results.length}`;
+        if (key === lastMsgKeyRef.current) return;
+        lastMsgKeyRef.current = key;
+
+        setMessages(results);
+
+        requestAnimationFrame(() => {
+          const el = listRef.current;
+          if (!el) return;
+
+          // автоскролл только если пользователь внизу
+          if (isAtBottomRef.current) {
+            el.scrollTop = el.scrollHeight;
+          }
+        });
+      } catch {
+        if (alive) setError("Ошибка соединения с сервером");
+      } finally {
+        if (alive) setLoadingChat(false);
+      }
+    };
+
+    // стартовая загрузка
+    load();
+
+    const startPolling = () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      pollRef.current = setInterval(load, 10000); // ✅ 10 секунд
+    };
+    startPolling();
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        if (pollRef.current) clearInterval(pollRef.current);
+      } else {
+        load();
+        startPolling();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
-      aliveFlag.alive = false;
+      alive = false;
       if (pollRef.current) clearInterval(pollRef.current);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [activeId]);
 
-  // 3) отправка сообщения
+  // ✅ 3) отправка сообщения
   const onSend = async (e) => {
     e.preventDefault();
 
@@ -153,7 +235,8 @@ export default function BrandMessages() {
     setText("");
 
     requestAnimationFrame(() => {
-      if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+      const el = listRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
     });
 
     try {
@@ -170,9 +253,14 @@ export default function BrandMessages() {
         return;
       }
 
-      await loadMessages(activeId, { alive: true });
+      // сразу обновим сообщения
+      const r2 = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
+        credentials: "include",
+      });
+      const d2 = await r2.json().catch(() => ({}));
+      if (r2.ok) setMessages(d2.messages || d2.results || []);
 
-      // обновляем список диалогов (последнее сообщение/время)
+      // обновим список диалогов (последнее сообщение/время)
       const rChat = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
       const dChat = await rChat.json().catch(() => ({}));
       if (rChat.ok) setDialogs(dChat.results || []);
@@ -203,7 +291,7 @@ export default function BrandMessages() {
         <div className="msgList">
           {loadingDialogs ? (
             <div className="msg__muted">Загрузка диалогов…</div>
-          ) : filteredDialogs.length === 0 ? (
+            ) : filteredDialogs.length === 0 ? (
             <div className="msg__muted">Ничего не найдено</div>
           ) : (
             filteredDialogs.map((d) => {
@@ -229,7 +317,6 @@ export default function BrandMessages() {
                       <div className="msgItem__time">{fmtTime(d.last_message_at)}</div>
                     </div>
 
-                    {/* ✅ Вернули превью, но БЕЗ счётчика */}
                     <div className="msgItem__bottom">
                       <div className="msgItem__preview">{d.last_message || "Без сообщений"}</div>
                     </div>
@@ -250,7 +337,15 @@ export default function BrandMessages() {
         </header>
 
         <div className="msg__chat">
-          <div className="msg__messages" ref={listRef}>
+          <div
+            className="msg__messages"
+            ref={listRef}
+            onScroll={() => {
+              const el = listRef.current;
+              if (!el) return;
+              isAtBottomRef.current = isNearBottom(el, 120);
+            }}
+          >
             {loadingChat ? (
               <div className="msg__muted">Загрузка сообщений…</div>
             ) : !activeId ? (
