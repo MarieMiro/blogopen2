@@ -252,6 +252,8 @@ def blogger_profile_get(request):
         "email": request.user.email,
 
         "avatar_url": get_avatar_url(request, p),
+        "city": p.city,
+        "gender": p.gender,
 
         "nickname": bp.nickname,
         "platform": bp.platform,
@@ -279,6 +281,9 @@ def blogger_profile_update(request):
 
     bp, _ = BloggerProfile.objects.get_or_create(profile=p)
     data = request.data
+    p.gender = data.get("gender", p.gender) or ""
+    p.city = data.get("city", p.city) or ""   # если хочешь сохранять город тоже
+    p.save()
 
     topics = data.get("topics")
     if isinstance(topics, str):
