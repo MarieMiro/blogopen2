@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./bloggerMessage.css";
-
 import { API_BASE } from "../../api";
 
 function fmtTime(iso) {
@@ -20,15 +19,15 @@ function dialogAvatarUrl(d) {
 
 function buildBloggerTemplate(activeDialog) {
   const name = activeDialog ? dialogName(activeDialog) : "";
-  return `Привет${name ? `, ${name}` : ""}! 👋
+  return `Привет${name ?` , ${name}` : ""}! 👋
 
 Я пишу с платформы BlogOpen. Хочу предложить сотрудничество.
 
 Коротко о задаче:
-— продукт/услуга: ________
-— формат: ________
-— сроки: ________
-— бюджет: ________
+— продукт/услуга: ____
+— формат: ____
+— сроки: ____
+— бюджет: ____
 
 Если интересно — подскажи, пожалуйста:
 1) прайс/условия
@@ -37,7 +36,6 @@ function buildBloggerTemplate(activeDialog) {
 
 Спасибо!`;
 }
-
 
 export default function BloggerMessages() {
   const location = useLocation();
@@ -54,10 +52,9 @@ export default function BloggerMessages() {
 
   const listRef = useRef(null);
   const isAtBottomRef = useRef(true);
+  const pollRef = useRef(null);
 
-  const pollMessagesRef = useRef(null);
-  
-  const lastMsgKeyRef = useRef("");
+  const didPrefillRef = useRef(false);
 
   const [q, setQ] = useState("");
   const preferredConvId = location.state?.convId ?? null;
@@ -73,61 +70,61 @@ export default function BloggerMessages() {
     [dialogs, activeId]
   );
 
-  const openDialog = (id) => setActiveId(id);
+  const openDialog = (id) => {
+    didPrefillRef.current = false; // ✅ разрешаем шаблон заново для нового диалога
+    setActiveId(id);
+  };
 
   // =========================
-  // 1) ДИАЛОГИ: initial + polling 20s (pause on hidden)
+  // 1) ДИАЛОГИ: грузим 1 раз (как ты хотела — статично)
   // =========================
   useEffect(() => {
-  let alive = true;
+    let alive = true;
 
-  const loadDialogs = async () => {
-    try {
-      setError("");
-      setLoadingDialogs(true);
+    (async () => {
+      try {
+        setError("");
+        setLoadingDialogs(true);
 
-      const res = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
-      const data = await res.json().catch(() => ({}));
+        const res = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
-        if (alive) setError(data.error || "Не удалось загрузить диалоги");
-        return;
+        if (!res.ok) {
+          if (alive) setError(data.error || "Не удалось загрузить диалоги");
+          return;
+        }
+
+        const results = data.results || [];
+        if (!alive) return;
+
+        setDialogs(results);
+
+        if (preferredConvId) {
+          setActiveId(preferredConvId);
+          return;
+        }
+
+        if (results.length > 0) {
+          setActiveId((prev) => prev ?? results[0].id);
+        }
+      } catch {
+        if (alive) setError("Ошибка соединения с сервером");
+      } finally {
+        if (alive) setLoadingDialogs(false);
       }
-      if (!alive) return;
+    })();
 
-      const results = data.results || [];
-      setDialogs(results);
-
-      // открыть convId один раз (если пришли из "Открыть чат")
-      if (preferredConvId) {
-        setActiveId(preferredConvId);
-        return;
-      }
-
-      // если активный диалог ещё не выбран — выберем первый
-      setActiveId((prev) => (prev ? prev : (results[0]?.id ?? null)));
-    } catch {
-      if (alive) setError("Ошибка соединения с сервером");
-    } finally {
-      if (alive) setLoadingDialogs(false);
-    }
-  };
-
-  loadDialogs();
-
-  return () => {
-    alive = false;
-  };
-  // preferredConvId специально не добавляем, чтобы не перезагружать диалоги
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // =========================
-  // 2) СООБЩЕНИЯ: initial + polling 10s (pause on hidden)
-  // + не обновлять state, если не изменилось последнее сообщение
-  // + автоскролл только если пользователь внизу
+  // 1.5) ШАБЛОН: подставляем при первом входе в диалог
+  // (не перетираем, если пользователь уже что-то печатает)
   // =========================
-    useEffect(() => {
+  useEffect(() => {
     if (!activeId || !activeDialog) return;
     if (didPrefillRef.current) return;
 
@@ -138,19 +135,21 @@ export default function BloggerMessages() {
 
     didPrefillRef.current = true;
   }, [activeId, activeDialog]);
-  
-  
-  useEffect(() => {
 
+  // =========================
+  // 2) СООБЩЕНИЯ: polling 10s, пауза на hidden
+  // + автоскролл только если пользователь внизу
+  // =========================
+  useEffect(() => {
     if (!activeId) return;
 
     let alive = true;
-    lastMsgKeyRef.current = "";
 
-    const loadMessages = async () => {
+    const load = async () => {
       try {
         setError("");
         setLoadingChat(true);
+
         const res = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
           credentials: "include",
         });
@@ -164,13 +163,6 @@ export default function BloggerMessages() {
         const results = data.messages || data.results || [];
         if (!alive) return;
 
-        // ключ "последнего" сообщения (если не менялся — не трогаем state)
-        const last = results.length ? results[results.length - 1] : null;
-        const key = last ? `${last.id}_${last.created_at}` : `empty_${results.length}`;
-
-        if (key === lastMsgKeyRef.current) return; // ничего нового
-
-        lastMsgKeyRef.current = key;
         setMessages(results);
 
         requestAnimationFrame(() => {
@@ -186,20 +178,20 @@ export default function BloggerMessages() {
       }
     };
 
-    // старт
-    loadMessages();
+    // стартовая загрузка
+    load();
 
     const startPolling = () => {
-      if (pollMessagesRef.current) clearInterval(pollMessagesRef.current);
-      pollMessagesRef.current = setInterval(loadMessages, 10000);
+      if (pollRef.current) clearInterval(pollRef.current);
+      pollRef.current = setInterval(load, 10000);
     };
     startPolling();
 
     const onVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        if (pollMessagesRef.current) clearInterval(pollMessagesRef.current);
+        if (pollRef.current) clearInterval(pollRef.current);
       } else {
-        loadMessages();
+        load();
         startPolling();
       }
     };
@@ -208,7 +200,7 @@ export default function BloggerMessages() {
 
     return () => {
       alive = false;
-      if (pollMessagesRef.current) clearInterval(pollMessagesRef.current);
+      if (pollRef.current) clearInterval(pollRef.current);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [activeId]);
@@ -218,6 +210,7 @@ export default function BloggerMessages() {
   // =========================
   const onSend = async (e) => {
     e.preventDefault();
+
     const t = text.trim();
     if (!t || !activeId) return;
 
@@ -239,25 +232,24 @@ export default function BloggerMessages() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: t }),
       });
-      const data = await res.json().catch(() => ({}));
 
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error || "Не удалось отправить сообщение");
         return;
       }
 
-      // после отправки — сразу дернем сообщения (без ожидания polling)
-      // (можно и не дергать, но так приятнее)
+      // сразу обновим сообщения
       const r2 = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
         credentials: "include",
       });
       const d2 = await r2.json().catch(() => ({}));
-      if (r2.ok) {
-        const results = d2.messages || d2.results || [];
-        setMessages(results);
-        const last = results.length ? results[results.length - 1] : null;
-        lastMsgKeyRef.current = last ? `${last.id}_${last.created_at}` : `empty_${results.length}`;
-      }
+      if (r2.ok) setMessages(d2.messages || d2.results || []);
+
+      // и обновим диалоги (последнее сообщение/время)
+      const rChat = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
+      const dChat = await rChat.json().catch(() => ({}));
+      if (rChat.ok) setDialogs(dChat.results || []);
     } catch {
       setError("Ошибка соединения с сервером");
     }
@@ -309,6 +301,10 @@ export default function BloggerMessages() {
                     <div className="msgItem__top">
                       <div className="msgItem__name">{dialogName(d)}</div>
                       <div className="msgItem__time">{fmtTime(d.last_message_at)}</div>
+                    </div>
+
+                    <div className="msgItem__bottom">
+                      <div className="msgItem__preview">{d.last_message || "Без сообщений"}</div>
                     </div>
                   </div>
                 </button>
