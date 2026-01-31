@@ -18,6 +18,27 @@ function dialogAvatarUrl(d) {
   return d?.other?.avatar_url || d?.avatar_url || "";
 }
 
+function buildBloggerTemplate(activeDialog) {
+  const name = activeDialog ? dialogName(activeDialog) : "";
+  return `Привет${name ? `, ${name}` : ""}! 👋
+
+Я пишу с платформы BlogOpen. Хочу предложить сотрудничество.
+
+Коротко о задаче:
+— продукт/услуга: ________
+— формат: ________
+— сроки: ________
+— бюджет: ________
+
+Если интересно — подскажи, пожалуйста:
+1) прайс/условия
+2) свободные даты
+3) куда удобнее прислать ТЗ
+
+Спасибо!`;
+}
+
+
 export default function BloggerMessages() {
   const location = useLocation();
 
@@ -106,7 +127,21 @@ export default function BloggerMessages() {
   // + не обновлять state, если не изменилось последнее сообщение
   // + автоскролл только если пользователь внизу
   // =========================
+    useEffect(() => {
+    if (!activeId || !activeDialog) return;
+    if (didPrefillRef.current) return;
+
+    setText((prev) => {
+      if (prev && prev.trim().length > 0) return prev;
+      return buildBloggerTemplate(activeDialog);
+    });
+
+    didPrefillRef.current = true;
+  }, [activeId, activeDialog]);
+  
+  
   useEffect(() => {
+
     if (!activeId) return;
 
     let alive = true;
