@@ -26,7 +26,6 @@
   font-size: 16px;
 }
 
-/* chat layout: messages (scroll) + composer (bottom) */
 .msg .msg__chat{
   flex: 1;
   min-height: 0;
@@ -332,4 +331,14 @@
 
 .msg .bubble--mine {
   background: rgba(217,240,255,0.95);
+}
+
+
+
+.msg__input--textarea {
+  resize: none;              
+  white-space: pre-wrap;     
+  overflow-wrap: break-word; 
+  word-break: break-word;
+  line-height: 1.3;
 }

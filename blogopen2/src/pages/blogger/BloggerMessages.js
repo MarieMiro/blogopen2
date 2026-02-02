@@ -356,12 +356,13 @@ export default function BloggerMessages() {
           </div>
 
           <form className="msg__composer" onSubmit={onSend}>
-            <input
-              className="msg__input"
+            <textarea
+              className="msg__input msg__input--textarea"
               placeholder={activeId ? "Написать сообщение…" : "Выберите диалог слева"}
               value={text}
               onChange={(e) => setText(e.target.value)}
               disabled={!activeId}
+              rows={2}
             />
             <button className="msg__send" type="submit" disabled={!activeId || !text.trim()}>
               Отправить
