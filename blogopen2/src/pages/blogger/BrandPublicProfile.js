@@ -7,6 +7,29 @@ import { API_BASE } from "../../api";
 export default function BrandPublicProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const onWrite = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/api/chat/with/${id}/`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      alert(data.error || "Не удалось открыть чат");
+      return;
+    }
+
+    navigate("/dashboard/blogger/messages", {
+      state: { convId: data.conversation_id },
+    });
+  } catch {
+    alert("Ошибка соединения с сервером");
+  }
+};
+
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -77,9 +100,13 @@ export default function BrandPublicProfile() {
           )}
         </div>
 
-        <button className="bpp__btn bpp__btn--primary" type="button">
-          Написать
-        </button>
+      <button
+        className="bpp__btn bpp__btn--primary"
+        type="button"
+        onClick={onWrite}
+      >
+        Написать
+      </button>
       </aside>
 
       {/* RIGHT */}
