@@ -509,6 +509,9 @@ def brand_public(request, profile_id: int):
         "sphere": getattr(bp, "sphere", "") if bp else "",
         "budget": getattr(bp, "budget", "") if bp else "",
         "contact_person": getattr(bp, "contact_person", "") if bp else "",
+
+        # ✅ ДОБАВЬ ВОТ ЭТО:
+        "topics": (getattr(bp, "topics", None) or []) if bp else [],
     })
 
 

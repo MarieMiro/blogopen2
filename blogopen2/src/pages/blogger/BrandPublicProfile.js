@@ -25,7 +25,8 @@ export default function BrandPublicProfile() {
         });
 
         const json = await res.json();
-
+        const payload = json?.result ?? json;
+        if (alive) setData(payload);
         if (!res.ok) {
           if (alive) setError(json.error || "Не удалось загрузить бренд");
           return;
