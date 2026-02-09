@@ -34,6 +34,15 @@ const SPHERES = [
   { value: "services", label: "Услуги" },
 ];
 
+const toAbsUrl = (u) => {
+  if (!u) return "";
+  if (u.startsWith("http://") || u.startsWith("https://")) return u;
+  if (u.startsWith("blob:")) return u;
+  if (u.startsWith("/")) return `${API_BASE}${u}`;
+  return `${API_BASE}/${u}`;
+};
+
+
 export default function BloggerBrands() {
   const [filters, setFilters] = useState({
     city: "",
@@ -68,6 +77,7 @@ export default function BloggerBrands() {
     return p.toString();
   }, [filters]);
 
+  
   useEffect(() => {
     let alive = true;
 
@@ -282,7 +292,7 @@ export default function BloggerBrands() {
                 {b.avatar_url ? (
                   <img
                     className="bbCard__photo"
-                    src={`${API_BASE}${b.avatar_url}`}
+                    src={toAbsUrl(b.avatar_url)}
                     alt={b.brand_name || "Brand"}
                   />
                 ) : (
