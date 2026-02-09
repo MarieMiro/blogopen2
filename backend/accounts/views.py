@@ -470,7 +470,7 @@ def blogger_public(request, profile_id: int):
     return Response({
         "ok": True,
         "id": prof.id,
-        "avatar_url": prof.avatar.url if prof.avatar else "",
+        "avatar_url": get_avatar_url(request, prof),
         "city": prof.city,
 
         "nickname": getattr(bp, "nickname", "") if bp else "",
@@ -501,7 +501,7 @@ def brand_public(request, profile_id: int):
     return Response({
         "ok": True,
         "id": prof.id,
-        "avatar_url": prof.avatar.url if prof.avatar else "",
+        "avatar_url":get_avatar_url(request, prof),
         "city": prof.city,
         "about": prof.about,
 
