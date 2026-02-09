@@ -56,66 +56,81 @@ export default function BrandPublicProfile() {
   }
 
   return (
-    <div className="bpp">
-      <button className="bpp__back" onClick={() => navigate(-1)}>
-        ← Назад
-      </button>
+  <div className="bpp">
+    <button className="bpp__back" onClick={() => navigate(-1)}>
+      ← Назад
+    </button>
 
-      <div className="bpp__card">
-        {/* LEFT */}
-        <div className="bpp__left">
-          <div className="bpp__photoWrap">
-            {data.avatar_url ? (
-              <img
-                className="bpp__photo"
-                src={`${API_BASE}${data.avatar_url}`}
-                alt={data.brand_name || "Brand"}
-              />
-            ) : (
-              <div className="bpp__photoEmpty">Лого</div>
-            )}
-          </div>
-
-          <div className="bpp__leftActions">
-            <button className="bpp__btn bpp__btn--primary" type="button">
-              Написать
-            </button>
-          </div>
+    <div className="bpp__layout">
+      {/* LEFT */}
+      <aside className="bpp__left">
+        <div className="bpp__photoWrap">
+          {data.avatar_url ? (
+            <img
+              className="bpp__photo"
+              src={`${API_BASE}${data.avatar_url}`}
+              alt={data.brand_name || "Brand"}
+            />
+          ) : (
+            <div className="bpp__photoEmpty">Лого</div>
+          )}
         </div>
 
-        {/* RIGHT */}
-        <div className="bpp__body">
-          <h1 className="bpp__name">{data.brand_name || "Без названия"}</h1>
+        <button className="bpp__btn bpp__btn--primary" type="button">
+          Написать
+        </button>
+      </aside>
 
-          
-          <div className="bpp__rows">
-            <div className="bpp__row">
-              <div className="bpp__label">Сфера</div>
-              <div className="bpp__value">{data.sphere || "—"}</div>
-            </div>
+      {/* RIGHT */}
+      <main className="bpp__body">
+        <h1 className="bpp__name">{data.brand_name || "Без названия"}</h1>
 
-            <div className="bpp__row">
-              <div className="bpp__label">Город</div>
-              <div className="bpp__value">{data.city || "—"}</div>
-            </div>
+        {/* Чипы сверху */}
+        <div className="bpp__chips">
+          <span className="bpp__chip">{data.city || "Город —"}</span>
+          {Array.isArray(data.topics) && data.topics.length > 0 ? (
+            <span className="bpp__chip">{data.topics.join(" • ")}</span>
+          ) : (
+            <span className="bpp__chip">Тематика —</span>
+          )}
+        </div>
 
-            <div className="bpp__row">
-              <div className="bpp__label">Бюджет</div>
-              <div className="bpp__value">{data.budget || "—"}</div>
-            </div>
+        <div className="bpp__rows">
+          <div className="bpp__row">
+            <div className="bpp__label">Город</div>
+            <div className="bpp__value">{data.city || "—"}</div>
+          </div>
 
-            <div className="bpp__row">
-              <div className="bpp__label">Описание</div>
-              <div className="bpp__value">{data.about || "—"}</div>
-            </div>
-
-            <div className="bpp__row">
-              <div className="bpp__label">Контактное лицо</div>
-              <div className="bpp__value">{data.contact_person || "—"}</div>
+          <div className="bpp__row">
+            <div className="bpp__label">Тематика бренда</div>
+            <div className="bpp__value">
+              {Array.isArray(data.topics) && data.topics.length > 0 ? (
+                <div className="bpp__topics">
+                  {data.topics.map((t) => (
+                    <span className="bpp__topic" key={t}>{t}</span>
+                  ))}
+                </div>
+              ) : "—"}
             </div>
           </div>
+
+          <div className="bpp__row">
+            <div className="bpp__label">Бюджет</div>
+            <div className="bpp__value">{data.budget || "—"}</div>
+          </div>
+
+          <div className="bpp__row">
+            <div className="bpp__label">Описание компании</div>
+            <div className="bpp__value">{data.about || "—"}</div>
+          </div>
+
+          <div className="bpp__row">
+            <div className="bpp__label">Контактное лицо</div>
+            <div className="bpp__value">{data.contact_person || "—"}</div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
-  );
+  </div>
+);
 }
