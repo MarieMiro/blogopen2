@@ -31,6 +31,14 @@ const PLATFORMS = [
   { value: "vk", label: "VK" },
 ];
 
+const toAbsUrl = (u) => {
+  if (!u) return "";
+  if (u.startsWith("http://") || u.startsWith("https://")) return u;
+  if (u.startsWith("blob:")) return u;
+  if (u.startsWith("/")) return `${API_BASE}${u}`;
+  return `${API_BASE}/${u}`;
+};
+
 export default function BrandBloggers() {
   const navigate = useNavigate();
 
@@ -238,7 +246,7 @@ map((p) => (
                 {b.avatar_url ? (
                   <img
                     className="bbCard__photo"
-                    src={`${API_BASE}${b.avatar_url}`}
+                    src={toAbsUrl(b.avatar_url)}
                     alt={b.nickname || "Blogger"}
                   />
                 ) : (
