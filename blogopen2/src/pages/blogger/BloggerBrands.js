@@ -282,7 +282,7 @@ export default function BloggerBrands() {
                 {b.avatar_url ? (
                   <img
                     className="bbCard__photo"
-                    src={`${API_BASE}${b.avatar_url}`}
+                    src={`${API_BASE}${data.avatar_url}`}
                     alt={b.brand_name || "Brand"}
                   />
                 ) : (
