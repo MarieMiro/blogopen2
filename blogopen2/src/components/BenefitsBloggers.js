@@ -1,7 +1,7 @@
 import React from 'react';
 
 import "./BenefitsBloggers.css"
-import blogger1 from "../Assets/blogger.png";
+import blogger1 from "../Assets/blogger1.png";
 import blogger2 from "../Assets/blogger2.png";
 import blogger3 from "../Assets/blogger3.png";
 
