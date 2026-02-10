@@ -36,7 +36,7 @@ a:hover{text-decoration:none}
 
 /* ====== LAYOUT ====== */
 .container{
-  max-width:var(--max);
+  max-width:1200px;
   margin:0 auto;
   padding:0 18px;
 }
