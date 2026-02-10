@@ -1,5 +1,5 @@
 import React from 'react';
-import trust from '../Assets/trust.jpg'
+import trust from '../Assets/trust.png'
 
 const TrustIndex = () => {
   return (

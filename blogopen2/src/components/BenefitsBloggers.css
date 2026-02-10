@@ -1,0 +1,183 @@
+/* =========================
+   BenefitsBloggers — only
+   ========================= */
+
+.benefitsBloggers {
+  /* если общий .section уже задаёт отступы — можно убрать */
+}
+
+.benefitsBloggers__split {
+  align-items: stretch; /* ✅ важно: колонки одинаковой высоты */
+  gap: 32px;
+}
+
+/* -------- LEFT -------- */
+.benefitsContent {
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.benefitsHeader {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.benefitsBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+
+  padding: 6px 14px;
+  border-radius: 999px;
+
+  background: rgba(91, 102, 184, 0.12);
+  border: 1px solid rgba(91, 102, 184, 0.22);
+  color: #5b66b8;
+
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.benefitsTitle {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.benefitsLead {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.benefitsCards {
+  display: grid;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.benefitCard {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  padding: 18px 20px;
+  backdrop-filter: blur(10px);
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.06);
+}
+
+.benefitTitle {
+  margin: 0 0 6px;
+  font-size: 18px; /* ✅ побольше */
+  font-weight: 800;
+}
+
+.benefitDesc {
+  margin: 0;
+  font-size: 15px; /* ✅ побольше */
+  line-height: 1.5;
+}
+
+/* -------- RIGHT (slider) -------- */
+.benefitsMedia {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+
+  min-width: 0; /* ✅ важно для overflow */
+}
+
+.benefitsMedia__track {
+  display: flex;
+  gap: 18px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+
+  /* ✅ высота “как левая часть” визуально */
+  height: 100%;
+  max-height: 420px; /* подгони под свою секцию */
+  padding-bottom: 10px;
+
+  /* чуть приятнее */
+  scrollbar-gutter: stable;
+}
+
+.benefitsMedia__slide {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.benefitsMedia__img {
+  height: 420px; /* ✅ фикс высота скриншота */
+  width: auto;
+  max-width: 640px;
+
+  border-radius: 20px;
+  object-fit: cover;
+  display: block;
+
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.14);
+}
+
+/* hint */
+.benefitsMedia__hint {
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* scrollbar (chrome/edge) */
+.benefitsMedia__track::-webkit-scrollbar {
+  height: 6px;
+}
+.benefitsMedia__track::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+.benefitsMedia__track::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 999px;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+@media (max-width: 980px) {
+  .benefitsBloggers__split {
+    gap: 18px;
+  }
+
+  .benefitsTitle {
+    font-size: 26px;
+  }
+
+  .benefitsMedia {
+    align-items: stretch;
+  }
+
+  .benefitsMedia__track {
+    max-height: 320px;
+  }
+
+  .benefitsMedia__img {
+    height: 320px;
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 640px) {
+  .benefitsMedia__img {
+    max-width: 92vw;
+  }
+}
