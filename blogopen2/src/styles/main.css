@@ -1093,6 +1093,34 @@ label{display:grid; gap:6px; color:var(--muted)}
   margin-bottom: 0.5rem;
 }
 
+
+/* TRUST: убрать общий правый padding контейнера,
+   чтобы картинка могла дойти до края */
+.container.trust {
+  padding-right: 0 !important;
+}
+
+/* текст оставляем "как был", чтобы он не прилип к левому краю */
+.trust__text {
+  padding-right: 32px; /* расстояние между текстом и картинкой */
+}
+
+/* правая колонка занимает всю доступную ширину */
+.trust__image {
+  justify-self: stretch;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* картинка реально тянется до правого края */
+.trust__image img {
+  width: 100%;
+  max-width: none;   /* важно */
+  height: auto;
+  display: block;
+  border-radius: 20px;
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
   .benefit-card.compact {
