@@ -11,11 +11,11 @@
   gap: 36px;
   align-items: center;
 }
+/* ===== LEFT (BenefitsBloggers) ===== */
 
-/* LEFT */
 .bbLeft{
   min-width: 0;
-  max-width: 540px;
+  max-width: 560px;
 }
 
 .bbBadge{
@@ -34,7 +34,7 @@
 .bbTitle{
   margin: 0 0 10px;
   font-size: 42px;
-  line-height: 1.05;
+  line-height: 1.06;
   letter-spacing: -0.02em;
 }
 
@@ -50,29 +50,48 @@
   gap: 14px;
 }
 
+/* карточка */
 .bbCard{
-  padding: 18px 18px;
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 18px;
   border-radius: 18px;
   border: 1px solid rgba(0,0,0,0.06);
   background: rgba(255,255,255,0.58);
   backdrop-filter: blur(10px);
-  width: 100%;
+}
+
+/* на случай глобальных стилей у h3/p */
+.bbCardTitle,
+.bbCardDesc{
+  margin: 0;
   max-width: 100%;
-  box-sizing: border-box;
 }
 
 .bbCardTitle{
-  margin: 0 0 8px;
-  font-size: 20px;        /* ✅ побольше */
+  margin-bottom: 8px;
+  font-size: 20px;     /* ✅ побольше */
   line-height: 1.2;
+  font-weight: 700;
 }
 
 .bbCardDesc{
-  margin: 0;
   color: rgba(0,0,0,0.62);
-  font-size: 15px;        /* ✅ побольше */
+  font-size: 15px;     /* ✅ побольше */
   line-height: 1.45;
 }
+
+/* адаптив */
+@media (max-width: 980px){
+  .bbLeft{
+    max-width: 100%;
+  }
+  .bbTitle{
+    font-size: 34px;
+  }
+}
+
 
 /* RIGHT slider */
 .bbRight{
