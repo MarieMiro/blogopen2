@@ -15,63 +15,90 @@ export default function BenefitsBloggers() {
       },
       {
         title: "Прозрачные требования",
-        description: "Безопасные сделки за счёт чётких ТЗ, сроков и предоплаты.",
+        description:
+          "Безопасные сделки за счёт чётких ТЗ, сроков и предоплаты.",
       },
       {
         title: "Рост профиля",
-        description: "Развивайте профиль благодаря идеальной рекламе.",
+        description:
+          "Развивайте профиль благодаря идеальной рекламе.",
       },
     ],
     []
   );
 
-  
-  const media = useMemo(() => [blogger1, blogger2, blogger3], []);
+  // ✅ Слайды справа (как преза)
+  const slides = useMemo(
+    () => [
+      { src: blogger1, alt: "Скрин 1" },
+      { src: blogger2, alt: "Скрин 2" },
+      { src: blogger3, alt: "Скрин 3" },
+    ],
+    []
+  );
+
+  const [idx, setIdx] = useState(0);
+
+  const next = () => setIdx((p) => (p + 1) % slides.length);
+  const prev = () => setIdx((p) => (p - 1 + slides.length) % slides.length);
 
   return (
-    <section className="section benefitsBloggers" id="benefits-bloggers">
-      <div className="container split split--reverse benefitsBloggers__split">
-        {/* RIGHT: media slider */}
-        <div className="split__media benefitsMedia" aria-label="Скриншоты платформы">
-          <div className="benefitsMedia__track" tabIndex={0}>
-            {media.map((src, i) => (
-              <div className="benefitsMedia__slide" key={i}>
-                <img
-                  className="benefitsMedia__img"
-                  src={src}
-                  alt={`Скриншот ${i + 1}`}
-                  loading="lazy"
-                />
+    <section className="bbSection" id="benefits-bloggers">
+      <div className="bbContainer">
+        {/* LEFT */}
+        <div className="bbLeft">
+          <div className="bbBadge">Для блогеров</div>
+
+          <h2 className="bbTitle">Преимущества для блогеров</h2>
+          <p className="bbLead">
+            Получайте заявки от брендов, работайте прозрачно и монетизируйте блог.
+          </p>
+
+          <div className="bbCards">
+            {benefits.map((b, i) => (
+              <div className="bbCard" key={i}>
+                <h3 className="bbCardTitle">{b.title}</h3>
+                <p className="bbCardDesc">{b.description}</p>
               </div>
             ))}
-          </div>
-
-          <div className="benefitsMedia__hint muted">
-            Листай →
           </div>
         </div>
 
-        {/* LEFT: text + cards */}
-        <div className="split__content benefitsContent">
-          <div className="benefitsHeader">
-            <div className="benefitsBadge">
-              <span>Для блогеров</span>
+        {/* RIGHT (slider) */}
+        <div className="bbRight">
+          <div className="bbSlider">
+            <button
+              type="button"
+              className="bbNav bbNav--prev"
+              onClick={prev}
+              aria-label="Предыдущий слайд"
+            >
+              ‹
+            </button>
+
+            <div className="bbFrame">
+              <img
+                className="bbSlide"
+                src={slides[idx].src}
+                alt={slides[idx].alt}
+                draggable="false"
+              />
             </div>
 
-            <h2 className="benefitsTitle">Преимущества для блогеров</h2>
+            <button
+              type="button"
+              className="bbNav bbNav--next"
+              onClick={next}
+              aria-label="Следующий слайд"
+            >
+              ›
+            </button>
 
-            <p className="benefitsLead muted">
-              Получайте заявки от брендов, работайте прозрачно и монетизируйте блог.
-            </p>
-          </div>
-
-          <div className="benefitsCards">
-            {benefits.map((b, idx) => (
-              <div className="benefitCard" key={idx}>
-                <h3 className="benefitTitle">{b.title}</h3>
-                <p className="benefitDesc muted">{b.description}</p>
-              </div>
-            ))}
+            <div className="bbDots" aria-hidden="true">
+              {slides.map((_, i) => (
+                <span key={i} className={`bbDot ${i === idx ? "isActive" : ""}`} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
