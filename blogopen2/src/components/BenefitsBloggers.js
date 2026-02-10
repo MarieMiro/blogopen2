@@ -1,9 +1,9 @@
 import React from 'react';
-import blogger from '../Assets/bloggers.jpg'
+
 import "./BenefitsBloggers.css"
-import blogger1 from "../../assets/blogger.png";
-import blogger2 from "../../assets/blogger2.png";
-import blogger3 from "../../assets/blogger3.png";
+import blogger1 from "../Assets/blogger.png";
+import blogger2 from "../Assets/blogger2.png";
+import blogger3 from "../Assets/blogger3.png";
 
 export default function BenefitsBloggers() {
   const benefits = useMemo(
@@ -25,7 +25,7 @@ export default function BenefitsBloggers() {
     []
   );
 
-  // ✅ сюда кладёшь 2-5 картинок (можно оставить одну)
+  
   const media = useMemo(() => [blogger1, blogger2, blogger3], []);
 
   return (
