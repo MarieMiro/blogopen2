@@ -36,7 +36,7 @@ a:hover{text-decoration:none}
 
 /* ====== LAYOUT ====== */
 .container{
-  max-width:1200px;
+  max-width:var(--max);
   margin:0 auto;
   padding:0 18px;
 }
@@ -279,6 +279,10 @@ a:hover{text-decoration:none}
   gap:32px;
   align-items:center;
   justify-items:stretch;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .trust__image{
