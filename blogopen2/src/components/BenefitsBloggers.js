@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 
 import "./BenefitsBloggers.css"
 import blogger1 from "../Assets/blogger1.png";
