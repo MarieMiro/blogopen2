@@ -275,22 +275,21 @@ a:hover{text-decoration:none}
 /* TRUST */
 .trust{
   display:grid;
-  grid-template-columns:1.2fr 0.8fr;
-  gap:32px;
+  grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
   align-items:center;
-  justify-items:stretch;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
+
+ }
+ .trust__content {
+  max-width:  640px;
   padding-left: 24px;
-  padding-right: 24px;
-}
+ }
 
 .trust__image{
-  justify-self:end;        
-  display:flex;
-  justify-content:flex-end;  
-  align-items:center;
-  overflow:visible;
+  position: relative;
+  width: 50vw;
+  margin-right: calc(50% - 50vw);
+  display: flex;
+  justify-content: flex-end;
 }
 
 .trust__image img{
