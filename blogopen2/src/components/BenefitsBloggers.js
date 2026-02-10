@@ -45,25 +45,24 @@ export default function BenefitsBloggers() {
   return (
     <section className="bbSection" id="benefits-bloggers">
       <div className="bbContainer">
-        {/* LEFT */}
-        <div className="bbLeft">
-          <div className="bbBadge">Для блогеров</div>
+       {/* LEFT */}
+<div className="bbLeft">
+  <div className="bbBadge">Для блогеров</div>
 
-          <h2 className="bbTitle">Преимущества для блогеров</h2>
-          <p className="bbLead">
-            Получайте заявки от брендов, работайте прозрачно и монетизируйте блог.
-          </p>
+  <h2 className="bbTitle">Преимущества для блогеров</h2>
+  <p className="bbLead">
+    Получайте заявки от брендов, работайте прозрачно и монетизируйте блог.
+  </p>
 
-          <div className="bbCards">
-            {benefits.map((b, i) => (
-              <div className="bbCard" key={i}>
-                <h3 className="bbCardTitle">{b.title}</h3>
-                <p className="bbCardDesc">{b.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
+  <div className="bbCards">
+    {benefits.map((b) => (
+      <div className="bbCard" key={b.title}>
+        <h3 className="bbCardTitle">{b.title}</h3>
+        <p className="bbCardDesc">{b.description}</p>
+      </div>
+    ))}
+  </div>
+</div>
         {/* RIGHT (slider) */}
         <div className="bbRight">
           <div className="bbSlider">
