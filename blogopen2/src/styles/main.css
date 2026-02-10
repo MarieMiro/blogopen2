@@ -1121,6 +1121,9 @@ label{display:grid; gap:6px; color:var(--muted)}
   border-radius: 20px;
 }
 
+.trust__image { background: rgba(255,0,0,.08); }
+.trust__image img { background: rgba(0,255,0,.08); }
+
 /* Адаптивность */
 @media (max-width: 768px) {
   .benefit-card.compact {
