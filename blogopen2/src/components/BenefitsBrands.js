@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import "./BenefitsBrands.css";
+import "./BenefitsBloggers.css";
 
 import brand1 from "../Assets/brand1.jpg";
 import brand2 from "../Assets/brand2.jpg";
