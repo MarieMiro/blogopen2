@@ -1,8 +1,9 @@
-.bbSection{
+/* ===== Section layout ===== */
+.bbSection {
   padding: 72px 0;
 }
 
-.bbContainer{
+.bbContainer {
   width: min(1120px, calc(100% - 48px));
   margin: 0 auto;
 
@@ -11,179 +12,203 @@
   gap: 36px;
   align-items: center;
 }
-/* ===== LEFT (BenefitsBloggers) ===== */
 
-.bbLeft{
+/* LEFT */
+.bbLeft {
   min-width: 0;
   max-width: 560px;
 }
 
-.bbBadge{
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(91, 102, 184, 0.14);
-  color: #5B66B8;
-  font-weight: 600;
-  font-size: 12px;
-  margin-bottom: 12px;
-}
-
-.bbTitle{
-  margin: 0 0 10px;
+.bbTitle {
+  margin: 0;
   font-size: 42px;
-  line-height: 1.06;
+  line-height: 1.05;
   letter-spacing: -0.02em;
 }
 
-.bbLead{
-  margin: 0 0 22px;
-  color: rgba(0,0,0,0.55);
-  font-size: 16px;
-  line-height: 1.5;
+.bbLead {
+  margin: 12px 0 22px;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 17px; /* ✅ чуть крупнее, чем было */
+  line-height: 1.55;
 }
 
-.bbCards{
-  display: grid;
+/* ===== старый header-бейдж ===== */
+.benefits-header .highlight-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 1rem;
+  margin-bottom: 0.9rem;
+
+  border-radius: 999px;
+  background: rgba(91, 102, 184, 0.14);
+  color: #5b66b8;
+}
+
+.benefits-header .highlight-text {
+  font-size: 0.8rem; /* ✅ чуть крупнее */
+  font-weight: 600;
+}
+
+/* ===== COMPACT BENEFIT CARDS (как раньше, но шрифт крупнее) ===== */
+.benefits-cards {
+  display: flex;
+  flex-direction: column;
   gap: 14px;
+  margin-top: 0;
 }
 
-/* карточка */
-.bbCard{
-  width: 100%;
-  box-sizing: border-box;
-
-  padding: 18px;
+.benefit-card.compact {
+  padding: 18px 18px;              /* ✅ чуть “воздушнее” */
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 18px;
-  border: 1px solid rgba(0,0,0,0.06);
-  background: rgba(255,255,255,0.58);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.58);
   backdrop-filter: blur(10px);
 }
 
-/* на случай глобальных стилей у h3/p */
-.bbCardTitle,
-.bbCardDesc{
+.benefit-card.compact::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+  opacity: 0.7;
+  transition: opacity 0.3s ease, width 0.3s ease;
+}
+
+.benefit-card.compact:hover {
+  transform: translateX(3px);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+}
+
+.benefit-card.compact:hover::before {
+  opacity: 1;
+  width: 4px;
+}
+
+.benefit-title {
+  font-size: 1.15rem; /* ✅ было ~1.05rem */
+  font-weight: 650;
+  margin: 0 0 8px;
+  color: #1a1a1a;
+  line-height: 1.25;
+}
+
+.benefit-desc {
+  font-size: 0.95rem; /* ✅ было ~0.85rem */
+  line-height: 1.55;
+  color: rgba(0, 0, 0, 0.62);
   margin: 0;
-  max-width: 100%;
 }
 
-.bbCardTitle{
-  margin-bottom: 8px;
-  font-size: 20px;     /* ✅ побольше */
-  line-height: 1.2;
-  font-weight: 700;
-}
-
-.bbCardDesc{
-  color: rgba(0,0,0,0.62);
-  font-size: 15px;     /* ✅ побольше */
-  line-height: 1.45;
-}
-
-/* адаптив */
-@media (max-width: 980px){
-  .bbLeft{
-    max-width: 100%;
-  }
-  .bbTitle{
-    font-size: 34px;
-  }
-}
-
-
-/* RIGHT slider */
-.bbRight{
+/* ===== RIGHT slider ===== */
+.bbRight {
   min-width: 0;
   display: flex;
   justify-content: center;
 }
 
-.bbSlider{
+.bbSlider {
   width: 100%;
-  max-width: 520px;
+  max-width: 560px; /* ✅ чтобы визуально было “как левая часть” */
   position: relative;
   display: grid;
   align-items: center;
 }
 
-.bbFrame{
+.bbFrame {
   width: 100%;
-  aspect-ratio: 4 / 3;      /* ✅ “как преза” */
+  aspect-ratio: 4 / 3;
   border-radius: 22px;
-  border: 1px solid rgba(0,0,0,0.06);
-  background: rgba(255,255,255,0.58);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.58);
   backdrop-filter: blur(10px);
   overflow: hidden;
   display: grid;
   place-items: center;
 }
 
-.bbSlide{
+.bbSlide {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-/* стрелки сбоку */
-.bbNav{
+/* arrows */
+.bbNav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(10px);
   cursor: pointer;
   display: grid;
   place-items: center;
   font-size: 26px;
   line-height: 1;
-  color: rgba(0,0,0,0.75);
-  transition: transform .15s, background .15s;
+  color: rgba(0, 0, 0, 0.75);
+  transition: transform 0.15s, background 0.15s;
+  user-select: none;
 }
 
-.bbNav:hover{
-  background: rgba(255,255,255,0.95);
+.bbNav:hover {
+  background: rgba(255, 255, 255, 0.95);
   transform: translateY(-50%) scale(1.03);
 }
 
-.bbNav--prev{ left: -18px; }
-.bbNav--next{ right: -18px; }
+.bbNav--prev {
+  left: -18px;
+}
 
-/* точки */
-.bbDots{
+.bbNav--next {
+  right: -18px;
+}
+
+/* dots */
+.bbDots {
   display: flex;
   gap: 8px;
   justify-content: center;
   margin-top: 12px;
 }
 
-.bbDot{
+.bbDot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
   background: rgba(91, 102, 184, 0.25);
 }
 
-.bbDot.isActive{
+.bbDot.isActive {
   background: rgba(91, 102, 184, 0.85);
   width: 18px;
 }
 
-
-
 /* responsive */
-@media (max-width: 980px){
-  .bbContainer{
+@media (max-width: 980px) {
+  .bbContainer {
     grid-template-columns: 1fr;
     gap: 22px;
   }
-  .bbTitle{ font-size: 34px; }
-  .bbNav--prev{ left: 6px; }
-  .bbNav--next{ right: 6px; }
+  .bbTitle {
+    font-size: 34px;
+  }
+  .bbNav--prev {
+    left: 6px;
+  }
+  .bbNav--next {
+    right: 6px;
+  }
 }

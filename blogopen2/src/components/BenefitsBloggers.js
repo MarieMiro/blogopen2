@@ -1,6 +1,6 @@
-import React, {useMemo, useState} from 'react';
+import React, { useMemo, useState } from "react";
+import "./BenefitsBloggers.css";
 
-import "./BenefitsBloggers.css"
 import blogger1 from "../Assets/blogger1.png";
 import blogger2 from "../Assets/blogger2.png";
 import blogger3 from "../Assets/blogger3.png";
@@ -15,19 +15,16 @@ export default function BenefitsBloggers() {
       },
       {
         title: "Прозрачные требования",
-        description:
-          "Безопасные сделки за счёт чётких ТЗ, сроков и предоплаты.",
+        description: "Безопасные сделки за счёт чётких ТЗ, сроков и предоплаты.",
       },
       {
         title: "Рост профиля",
-        description:
-          "Развивайте профиль благодаря идеальной рекламе.",
+        description: "Развивайте профиль благодаря идеальной рекламе.",
       },
     ],
     []
   );
 
-  // ✅ Слайды справа (как преза)
   const slides = useMemo(
     () => [
       { src: blogger1, alt: "Скрин 1" },
@@ -45,24 +42,30 @@ export default function BenefitsBloggers() {
   return (
     <section className="bbSection" id="benefits-bloggers">
       <div className="bbContainer">
-       {/* LEFT */}
-<div className="bbLeft">
-  <div className="bbBadge">Для блогеров</div>
+        {/* LEFT */}
+        <div className="bbLeft">
+          <div className="benefits-header">
+            <div className="highlight-badge">
+              <span className="highlight-text">Для блогеров</span>
+            </div>
 
-  <h2 className="bbTitle">Преимущества для блогеров</h2>
-  <p className="bbLead">
-    Получайте заявки от брендов, работайте прозрачно и монетизируйте блог.
-  </p>
+            <h2 className="bbTitle">Преимущества для блогеров</h2>
+          </div>
 
-  <div className="bbCards">
-    {benefits.map((b) => (
-      <div className="bbCard" key={b.title}>
-        <h3 className="bbCardTitle">{b.title}</h3>
-        <p className="bbCardDesc">{b.description}</p>
-      </div>
-    ))}
-  </div>
-</div>
+          <p className="bbLead">
+            Получайте заявки от брендов, работайте прозрачно и монетизируйте блог.
+          </p>
+
+          <div className="benefits-cards">
+            {benefits.map((benefit) => (
+              <div className="benefit-card compact" key={benefit.title}>
+                <h3 className="benefit-title">{benefit.title}</h3>
+                <p className="benefit-desc">{benefit.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* RIGHT (slider) */}
         <div className="bbRight">
           <div className="bbSlider">
