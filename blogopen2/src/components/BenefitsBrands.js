@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import "./BenefitsBloggers.css";
+import "./BenefitsBrands.css";
 
 import brand1 from "../Assets/brand1.jpg";
 import brand2 from "../Assets/brand2.jpg";
@@ -24,7 +24,6 @@ export default function BenefitsBrands() {
     []
   );
 
-  // ✅ Слайды справа (как у блогера)
   const slides = useMemo(
     () => [
       { src: brand1, alt: "Скрин 1" },
@@ -43,25 +42,6 @@ export default function BenefitsBrands() {
     <section className="bbSection" id="benefits-brands">
       <div className="bbContainer">
         {/* LEFT (text) */}
-        <div className="bbLeft">
-          <div className="bbBadge">Для брендов</div>
-
-          <h2 className="bbTitle">Преимущества для брендов</h2>
-          <p className="bbLead">
-            Быстрый подбор блогеров, прозрачные условия и контроль результата.
-          </p>
-
-          <div className="bbCards">
-            {benefits.map((b) => (
-              <div className="bbCard" key={b.title}>
-                <h3 className="bbCardTitle">{b.title}</h3>
-                <p className="bbCardDesc">{b.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* RIGHT (slider) */}
         <div className="bbRight">
           <div className="bbSlider">
             <button
@@ -97,8 +77,28 @@ export default function BenefitsBrands() {
               ))}
             </div>
           </div>
-        </div>
       </div>
+      </div>
+        {/* RIGHT (slider) */}
+         <div className="bbLeft">
+          <div className="bbBadge">Для брендов</div>
+
+          <h2 className="bbTitle">Преимущества для брендов</h2>
+          <p className="bbLead">
+            Быстрый подбор блогеров, прозрачные условия и контроль результата.
+          </p>
+
+          <div className="bbCards">
+            {benefits.map((b) => (
+              <div className="bbCard" key={b.title}>
+                <h3 className="bbCardTitle">{b.title}</h3>
+                <p className="bbCardDesc">{b.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+       
+       
     </section>
   );
 }
