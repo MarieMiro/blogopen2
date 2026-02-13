@@ -4,21 +4,23 @@ import "./BenefitsBrands.css";
 import brand1 from "../Assets/brand1.jpg";
 import brand2 from "../Assets/brand2.jpg";
 
-
 export default function BenefitsBrands() {
   const benefits = useMemo(
     () => [
       {
         title: "Быстрый запуск",
-        description: "Быстрая регистрация, подбор блогера и старт рекламной кампании.",
+        description:
+          "Быстрая регистрация, подбор блогера и старт рекламной кампании.",
       },
       {
         title: "Безопасные сделки",
-        description: "Фиксация условий и контроль охватов рекламы в личном кабинете.",
+        description:
+          "Фиксация условий и контроль охватов рекламы в личном кабинете.",
       },
       {
         title: "Максимальная ROI",
-        description: "Оптимизация бюджета по метрикам и детальная аналитика эффективности.",
+        description:
+          "Оптимизация бюджета по метрикам и детальная аналитика эффективности.",
       },
     ],
     []
@@ -28,7 +30,6 @@ export default function BenefitsBrands() {
     () => [
       { src: brand1, alt: "Скрин 1" },
       { src: brand2, alt: "Скрин 2" },
-   
     ],
     []
   );
@@ -41,7 +42,8 @@ export default function BenefitsBrands() {
   return (
     <section className="bbSection" id="benefits-brands">
       <div className="bbContainer">
-        {/* LEFT (text) */}
+
+        {/* LEFT (slider) */}
         <div className="bbRight">
           <div className="bbSlider">
             <button
@@ -71,16 +73,19 @@ export default function BenefitsBrands() {
               ›
             </button>
 
-            <div className="bbDots" aria-hidden="true">
+            <div className="bbDots">
               {slides.map((_, i) => (
-                <span key={i} className={`bbDot ${i === idx ? "isActive" : ""}`} />
+                <span
+                  key={i}
+                  className={`bbDot ${i === idx ? "isActive" : ""}`}
+                />
               ))}
             </div>
           </div>
-      </div>
-      </div>
-        {/* RIGHT (slider) */}
-         <div className="bbLeft">
+        </div>
+
+        {/* RIGHT (text) */}
+        <div className="bbLeft">
           <div className="bbBadge">Для брендов</div>
 
           <h2 className="bbTitle">Преимущества для брендов</h2>
@@ -97,8 +102,8 @@ export default function BenefitsBrands() {
             ))}
           </div>
         </div>
-       
-       
+
+      </div>
     </section>
   );
 }
