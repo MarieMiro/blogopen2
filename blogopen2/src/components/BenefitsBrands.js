@@ -40,12 +40,12 @@ export default function BenefitsBrands() {
   const prev = () => setIdx((p) => (p - 1 + slides.length) % slides.length);
 
   return (
-    <section className="bbSection" id="benefits-brands">
-      <div className="bbContainer">
+    <section className="bbBrandsSection" id="benefits-brands">
+      <div className="bbBrandsContainer">
 
         {/* LEFT (slider) */}
-        <div className="bbLeft">
-          <div className="bbSlider">
+        <div className="bbBrandsLeft">
+          <div className="bbBrandsSlider">
             <button
               type="button"
               className="bbNav bbNav--prev"
@@ -55,7 +55,7 @@ export default function BenefitsBrands() {
               ‹
             </button>
 
-            <div className="bbFrame">
+            <div className="bbBrandsFrame">
               <img
                 className="bbSlide"
                 src={slides[idx].src}
@@ -73,7 +73,7 @@ export default function BenefitsBrands() {
               ›
             </button>
 
-            <div className="bbDots">
+            <div className="bbBrandsDots">
               {slides.map((_, i) => (
                 <span
                   key={i}
@@ -85,16 +85,16 @@ export default function BenefitsBrands() {
         </div>
 
         {/* RIGHT (text) */}
-       <div className="bbLeft">
+       <div className="bbBrandsRight">
           <div className="benefits-header">
             <div className="highlight-badge">
               <span className="highlight-text">Для брендов</span>
             </div>
 
-            <h2 className="bbTitle">Преимущества для брендов</h2>
+            <h2 className="bbBrandsTitle">Преимущества для брендов</h2>
           </div>
 
-          <p className="bbLead">
+          <p className="bbBrandsLead">
              Быстрый подбор блогеров, прозрачные условия и контроль результата.
           </p>
 

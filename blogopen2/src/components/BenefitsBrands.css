@@ -1,9 +1,11 @@
+/* BenefitsBrands.css */
+
 /* ===== Section layout ===== */
-.bbSection {
+.bbBrandsSection {
   padding: 72px 0;
 }
 
-.bbContainer {
+.bbBrandsContainer {
   width: min(1120px, calc(100% - 48px));
   margin: 0 auto;
 
@@ -13,27 +15,34 @@
   align-items: center;
 }
 
-/* LEFT */
-.bbRight{
+/* LEFT (slider) - будет слева */
+.bbBrandsLeft {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* RIGHT (text) - будет справа */
+.bbBrandsRight {
   min-width: 0;
   max-width: 560px;
 }
 
-.bbTitle {
+.bbBrandsTitle {
   margin: 0;
   font-size: 42px;
   line-height: 1.05;
   letter-spacing: -0.02em;
 }
 
-.bbLead {
+.bbBrandsLead {
   margin: 12px 0 22px;
   color: rgba(0, 0, 0, 0.55);
-  font-size: 17px; /* ✅ чуть крупнее, чем было */
+  font-size: 17px;
   line-height: 1.55;
 }
 
-/* ===== старый header-бейдж ===== */
+/* ===== header-badge (общий, можно оставить) ===== */
 .benefits-header .highlight-badge {
   display: inline-flex;
   align-items: center;
@@ -46,11 +55,11 @@
 }
 
 .benefits-header .highlight-text {
-  font-size: 0.8rem; /* ✅ чуть крупнее */
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
-/* ===== COMPACT BENEFIT CARDS (как раньше, но шрифт крупнее) ===== */
+/* ===== COMPACT BENEFIT CARDS (общие) ===== */
 .benefits-cards {
   display: flex;
   flex-direction: column;
@@ -59,7 +68,7 @@
 }
 
 .benefit-card.compact {
-  padding: 18px 18px;              /* ✅ чуть “воздушнее” */
+  padding: 18px 18px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 18px;
   transition: all 0.2s ease;
@@ -94,7 +103,7 @@
 }
 
 .benefit-title {
-  font-size: 1.15rem; /* ✅ было ~1.05rem */
+  font-size: 1.15rem;
   font-weight: 650;
   margin: 0 0 8px;
   color: #1a1a1a;
@@ -102,30 +111,24 @@
 }
 
 .benefit-desc {
-  font-size: 0.95rem; /* ✅ было ~0.85rem */
+  font-size: 0.95rem;
   line-height: 1.55;
   color: rgba(0, 0, 0, 0.62);
   margin: 0;
 }
 
-/* ===== RIGHT slider ===== */
-.bbLeft {
-  min-width: 0;
-  display: flex;
-  justify-content: center;
-}
-
-.bbSlider {
+/* ===== SLIDER STYLES ===== */
+.bbBrandsSlider {
   width: 100%;
-  max-width: 560px; /* ✅ чтобы визуально было “как левая часть” */
+  max-width: 560px;
   position: relative;
   display: grid;
   align-items: center;
 }
 
-.bbFrame {
+.bbBrandsFrame {
   width: 100%;
-  aspect-ratio: 4 / 4,8;
+  aspect-ratio: 4 / 4.8;
   border-radius: 22px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(255, 255, 255, 0.58);
@@ -135,7 +138,7 @@
   place-items: center;
 }
 
-.bbSlide {
+.bbBrandsSlide {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -143,7 +146,7 @@
 }
 
 /* arrows */
-.bbNav {
+.bbBrandsNav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -161,54 +164,59 @@
   color: rgba(0, 0, 0, 0.75);
   transition: transform 0.15s, background 0.15s;
   user-select: none;
+  z-index: 2;
 }
 
-.bbNav:hover {
+.bbBrandsNav:hover {
   background: rgba(255, 255, 255, 0.95);
   transform: translateY(-50%) scale(1.03);
 }
 
-.bbNav--prev {
+.bbBrandsNav--prev {
   left: -18px;
 }
 
-.bbNav--next {
+.bbBrandsNav--next {
   right: -18px;
 }
 
 /* dots */
-.bbDots {
+.bbBrandsDots {
   display: flex;
   gap: 8px;
   justify-content: center;
   margin-top: 12px;
 }
 
-.bbDot {
+.bbBrandsDot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
   background: rgba(91, 102, 184, 0.25);
+  transition: width 0.2s ease;
 }
 
-.bbDot.isActive {
+.bbBrandsDot.isActive {
   background: rgba(91, 102, 184, 0.85);
   width: 18px;
 }
 
-/* responsive */
+/* ===== responsive ===== */
 @media (max-width: 980px) {
-  .bbContainer {
+  .bbBrandsContainer {
     grid-template-columns: 1fr;
     gap: 22px;
   }
-  .bbTitle {
+  
+  .bbBrandsTitle {
     font-size: 34px;
   }
-  .bbNav--prev {
+  
+  .bbBrandsNav--prev {
     left: 6px;
   }
-  .bbNav--next {
+  
+  .bbBrandsNav--next {
     right: 6px;
   }
 }
