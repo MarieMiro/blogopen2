@@ -49,7 +49,7 @@ a:hover{ text-decoration:none; }
   background:#fff;
 }
 
-.grid{ display:grid; gap:16px; }
+.grid{display:grid; gap:16px}
 
 /* =========================================================
    2) UI ELEMENTS
@@ -61,8 +61,9 @@ a:hover{ text-decoration:none; }
   box-shadow:var(--shadow);
 }
 
-.blur{ backdrop-filter: blur(12px); }
-.pad{ padding:24px; }
+.blur{backdrop-filter: blur(12px)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
 
 .btn{
   border:1px solid var(--line);
@@ -82,7 +83,7 @@ a:hover{ text-decoration:none; }
   background:rgba(255,255,255,.92);
 }
 
-/* primary */
+/* Кнопка основная */
 .btnPrimary{
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color:#fff;
@@ -91,32 +92,34 @@ a:hover{ text-decoration:none; }
   font-weight:500;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
 }
-.btnPrimary:hover{ background:var(--header-color-hover); }
+.btnPrimary:hover{
+  background:var(--header-color-hover);
+}
 
-/* header login */
+/* кнопка в шапке "Войти" */
 .btnStart{
   background:rgba(255,255,255,.22);
   color:rgba(10,12,20,.92);
   border:1px solid rgba(255,255,255,.35);
   font-weight:500;
 }
-.btnStart:hover{ background:rgba(255,255,255,.30); }
+.btnStart:hover{
+  background:rgba(255,255,255,.30);
+}
 
-/* badge/kicker */
+
 .kicker{
   display:inline-flex;
   gap:8px;
   color:#000;
   letter-spacing:-0.01em;
-  font-size:16px;
-  font-weight:800;
-  line-height:28px;
+  font-size:16px;      
+  font-weight:800;     
+  line-height:28px;    
   margin-left:0;
 }
 
-/* =========================================================
-   3) NAV
-========================================================= */
+/* ====== NAV ====== */
 .nav{
   position:sticky;
   top:0;
@@ -138,33 +141,22 @@ a:hover{ text-decoration:none; }
   letter-spacing:.02em;
   color:#0a0c14;
   opacity:.95;
-  position:relative;
+  position:relative;   
   left:-10px;
 }
 
-.menu{
-  display:flex;
-  gap:22px;
-  align-items:center;
-}
+/* меню */
+.menu{display:flex; gap:22px; align-items:center}
 .menu a{
   color:rgba(10,12,20,.80);
   font-weight:500;
 }
-.menu a:hover{ color:rgba(10,12,20,.95); }
-
-.nav__actions{
-  display:flex;
-  align-items:center;
-  gap:10px;
+.menu a:hover{
+  color:rgba(10,12,20,.95);
 }
 
-.burger{
-  display:none;
-  background:transparent;
-  border:0;
-  cursor:pointer;
-}
+.nav__actions{display:flex; align-items:center; gap:10px}
+.burger{display:none; background:transparent;border:0;cursor:pointer}
 .burger span{
   display:block;
   width:22px;
@@ -173,6 +165,7 @@ a:hover{ text-decoration:none; }
   margin:5px 0;
   border-radius:2px;
 }
+
 
 /* =========================================================
    4) HERO
@@ -189,7 +182,7 @@ a:hover{ text-decoration:none; }
   align-items:center;
 }
 
-.hero__text{ max-width:560px; }
+.hero__text{max-width:560px}
 
 .hero h1{
   font-size:72px;
@@ -208,7 +201,7 @@ a:hover{ text-decoration:none; }
 
 .hero__cta{
   display:flex;
-  gap:12px;
+  gap:12px;      
   flex-wrap:wrap;
   margin-top:20px;
 }
@@ -228,6 +221,7 @@ a:hover{ text-decoration:none; }
   font-size:13px;
 }
 
+/* Картинка справа (hero) */
 .hero__image{
   display:flex;
   justify-content:flex-end;
@@ -238,7 +232,7 @@ a:hover{ text-decoration:none; }
   height:auto;
   border-radius:26px;
   box-shadow:0 20px 60px rgba(10,12,20,.12);
-}
+  }
 
 /* =========================================================
    5) SECTION TITLES + LISTS
