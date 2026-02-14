@@ -289,9 +289,11 @@ a:hover{text-decoration:none}
 /* TRUST */
 /* TrustIndex.css */
 
+/* TrustIndex.css */
+
 .trust {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); /* текст чуть шире */
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   align-items: center;
   gap: 48px;
   position: relative;
@@ -317,38 +319,49 @@ a:hover{text-decoration:none}
   margin-bottom: 32px;
 }
 
-/* Список преимуществ */
+/* Список преимуществ с градиентными иконками */
 .trust .list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .trust .list li {
   position: relative;
-  padding-left: 28px;
+  padding-left: 36px;
   font-size: 17px;
   line-height: 1.5;
   color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  min-height: 28px;
 }
 
 .trust .list li::before {
   content: "✓";
   position: absolute;
   left: 0;
-  color: #5b66b8;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #8b5cf6, #5b66b8);
+  color: white;
+  font-size: 14px;
   font-weight: 600;
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(91, 102, 184, 0.3);
 }
 
 /* Картинка справа - прижата к краю */
 .trust__image {
   position: relative;
-  width: calc(100% + 80px); /* выезжаем за пределы контейнера */
-  margin-right: -80px; /* компенсируем padding контейнера */
+  width: calc(100% + 80px);
+  margin-right: -80px;
   display: flex;
   justify-content: flex-end;
 }
@@ -356,7 +369,7 @@ a:hover{text-decoration:none}
 .trust__image img {
   width: 100%;
   height: auto;
-  max-width: 600px; /* ограничиваем максимальную ширину */
+  max-width: 600px;
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
   display: block;
@@ -391,6 +404,10 @@ a:hover{text-decoration:none}
   .trust__image {
     width: 100%;
     margin-right: 0;
+  }
+  
+  .trust .list li {
+    padding-left: 32px;
   }
 }
 
