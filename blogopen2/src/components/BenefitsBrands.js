@@ -44,7 +44,7 @@ export default function BenefitsBrands() {
       <div className="bbContainer">
 
         {/* LEFT (slider) */}
-        <div className="bbRight">
+        <div className="bbLeft">
           <div className="bbSlider">
             <button
               type="button"
@@ -85,23 +85,28 @@ export default function BenefitsBrands() {
         </div>
 
         {/* RIGHT (text) */}
-        <div className="bbLeft">
-          <div className="bbBadge">Для брендов</div>
+       <div className="bbLeft">
+          <div className="benefits-header">
+            <div className="highlight-badge">
+              <span className="highlight-text">Для брендов</span>
+            </div>
 
-          <h2 className="bbTitle">Преимущества для брендов</h2>
+            <h2 className="bbTitle">Преимущества для брендов</h2>
+          </div>
+
           <p className="bbLead">
-            Быстрый подбор блогеров, прозрачные условия и контроль результата.
+             Быстрый подбор блогеров, прозрачные условия и контроль результата.
           </p>
 
-          <div className="bbCards">
-            {benefits.map((b) => (
-              <div className="bbCard" key={b.title}>
-                <h3 className="bbCardTitle">{b.title}</h3>
-                <p className="bbCardDesc">{b.description}</p>
+          <div className="benefits-cards">
+            {benefits.map((benefit) => (
+              <div className="benefit-card compact" key={benefit.title}>
+                <h3 className="benefit-title">{benefit.title}</h3>
+                <p className="benefit-desc">{benefit.description}</p>
               </div>
             ))}
           </div>
-        </div>
+        </div> 
 
       </div>
     </section>

@@ -9,48 +9,50 @@
   width: min(1120px, calc(100% - 48px));
   margin: 0 auto;
 
-  display: grid !important;
+  display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 36px;
   align-items: center;
 }
 
 /* LEFT (slider) */
-#benefits-brands .bbRight{
+#benefits-brands .bbLeft{
   min-width: 0;
   display: flex;
   justify-content: center;
 }
 
 /* RIGHT (text) */
-#benefits-brands .bbLeft{
+#benefits-brands .bbRight{
   min-width: 0;
-  max-width: 540px;
+  max-width: 560px;
 }
 
 /* Badge */
-#benefits-brands .bbBadge{
+.benefits-header .highlight-badge {
   display: inline-flex;
   align-items: center;
-  height: 28px;
-  padding: 0 12px;
+  padding: 0.35rem 1rem;
+  margin-bottom: 0.9rem;
+
   border-radius: 999px;
   background: rgba(91, 102, 184, 0.14);
-  color: #5B66B8;
-  font-weight: 600;
-  font-size: 12px;
-  margin-bottom: 12px;
+  color: #5b66b8;
 }
 
+.benefits-header .highlight-text {
+  font-size: 0.8rem; 
+  font-weight: 600;
+}
 #benefits-brands .bbTitle{
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 42px;
   line-height: 1.05;
   letter-spacing: -0.02em;
 }
 
 #benefits-brands .bbLead{
-  margin: 0 0 22px;
+  margin: 12px 0 22px;
   color: rgba(0,0,0,0.55);
   font-size: 16px;
   line-height: 1.5;
@@ -58,8 +60,11 @@
 
 /* Cards */
 #benefits-brands .bbCards{
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
+  margin-top: 0
+  
 }
 
 #benefits-brands .bbCard{
@@ -81,7 +86,8 @@
   bottom: 0;
   width: 3px;
   background: linear-gradient(180deg, #8b5cf6, #7c3aed);
-  opacity: 0.75;
+  opacity: 0.7;
+  transition: opacity 0.3s ease, width 0.3s ease;
 }
 
 #benefits-brands .bbCardTitle{
@@ -169,6 +175,21 @@
 #benefits-brands .bbDot.isActive{
   background: rgba(91, 102, 184, 0.85);
   width: 18px;
+}
+
+.benefit-title {
+  font-size: 1.15rem; /* ✅ было ~1.05rem */
+  font-weight: 650;
+  margin: 0 0 8px;
+  color: #1a1a1a;
+  line-height: 1.25;
+}
+
+.benefit-desc {
+  font-size: 0.95rem; /* ✅ было ~0.85rem */
+  line-height: 1.55;
+  color: rgba(0, 0, 0, 0.62);
+  margin: 0;
 }
 
 /* ===== Responsive ===== */
