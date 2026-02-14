@@ -10,7 +10,7 @@
   margin: 0 auto;
 
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-template-columns: 1fr 1fr;
   gap: 36px;
   align-items: center;
 }
