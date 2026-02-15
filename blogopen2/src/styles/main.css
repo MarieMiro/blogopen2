@@ -974,7 +974,6 @@ label{display:grid; gap:6px; color:var(--muted)}
 
 
 
-
 @media (max-width: 920px) {
   .hero__grid, .trust, .cta {
     grid-template-columns: 1fr;
@@ -1020,17 +1019,29 @@ label{display:grid; gap:6px; color:var(--muted)}
     color: rgba(10, 12, 20, 0.90);
   }
   
+  /* Центрируем текст в hero */
+  .hero .hero__text {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
   .hero h1 {
-    font-size: 36px;
-    text-align: center; /* Центрируем заголовок */
+    font-size: 42px; /* чуть меньше десктопного */
+    margin: 8px 0 16px;
   }
   
-  .hero .subhead {
-    text-align: center; /* Центрируем подзаголовок */
+  .hero .muted {
+    font-size: 17px;
+    margin-bottom: 28px;
   }
   
-  /* Кнопки по центру */
-  .hero .buttons {
+  .hero .kicker {
+    justify-content: center; /* если это флекс-элемент */
+  }
+  
+  /* Центрируем кнопки */
+  .hero__cta {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1038,8 +1049,8 @@ label{display:grid; gap:6px; color:var(--muted)}
     flex-wrap: wrap;
   }
   
-  .hero .buttons .btn {
-    min-width: 200px; /* Одинаковая ширина для кнопок */
+  .hero__cta .btn {
+    min-width: 200px;
     text-align: center;
   }
   
@@ -1072,14 +1083,18 @@ label{display:grid; gap:6px; color:var(--muted)}
   }
 }
 
-/* Для совсем маленьких экранов */
+/* Для маленьких телефонов */
 @media (max-width: 480px) {
-  .hero .buttons {
+  .hero h1 {
+    font-size: 36px;
+  }
+  
+  .hero__cta {
     flex-direction: column;
     width: 100%;
   }
   
-  .hero .buttons .btn {
+  .hero__cta .btn {
     width: 100%;
     max-width: 280px;
   }
