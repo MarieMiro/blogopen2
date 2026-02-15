@@ -1014,3 +1014,13 @@ label{display:grid; gap:6px; color:var(--muted)}
     max-width: none;
   }
 }
+@media (max-width: 920px){
+  .hero__cta .btn{
+    display: flex;              /* вместо inline-flex */
+    justify-content: center;    /* ✅ центр по горизонтали */
+    align-items: center;        /* ✅ центр по вертикали */
+    text-align: center;
+    gap: 0;                     /* если нет иконок — убираем сдвиг */
+    width: min(320px, 100%);    /* чтобы была “пилюля” по центру */
+  }
+}
