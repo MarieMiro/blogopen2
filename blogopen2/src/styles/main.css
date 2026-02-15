@@ -973,126 +973,44 @@ label{display:grid; gap:6px; color:var(--muted)}
 
 
 
+
+
+
 @media (max-width: 920px) {
-  .hero__grid, .trust, .cta {
-    grid-template-columns: 1fr;
-  }
-  
-  .how4 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .cards3 {
-    grid-template-columns: 1fr;
-  }
-  
-  .twoCols {
-    grid-template-columns: 1fr;
-  }
-  
-  .cards2 {
-    grid-template-columns: 1fr;
-  }
-  
-  .menu {
-    display: none;
-  }
-  
-  .burger {
-    display: block;
-  }
-  
-  .menu.open {
-    display: flex;
-    position: absolute;
-    top: 64px;
-    left: 0;
-    right: 0;
-    padding: 12px 18px;
-    background: var(--header-color);
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .menu.open a {
-    color: rgba(10, 12, 20, 0.90);
-  }
-  
-  /* Текст остаётся слева */
-  .hero .hero__text {
-    text-align: left;
+
+  .hero .hero__text{
+    text-align: left; 
     max-width: 560px;
   }
-  
-  .hero h1 {
-    font-size: 42px;
-    margin: 8px 0 16px;
-  }
-  
-  .hero .muted {
-    font-size: 17px;
-    margin-bottom: 28px;
-  }
-  
-  /* Кнопки слева, меньшего размера */
-  .hero__cta {
+
+  .hero__cta{
     display: flex;
-    justify-content: flex-start;
-    align-items: center;
+    justify-content: center;  /* ✅ центр */
+    align-items: center;      /* ✅ центр */
     gap: 12px;
     flex-wrap: wrap;
+    margin-top: 20px;
   }
-  
-  .hero__cta .btn {
-    min-width: 160px; /* уменьшил с 200px до 160px */
-    padding: 10px 20px; /* чуть меньше паддинги */
-    font-size: 15px; /* чуть меньше шрифт */
+
+  .hero__cta .btn{
+    min-width: 220px;         
+    padding: 12px 22px;
+    font-size: 16px;
     text-align: center;
   }
-  
-  .section {
-    padding: 54px 0;
-  }
-  
-  .trust__image {
-    justify-self: center;
-    justify-content: center;
-  }
-  
-  .trust__image img {
-    max-width: 92%;
-  }
 }
 
-@media (max-width: 920px) {
-  .split {
-    grid-template-columns: 1fr;
-  }
-  
-  .split--reverse .split__media,
-  .split--reverse .split__content {
-    order: unset;
-  }
-  
-  .hl {
-    font-size: 34px;
-  }
-}
-
-/* Для маленьких телефонов */
 @media (max-width: 480px) {
-  .hero h1 {
-    font-size: 36px;
-  }
-  
-  .hero__cta {
+ 
+  .hero__cta{
     flex-direction: column;
-    align-items: flex-start; /* кнопки друг под другом, прижаты к левому краю */
-    gap: 10px;
+    align-items: center;      /* ✅ центр */
+    justify-content: center;  /* ✅ центр */
+    gap: 12px;
   }
-  
-  .hero__cta .btn {
-    width: 100%;
-    max-width: 240px; /* чуть уже, чтобы не на весь экран */
+
+  .hero__cta .btn{
+    width: min(320px, 100%);  
+    max-width: none;
   }
 }
