@@ -970,3 +970,117 @@ label{display:grid; gap:6px; color:var(--muted)}
     border-color: rgba(255, 255, 255, 0.1);
   }
 }
+
+
+
+
+
+@media (max-width: 920px) {
+  .hero__grid, .trust, .cta {
+    grid-template-columns: 1fr;
+  }
+  
+  .how4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .cards3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .twoCols {
+    grid-template-columns: 1fr;
+  }
+  
+  .cards2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .menu {
+    display: none;
+  }
+  
+  .burger {
+    display: block;
+  }
+  
+  .menu.open {
+    display: flex;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    padding: 12px 18px;
+    background: var(--header-color);
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .menu.open a {
+    color: rgba(10, 12, 20, 0.90);
+  }
+  
+  .hero h1 {
+    font-size: 36px;
+    text-align: center; /* Центрируем заголовок */
+  }
+  
+  .hero .subhead {
+    text-align: center; /* Центрируем подзаголовок */
+  }
+  
+  /* Кнопки по центру */
+  .hero .buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .hero .buttons .btn {
+    min-width: 200px; /* Одинаковая ширина для кнопок */
+    text-align: center;
+  }
+  
+  .section {
+    padding: 54px 0;
+  }
+  
+  .trust__image {
+    justify-self: center;
+    justify-content: center;
+  }
+  
+  .trust__image img {
+    max-width: 92%;
+  }
+}
+
+@media (max-width: 920px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+  
+  .split--reverse .split__media,
+  .split--reverse .split__content {
+    order: unset;
+  }
+  
+  .hl {
+    font-size: 34px;
+  }
+}
+
+/* Для совсем маленьких экранов */
+@media (max-width: 480px) {
+  .hero .buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .hero .buttons .btn {
+    width: 100%;
+    max-width: 280px;
+  }
+}
