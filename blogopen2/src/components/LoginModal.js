@@ -33,7 +33,7 @@ export default function LoginModal({ onClose, onSuccess, onOpenSignup }) {
       try {
         data = text ? JSON.parse(text) : null;
       } catch {
-        data = null; // если пришел HTML или пусто
+        data = null; 
       }
 
       console.log("LOGIN RESPONSE", res.status, data ?? text);
@@ -113,10 +113,16 @@ export default function LoginModal({ onClose, onSuccess, onOpenSignup }) {
               type="button"
               disabled={loading}
               onClick={() => {
-                onClose?.();
-                onOpenSignup?.();
+                onClose?.();         
+                onOpenSignup?.();    
               }}
-              style={{ padding: 0, border: "none", background: "none", textDecoration: "underline", cursor: "pointer" }}
+              style={{
+                padding: 0,
+                border: "none",
+                background: "none",
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
             >
               Создать
             </button>
