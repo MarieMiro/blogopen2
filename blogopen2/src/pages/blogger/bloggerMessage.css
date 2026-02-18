@@ -342,3 +342,269 @@
   word-break: break-word;
   line-height: 1.3;
 }
+
+
+
+/* ===== Mobile Styles for Messages Page ===== */
+@media (max-width: 768px) {
+  .msg {
+    grid-template-columns: 1fr; /* Одна колонка на мобильных */
+    height: calc(100vh - 52px); /* Учитываем высоту topbar */
+    position: relative;
+    background: #e0d6ff; /* Базовый фон */
+  }
+
+  /* Левая панель (список чатов) */
+  .msg .msg__left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    z-index: 10;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    border-right: none;
+  }
+
+  /* Скрываем левую панель когда открыт чат */
+  .msg .msg__left.is-hidden {
+    transform: translateX(-100%);
+  }
+
+  /* Правая панель (открытый чат) */
+  .msg .msg__right {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 20;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+
+  /* Показываем правую панель когда чат открыт */
+  .msg .msg__right.is-visible {
+    transform: translateX(0);
+  }
+
+  /* Кнопка назад в шапке чата */
+  .msg .msg__topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  .msg .msg__backBtn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 50%;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #5B66B8;
+    flex-shrink: 0;
+  }
+
+  .msg .msg__backBtn:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .msg .msg__chatTitle {
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Адаптация области сообщений */
+  .msg .msg__messages {
+    padding: 12px 10px 8px;
+    gap: 8px;
+    background: linear-gradient(
+      180deg,
+      #f3efff 0%,
+      #ede8ff 35%,
+      #e6deff 65%,
+      #e0d6ff 100%
+    );
+  }
+
+  /* Баблы сообщений */
+  .msg .bubble {
+    max-width: min(85%, 320px); /* Чуть шире на мобильных */
+    padding: 10px 12px;
+    font-size: 15px; /* Чуть крупнее для читаемости */
+    border-radius: 18px;
+  }
+
+  .msg .bubble--their {
+    border-top-left-radius: 6px;
+  }
+
+  .msg .bubble--mine {
+    border-top-right-radius: 6px;
+  }
+
+  .msg .bubble__meta {
+    font-size: 10px;
+    margin-top: 4px;
+  }
+
+  /* Композер (поле ввода) */
+  .msg .msg__composer {
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    gap: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .msg .msg__input {
+    height: 44px;
+    padding: 0 14px;
+    font-size: 15px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Для textarea версии */
+  .msg__input--textarea {
+    height: auto;
+    min-height: 44px;
+    max-height: 120px;
+    padding: 12px 14px;
+    line-height: 1.4;
+  }
+
+  .msg .msg__send {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0; /* Прячем текст */
+    background: #5B66B8;
+    border: none;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .msg .msg__send::before {
+    content: "➤"; /* Иконка отправки */
+    font-size: 18px;
+  }
+
+  .msg .msg__send:disabled {
+    background: rgba(91, 102, 184, 0.5);
+  }
+
+  /* Стили для списка чатов */
+  .msg .msg__leftHead {
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  .msg .msg__leftTop {
+    margin-bottom: 8px;
+  }
+
+  .msg .msg__title {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .msg .msg__searchInput {
+    height: 44px;
+    font-size: 15px;
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  /* Элементы списка чатов */
+  .msg .msgList {
+    padding: 8px;
+  }
+
+  .msg .msgItem {
+    grid-template-columns: 52px 1fr; /* Чуть больше аватар */
+    gap: 12px;
+    padding: 12px 10px;
+  }
+
+  .msg .msgItem__avatar {
+    width: 52px;
+    height: 52px;
+  }
+
+  .msg .msgItem__name {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .msg .msgItem__time {
+    font-size: 11px;
+  }
+
+  .msg .msgItem__preview {
+    font-size: 13px;
+  }
+
+  .msg .msgItem__badge {
+    min-width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+}
+
+/* Для совсем маленьких экранов */
+@media (max-width: 380px) {
+  .msg .bubble {
+    max-width: 90%;
+    font-size: 14px;
+  }
+
+  .msg .msgItem {
+    grid-template-columns: 48px 1fr;
+    padding: 10px 8px;
+  }
+
+  .msg .msgItem__avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .msg .msg__composer {
+    padding: 8px 10px;
+  }
+}
+
+/* Анимация для плавного перехода */
+@media (max-width: 768px) {
+  .msg .msg__left,
+  .msg .msg__right {
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+}

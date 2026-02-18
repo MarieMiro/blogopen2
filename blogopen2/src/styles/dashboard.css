@@ -117,3 +117,115 @@
   height: calc(100vh - 56px); /* высота topbar */
   overflow: hidden;
 }
+
+
+
+/* ===== Mobile Styles ===== */
+@media (max-width: 768px) {
+  .dash {
+    grid-template-columns: 1fr; /* Убираем боковую колонку */
+    grid-template-rows: 1fr auto; /* Контент + нижняя панель */
+    min-height: 100vh;
+  }
+
+  /* Сайдбар теперь снизу */
+  .dash__side {
+    flex-direction: row; /* Горизонтальное расположение */
+    justify-content: space-around; /* Равномерно распределяем иконки */
+    align-items: center;
+    padding: 8px 16px;
+    background: rgba(91, 102, 184, 0.85); /* Полупрозрачный фон */
+    backdrop-filter: blur(10px); /* Эффект стекла */
+    -webkit-backdrop-filter: blur(10px); /* Для Safari */
+    border-top: 1px solid rgba(255, 255, 255, 0.2); /* Легкая граница */
+    gap: 0; /* Убираем gap, используем justify-content */
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+  }
+
+  /* Адаптируем иконки */
+  .dash__icon {
+    width: 48px; /* Чуть больше для удобного нажатия */
+    height: 48px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.8); /* Полупрозрачные иконки */
+  }
+
+  .dash__icon:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .dash__icon.active {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+  }
+
+  /* Контент адаптируем */
+  .dash__content {
+    min-height: auto;
+  }
+
+  /* Topbar для мобильных */
+  .dash__topbar {
+    padding: 0 16px;
+    height: 52px;
+  }
+
+  .dash__brand {
+    font-size: 18px;
+  }
+
+  /* Main контент */
+  .dash__main {
+    padding: 20px 16px;
+    padding-bottom: 80px; /* Отступ снизу, чтобы контент не прятался за панелью */
+  }
+
+  /* Для страницы сообщений */
+  .dash__main--messages {
+    height: calc(100vh - 52px - 64px); /* topbar + нижняя панель */
+    padding: 0;
+  }
+
+  /* Стили для кнопки логаута */
+  .dash__logout {
+    font-size: 0; /* Прячем текст */
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dash__logout::before {
+    content: "🚪"; /* Иконка выхода */
+    font-size: 20px;
+  }
+
+  .dash__logout:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Для совсем маленьких экранов */
+@media (max-width: 480px) {
+  .dash__side {
+    padding: 4px 8px;
+  }
+
+  .dash__icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .dash__main {
+    padding: 16px 12px;
+    padding-bottom: 72px;
+  }
+}
