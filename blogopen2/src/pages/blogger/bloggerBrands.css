@@ -140,3 +140,348 @@
   background: rgba(91, 102, 184, .12);
   opacity: 1;
 }
+
+
+
+/* ===== Mobile Styles for Brands Base ===== */
+@media (max-width: 768px) {
+  .bb {
+    padding: 16px;
+    padding-bottom: 80px; /* Отступ для нижней навигации */
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8f7ff 0%, #f0eeff 100%);
+  }
+
+  /* Заголовок */
+  .bb__title {
+    font-size: 36px;
+    margin: 0 0 12px;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #2D3A6E 0%, #5B66B8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Инструменты (поиск + сортировка) */
+  .bb__tools {
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  /* Поле поиска */
+  .bb__input {
+    height: 52px;
+    font-size: 16px;
+    padding: 0 18px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  }
+
+  .bb__input:focus {
+    border-color: #5B66B8;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 4px 15px rgba(91, 102, 184, 0.1);
+  }
+
+  /* Блок сортировки */
+  .bb__sort {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .bb__sortLabel {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.8;
+  }
+
+  .bb__sortButtons {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 2px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .bb__sortButtons::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bb__sortBtn {
+    height: 38px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 30px;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+  }
+
+  .bb__sortBtn.isActive {
+    background: #5B66B8;
+    border-color: #5B66B8;
+    color: white;
+  }
+
+  .bb__count {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 10px;
+    background: rgba(91, 102, 184, 0.1);
+    border-radius: 30px;
+    color: #5B66B8;
+    white-space: nowrap;
+  }
+
+  /* Табы (категории) */
+  .bb__tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 0 12px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .bb__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bb__tab {
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+
+  .bb__tab.isActive {
+    background: #5B66B8;
+    color: white;
+    border-color: #5B66B8;
+  }
+
+  /* Сетка карточек */
+  .bb__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  /* Карточка бренда */
+  .bbCard {
+    min-height: auto;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .bbCard:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 12px rgba(91, 102, 184, 0.15);
+  }
+
+  /* Фото */
+  .bbCard__photoWrap {
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(145deg, #f5f5f5, #eaeaea);
+  }
+
+  .bbCard__photo {
+    transition: transform 0.3s ease;
+  }
+
+  .bbCard__photo--empty {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+  /* Тело карточки */
+  .bbCard__body {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .bbCard__name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1f36;
+  }
+
+  .bbCard__meta {
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .bbTag {
+    font-size: 12px;
+    padding: 5px 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 30px;
+    color: #2d3a6e;
+    font-weight: 500;
+  }
+
+  .bbCard__topic {
+    font-size: 14px;
+    color: #4a5568;
+    line-height: 1.4;
+  }
+
+  .bbCard__formats {
+    font-size: 13px;
+    color: #718096;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .bbCard__formats span {
+    background: rgba(0, 0, 0, 0.02);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* Действия (кнопки) */
+  .bbCard__actions {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .bbBtn {
+    height: 48px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+  }
+
+  .bbBtn--primary {
+    background: #5B66B8;
+    color: white;
+    border: none;
+  }
+
+  .bbBtn--primary:active {
+    background: #4a55a0;
+    transform: scale(0.97);
+  }
+
+  .bbBtn:not(.bbBtn--primary):active {
+    background: white;
+    transform: scale(0.97);
+  }
+
+  /* Индикатор загрузки */
+  .bb__loading {
+    padding: 30px 16px;
+    text-align: center;
+    font-size: 15px;
+    color: #5B66B8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .bb__loading::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(91, 102, 184, 0.2);
+    border-top-color: #5B66B8;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+}
+
+/* Для планшетов (от 430px до 768px) */
+@media (min-width: 431px) and (max-width: 768px) {
+  .bb__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bb__title {
+    font-size: 42px;
+  }
+
+  .bb__sort {
+    grid-template-columns: auto 1fr;
+  }
+}
+
+/* Для маленьких телефонов */
+@media (max-width: 380px) {
+  .bb {
+    padding: 12px;
+    padding-bottom: 80px;
+  }
+
+  .bb__title {
+    font-size: 32px;
+  }
+
+  .bbCard__body {
+    padding: 14px;
+  }
+
+  .bbCard__name {
+    font-size: 18px;
+  }
+
+  .bbBtn {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .bb__sortBtn {
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}
+
+/* Анимации */
+@media (prefers-reduced-motion: no-preference) {
+  .bbCard {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+  }
+
+  .bb__grid {
+    transition: opacity 0.3s ease;
+  }
+}
