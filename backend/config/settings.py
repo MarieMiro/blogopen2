@@ -57,7 +57,9 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            BASE_DIR / "frontend_build" / "build",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -113,7 +115,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = _split_env_urls("CSRF_TRUSTED_ORIGINS")
+CSRF_TRUSTED_ORIGINS = ["https://blogopen2-1.onrender.com",]
 
 
 
