@@ -351,7 +351,7 @@
     grid-template-columns: 1fr; /* Одна колонка на мобильных */
     height: calc(100vh - 52px); /* Учитываем высоту topbar */
     position: relative;
-    background: #e0d6ff; /* Базовый фон */
+    background: rgba(224, 214, 255, 0.66); /* Базовый фон */
   }
 
   /* Левая панель (список чатов) */
