@@ -104,7 +104,7 @@ def _split_env_urls(name: str):
         items.append(x)
     return items
 
-CORS_ALLOWED_ORIGINS = _split_env_urls("CORS_ALLOWED_ORIGINS")
+CORS_ALLOWED_ORIGINS = ["https://blogopen2-1.onrender.com",]
 
 # на всякий случай (если домен фронта меняется / есть preview-домены)
 CORS_ALLOWED_ORIGIN_REGEXES = [
