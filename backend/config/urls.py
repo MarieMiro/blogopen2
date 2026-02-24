@@ -1,3 +1,4 @@
+# backend/config/urls.py
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
@@ -11,10 +12,9 @@ urlpatterns = [
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# React catch-all
+
 urlpatterns += [
     re_path(
-        r'^(?!api/|admin/).*$', 
-        TemplateView.as_view(template_name="frontend_build/build/index.html")
-    ),
+        r'^(?!api/|admin/|media/|static/).*$', 
+        TemplateView.as_view(template_name="index.html")  
 ]
