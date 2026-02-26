@@ -14,8 +14,7 @@ backend/media/
 backend/staticfiles/
 
 # Node / React
-node_modules/
-build/
+/node_modules
 dist/
 .cache/
 
