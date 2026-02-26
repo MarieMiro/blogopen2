@@ -101,13 +101,13 @@ def _split_env_urls(name: str):
         x = x.strip()
         if not x:
             continue
-        # убираем хвостовой слэш
+        
         if x.endswith("/"):
             x = x[:-1]
         items.append(x)
     return items
 
-CORS_ALLOWED_ORIGINS = ["https://blogopen2-1.onrender.com",]
+CORS_ALLOWED_ORIGINS = ["https://blogopen2.onrender.com",]
 
 # на всякий случай (если домен фронта меняется / есть preview-домены)
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -116,7 +116,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = ["https://blogopen2-1.onrender.com",]
+CSRF_TRUSTED_ORIGINS = ["https://blogopen2.onrender.com",]
 
 
 
