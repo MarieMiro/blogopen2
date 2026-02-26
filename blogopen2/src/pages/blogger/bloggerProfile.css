@@ -2,293 +2,278 @@
    BLOGGER PROFILE (NEW)
    ========================= */
 
-.bp{
+.bp {
   padding: 24px;
   max-width: 1100px;
   margin: 0 auto;
-  display: block; /* важно: НЕ grid, т.к. теперь сетка внутри bp__card */
+  display: block;
 }
 
-/* если у тебя есть общий .card — можно не трогать.
-   но на всякий случай сделаем мягко */
-.card{
-  background: rgba(255,255,255,.92);
-  border: 1px solid rgba(0,0,0,.08);
+/* Только для блока ошибки – оставляем визуальную карточку */
+.card.bp__error {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 16px;
 }
 
-.bp__error{
+.bp__error {
   margin-bottom: 14px;
 }
 
-/* основной блок: фото + инфо */
-.bp__card{
+/* Основной блок профиля – полностью прозрачный, без рамок и отступов */
+.card.bp__card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.bp__card {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 22px;
-  padding: 18px;
   align-items: start;
 }
 
 /* LEFT */
-.bp__photoCol{
+.bp__photoCol {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.bp__avatarWrap{
+.bp__avatarWrap {
   display: grid;
   gap: 12px;
 }
 
-.bp__avatar{
+.bp__avatar {
   width: 100%;
-  aspect-ratio: 1 / 1; /* квадрат как в примере */
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 14px;
-  background: rgba(0,0,0,.04);
-  border: 1px solid rgba(0,0,0,.08);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.bp__avatar.bp__avatar--empty{
+.bp__avatar.bp__avatar--empty {
   display: grid;
   place-items: center;
-  color: rgba(0,0,0,.55);
+  color: rgba(0, 0, 0, 0.55);
 }
 
-.bp__btn{
+.bp__btn {
   padding: 10px 12px;
   border-radius: 12px;
 }
 
 /* RIGHT */
-.bp__infoCol{
+.bp__infoCol {
   display: flex;
   flex-direction: column;
   gap: 16px;
   min-width: 0;
 }
 
-.bp__head{
+.bp__head {
   display: grid;
   gap: 10px;
 }
 
-.bp__name{
+.bp__name {
   margin: 0;
   font-size: 26px;
   font-weight: 800;
 }
 
-.bp__metaLine{
+.bp__metaLine {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-/* chips (если у тебя уже есть .chip — можешь убрать) */
-.chip{
+.chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(91,102,184,.10);
-  border: 1px solid rgba(91,102,184,.22);
+  background: rgba(91, 102, 184, 0.1);
+  border: 1px solid rgba(91, 102, 184, 0.22);
   font-size: 12px;
   font-weight: 700;
 }
 
-/* grid for inputs */
-.bp__grid2{
+.bp__grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-.field--full{
+.field--full {
   grid-column: 1 / -1;
 }
 
-.field__label{
+.field__label {
   display: block;
   font-size: 12px;
-  opacity: .72;
+  opacity: 0.72;
   margin-bottom: 6px;
 }
 
-.field__input{
+.field__input {
   width: 100%;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.96);
   color: inherit;
   outline: none;
 }
 
-.field__input:focus{
-  border-color: rgba(91,102,184,.45);
-  box-shadow: 0 0 0 3px rgba(91,102,184,.12);
+.field__input:focus {
+  border-color: rgba(91, 102, 184, 0.45);
+  box-shadow: 0 0 0 3px rgba(91, 102, 184, 0.12);
 }
 
-/* sections */
-.bp__section{
+.bp__section {
   display: grid;
   gap: 10px;
 }
 
-.bp__sectionHead{
+.bp__sectionHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
 }
 
-.bp__h3{
+.bp__h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 800;
 }
 
-/* socials */
-.bp__addBtn{
+.bp__addBtn {
   border: none;
   background: transparent;
-  color: #5B66B8;
+  color: #5b66b8;
   font-weight: 800;
   cursor: pointer;
   padding: 6px 8px;
   border-radius: 8px;
 }
-.bp__addBtn:hover{
-  background: rgba(91,102,184,.08);
+.bp__addBtn:hover {
+  background: rgba(91, 102, 184, 0.08);
 }
 
-.bp__socials{
+.bp__socials {
   display: grid;
   gap: 10px;
 }
 
-.bp__socialRow{
+.bp__socialRow {
   display: grid;
   grid-template-columns: 160px 1fr 36px;
   gap: 10px;
   align-items: center;
 }
 
-.bp__removeBtn{
+.bp__removeBtn {
   height: 42px;
   width: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.96);
   cursor: pointer;
 }
-.bp__removeBtn:hover{
-  background: rgba(0,0,0,.03);
+.bp__removeBtn:hover {
+  background: rgba(0, 0, 0, 0.03);
 }
 
-/* link */
-.bp__link{
+.bp__link {
   display: inline-flex;
   margin-top: 4px;
-  color: #5B66B8;
+  color: #5b66b8;
   font-weight: 800;
   text-decoration: none;
 }
-.bp__link:hover{
+.bp__link:hover {
   text-decoration: underline;
 }
 
-/* topics */
-.bp__topics{
+.bp__topics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
-.bp__topic{
+.bp__topic {
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid rgba(0,0,0,.10);
-  background: rgba(255,255,255,.75);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.75);
   border-radius: 12px;
   padding: 10px 12px;
   cursor: pointer;
   user-select: none;
 }
 
-.bp__topic input{
+.bp__topic input {
   transform: translateY(1px);
 }
 
-.bp__topic.isChecked{
-  border-color: rgba(91,102,184,.35);
-  background: rgba(91,102,184,.10);
+.bp__topic.isChecked {
+  border-color: rgba(91, 102, 184, 0.35);
+  background: rgba(91, 102, 184, 0.1);
 }
 
-/* actions */
-.bp__actions{
+.bp__actions {
   display: flex;
   justify-content: flex-end;
   padding-top: 6px;
 }
 
-/* responsive */
 /* =========================
-   MOBILE STYLES - NO CARD
+   MOBILE STYLES
    ========================= */
-
 @media (max-width: 768px) {
-  /* Убираем внешний контейнер */
   .bp {
-    padding: 0; /* Убираем паддинги */
+    padding: 0;
     max-width: 100%;
-    background: transparent; /* Прозрачный фон */
+    background: transparent;
   }
-  
-  /* Убираем карточку полностью */
-  .bp .card,
-  .bp__card {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    padding: 16px !important;
-  }
-  
-  /* Основной блок без фона */
+
   .bp__card {
     display: flex;
     flex-direction: column;
     gap: 20px;
     background: transparent;
+    padding: 16px;
   }
-  
-  /* Фото профиля */
+
   .bp__photoCol {
     width: 100%;
   }
-  
+
   .bp__avatarWrap {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Центрируем фото на мобильных */
+    align-items: center;
     gap: 16px;
   }
-  
+
   .bp__avatar {
     width: 140px;
     height: 140px;
-    border-radius: 50%; /* Круглое фото как в соцсетях */
+    border-radius: 50%;
     border: 3px solid rgba(255, 255, 255, 0.8);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
-  
-  /* Кнопка загрузки фото */
+
   .bp__btn {
     width: auto;
     min-width: 160px;
@@ -297,31 +282,30 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 30px;
     font-weight: 600;
-    color: #5B66B8;
+    color: #5b66b8;
   }
-  
-  /* Имя и мета-информация */
+
   .bp__infoCol {
     gap: 24px;
   }
-  
+
   .bp__head {
-    text-align: center; /* Центрируем на мобильных */
+    text-align: center;
     margin-bottom: 8px;
   }
-  
+
   .bp__name {
     font-size: 28px;
     margin-bottom: 8px;
-    background: linear-gradient(135deg, #2D3A6E, #5B66B8);
-   -webkit-text-fill-color: transparent;
+    background: linear-gradient(135deg, #2d3a6e, #5b66b8);
+    
   }
-  
+
   .bp__metaLine {
     justify-content: center;
     gap: 12px;
   }
-  
+
   .chip {
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(5px);
@@ -330,8 +314,7 @@
     font-size: 13px;
     border: 1px solid rgba(255, 255, 255, 0.3);
   }
-  
-  /* Сетка полей */
+
   .bp__grid2 {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -339,17 +322,16 @@
     backdrop-filter: blur(10px);
     border-radius: 24px;
     padding: 20px;
-    margin: 0 -4px; /* Компенсируем паддинги */
+    margin: 0 -4px;
   }
-  
-  /* Поля ввода */
+
   .field__label {
     font-size: 13px;
     font-weight: 600;
-    color: #5B66B8;
+    color: #5b66b8;
     margin-bottom: 8px;
   }
-  
+
   .field__input {
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(0, 0, 0, 0.05);
@@ -358,8 +340,7 @@
     font-size: 15px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
   }
-  
-  /* Секции */
+
   .bp__section {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
@@ -367,21 +348,20 @@
     padding: 20px;
     margin: 0 -4px;
   }
-  
+
   .bp__sectionHead {
     margin-bottom: 16px;
   }
-  
+
   .bp__h3 {
     font-size: 18px;
     color: #1a1f36;
   }
-  
-  /* Социальные сети */
+
   .bp__socials {
     gap: 12px;
   }
-  
+
   .bp__socialRow {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -389,7 +369,7 @@
     border-radius: 16px;
     padding: 12px;
   }
-  
+
   .bp__removeBtn {
     width: 100%;
     height: 44px;
@@ -399,13 +379,12 @@
     border: 1px solid rgba(255, 68, 68, 0.2);
     font-weight: 600;
   }
-  
-  /* Темы (checkboxes) */
+
   .bp__topics {
-    grid-template-columns: 1fr; /* Одна колонка на мобильных */
+    grid-template-columns: 1fr;
     gap: 8px;
   }
-  
+
   .bp__topic {
     background: rgba(255, 255, 255, 0.5) !important;
     border-radius: 16px !important;
@@ -413,32 +392,30 @@
     border: 1px solid rgba(0, 0, 0, 0.05) !important;
     transition: all 0.2s ease;
   }
-  
+
   .bp__topic.isChecked {
     background: rgba(91, 102, 184, 0.15) !important;
     border-color: rgba(91, 102, 184, 0.3) !important;
   }
-  
+
   .bp__topic input {
     width: 22px;
     height: 22px;
     margin-right: 12px;
   }
-  
-  /* Кнопка добавления */
+
   .bp__addBtn {
     padding: 10px 18px;
     background: rgba(91, 102, 184, 0.1);
     border-radius: 30px;
     font-size: 14px;
   }
-  
-  /* Кнопки действий */
+
   .bp__actions {
     margin-top: 24px;
     padding: 0 4px;
   }
-  
+
   .bp__actions button,
   .bp__actions .btn {
     width: 100%;
@@ -446,24 +423,17 @@
     border-radius: 30px;
     font-size: 16px;
     font-weight: 700;
-    background: #5B66B8;
+    background: #5b66b8;
     color: white;
     border: none;
     box-shadow: 0 4px 12px rgba(91, 102, 184, 0.3);
   }
-  
-  /* Разделители */
+
   .bp__divider {
     margin: 24px 0;
-    background: linear-gradient(
-      to right,
-      transparent,
-      rgba(91, 102, 184, 0.2),
-      transparent
-    );
+    background: linear-gradient(to right, transparent, rgba(91, 102, 184, 0.2), transparent);
   }
-  
-  /* Ссылки */
+
   .bp__link {
     font-size: 15px;
     padding: 12px 0;
@@ -476,52 +446,36 @@
   }
 }
 
-/* Для совсем маленьких экранов */
 @media (max-width: 480px) {
   .bp__avatar {
     width: 120px;
     height: 120px;
   }
-  
+
   .bp__name {
     font-size: 24px;
   }
-  
+
   .bp__grid2,
   .bp__section {
     padding: 16px;
   }
-  
+
   .bp__topic {
     padding: 12px 14px !important;
     font-size: 14px;
   }
 }
 
-/* Анимации для плавности */
+/* Анимации */
 @media (prefers-reduced-motion: no-preference) {
   .bp__grid2,
   .bp__section,
   .bp__topic {
     transition: background 0.3s ease, transform 0.2s ease;
   }
-  
+
   .bp__topic:active {
     transform: scale(0.98);
-  }
-}
-/* ВРЕМЕННО: убираем белый фон у карточки */
-.card {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* Если нужно вернуть фон для десктопа, оберни в медиа-запрос min-width */
-@media (min-width: 769px) {
-  .card {
-    background: rgba(255,255,255,.92) !important;
-    border: 1px solid rgba(0,0,0,.08) !important;
-    border-radius: 16px;
   }
 }
