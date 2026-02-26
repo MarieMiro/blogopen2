@@ -17,7 +17,11 @@ BACKEND_URL = os.getenv("BACKEND_URL", "").rstrip("/")
 
 # ===== HOSTS =====
 # лучше явно, но если хочешь оставить env — ок
-ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
+ALLOWED_HOSTS = [
+    "blogopen2.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 # если задеплоен бэк на render — добавь домен бэка
 # (можно и через env, но на всякий)
 if "onrender.com" not in ",".join(ALLOWED_HOSTS):
