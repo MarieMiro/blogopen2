@@ -1,5 +1,5 @@
 /* =========================
-   BLOGGER PROFILE (NEW)
+   BLOGGER PROFILE (NO CARDS)
    ========================= */
 
 .bp {
@@ -9,25 +9,13 @@
   display: block;
 }
 
-/* Только для блока ошибки – оставляем визуальную карточку */
-.card.bp__error {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-}
-
+/* Блок ошибки – оставляем чуть заметным, но без карточки */
 .bp__error {
   margin-bottom: 14px;
-}
-
-/* Основной блок профиля – полностью прозрачный, без рамок и отступов */
-.card.bp__card {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
+  padding: 12px 16px;
+  background: rgba(220, 20, 60, 0.04);
+  border-left: 3px solid crimson;
+  border-radius: 0;
 }
 
 .bp__card {
@@ -67,6 +55,13 @@
 .bp__btn {
   padding: 10px 12px;
   border-radius: 12px;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.bp__btn:hover {
+  background: rgba(0, 0, 0, 0.02);
 }
 
 /* RIGHT */
@@ -128,7 +123,7 @@
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.96);
+  background: transparent;
   color: inherit;
   outline: none;
 }
@@ -186,7 +181,7 @@
   width: 36px;
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.96);
+  background: transparent;
   cursor: pointer;
 }
 .bp__removeBtn:hover {
@@ -215,7 +210,7 @@
   align-items: center;
   gap: 10px;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.75);
+  background: transparent;
   border-radius: 12px;
   padding: 10px 12px;
   cursor: pointer;
@@ -237,21 +232,25 @@
   padding-top: 6px;
 }
 
+.bp__divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+  margin: 8px 0;
+}
+
 /* =========================
-   MOBILE STYLES
+   MOBILE STYLES (NO CARDS)
    ========================= */
 @media (max-width: 768px) {
   .bp {
     padding: 0;
     max-width: 100%;
-    background: transparent;
   }
 
   .bp__card {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    background: transparent;
     padding: 16px;
   }
 
@@ -272,14 +271,14 @@
     border-radius: 50%;
     border: 3px solid rgba(255, 255, 255, 0.8);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: #f0f0f0;
   }
 
   .bp__btn {
     width: auto;
     min-width: 160px;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: transparent;
+    border: 1px solid rgba(91, 102, 184, 0.3);
     border-radius: 30px;
     font-weight: 600;
     color: #5b66b8;
@@ -297,8 +296,9 @@
   .bp__name {
     font-size: 28px;
     margin-bottom: 8px;
-    background: linear-gradient(135deg, #2d3a6e, #5b66b8);
-    
+    background: none;
+      -webkit-text-fill-color: unset;
+    color: #1a1f36;
   }
 
   .bp__metaLine {
@@ -307,22 +307,22 @@
   }
 
   .chip {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(5px);
+    background: rgba(91, 102, 184, 0.08);
+    backdrop-filter: none;
     padding: 8px 16px;
     border-radius: 30px;
     font-size: 13px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(91, 102, 184, 0.2);
   }
 
   .bp__grid2 {
     grid-template-columns: 1fr;
     gap: 16px;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 24px;
-    padding: 20px;
-    margin: 0 -4px;
+    background: transparent;
+    backdrop-filter: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
   }
 
   .field__label {
@@ -333,20 +333,20 @@
   }
 
   .field__input {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 16px;
     padding: 14px 16px;
     font-size: 15px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    box-shadow: none;
   }
 
   .bp__section {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 24px;
-    padding: 20px;
-    margin: 0 -4px;
+    background: transparent;
+    backdrop-filter: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
   }
 
   .bp__sectionHead {
@@ -365,16 +365,16 @@
   .bp__socialRow {
     grid-template-columns: 1fr;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 16px;
-    padding: 12px;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
   }
 
   .bp__removeBtn {
     width: 100%;
     height: 44px;
     border-radius: 12px;
-    background: rgba(255, 68, 68, 0.1);
+    background: transparent;
     color: #ff4444;
     border: 1px solid rgba(255, 68, 68, 0.2);
     font-weight: 600;
@@ -386,15 +386,14 @@
   }
 
   .bp__topic {
-    background: rgba(255, 255, 255, 0.5) !important;
+    background: transparent !important;
     border-radius: 16px !important;
     padding: 14px 16px !important;
-    border: 1px solid rgba(0, 0, 0, 0.05) !important;
-    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
   }
 
   .bp__topic.isChecked {
-    background: rgba(91, 102, 184, 0.15) !important;
+    background: rgba(91, 102, 184, 0.08) !important;
     border-color: rgba(91, 102, 184, 0.3) !important;
   }
 
@@ -406,14 +405,14 @@
 
   .bp__addBtn {
     padding: 10px 18px;
-    background: rgba(91, 102, 184, 0.1);
+    background: rgba(91, 102, 184, 0.08);
     border-radius: 30px;
     font-size: 14px;
   }
 
   .bp__actions {
     margin-top: 24px;
-    padding: 0 4px;
+    padding: 0;
   }
 
   .bp__actions button,
@@ -439,9 +438,9 @@
     padding: 12px 0;
     display: block;
     text-align: center;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 30px;
+    background: transparent;
+    backdrop-filter: none;
+    border-radius: 0;
     margin-top: 16px;
   }
 }
@@ -458,7 +457,7 @@
 
   .bp__grid2,
   .bp__section {
-    padding: 16px;
+    padding: 0;
   }
 
   .bp__topic {
@@ -469,10 +468,8 @@
 
 /* Анимации */
 @media (prefers-reduced-motion: no-preference) {
-  .bp__grid2,
-  .bp__section,
   .bp__topic {
-    transition: background 0.3s ease, transform 0.2s ease;
+    transition: background 0.2s ease, transform 0.1s ease;
   }
 
   .bp__topic:active {
