@@ -270,7 +270,7 @@ export default function BrandMessages() {
   };
 
   return (
-    <div className="msg">
+    <div className={`msg ${activeId ? "chat-open" : ""}`}>
       {/* LEFT */}
       <section className="msg__left">
         <div className="msg__leftHead">
@@ -330,11 +330,22 @@ export default function BrandMessages() {
 
       {/* RIGHT */}
       <section className="msg__right">
-        <header className="msg__topbar">
-          <div className="msg__chatTitle">
-            {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
-          </div>
-        </header>
+         <header className="msg__topbar">
+  {activeId && (
+    <button
+      className="msg__back"
+      onClick={() => setActiveId(null)}
+      type="button"
+    >
+      ← Назад
+    </button>
+  )}
+
+  <div className="msg__chatTitle">
+    {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
+  </div>
+</header>
+
 
         <div className="msg__chat">
           <div

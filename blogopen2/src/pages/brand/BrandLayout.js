@@ -14,13 +14,16 @@ export default function BrandLayout() {
       {/* ЛЕВЫЙ САЙДБАР */}
       <aside className="dash__side">
         <NavLink to="/dashboard/brand" className="dash__icon">
-          ☰
+         <span> ☰</span>
+         <span>Профиль</span>
         </NavLink>
         <NavLink to="/dashboard/brand/bloggers" className="dash__icon">
-          👥
+        <span>👥</span> 
+         <span>База</span>
         </NavLink>
         <NavLink to="/dashboard/brand/messages" className="dash__icon">
-          💬
+          <span>💬</span>
+          <span>Чаты</span>
         </NavLink>
       </aside>
 
@@ -42,4 +45,4 @@ export default function BrandLayout() {
       </div>
     </div>
   );
-}
+} 

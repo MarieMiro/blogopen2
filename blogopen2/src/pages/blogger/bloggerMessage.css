@@ -350,7 +350,7 @@
   /* Убираем split-grid */
   .msg {
     display: block;
-    height: calc(100vh - 52px);
+    height: 100dvh;
     position: relative;
     background: rgba(224, 214, 255, 0.66);
   }

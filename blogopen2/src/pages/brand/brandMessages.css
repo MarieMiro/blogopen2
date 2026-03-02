@@ -56,8 +56,8 @@
 
 /* bubble itself */
  .bubble{
-  width: fit-content;               /* важное: ширина по контенту */
-  max-width: min(520px, 78%);       /* чтобы не было одинаковых/на всю ширину */
+  width: fit-content;               
+  max-width: min(520px, 78%);      
   padding: 10px 12px 8px;
   border-radius: 16px;
   line-height: 1.35;
@@ -96,8 +96,7 @@
   text-align: right;
 }
 
-/* если ты НЕ добавляла bubbleRow, а пузыри стоят прямо в msg__messages,
-   тогда оставь align-self, чтобы выравнивались */
+
 .msg__messages > .bubble--mine{ align-self: flex-end; }
  .msg__messages > .bubble--their{ align-self: flex-start; }
 
@@ -168,7 +167,7 @@
 
  .msg__title{
   font-weight: 800;
-  font-size: 18px; /* чуть крупнее */
+  font-size: 18px; 
 }
 
  .msg__search{
@@ -305,4 +304,40 @@
     #e0d6ff 100%
   );     
   gap: 0;
+}
+
+/* =========================
+   MOBILE (brands messages)
+   ========================= */
+
+@media (max-width: 768px){
+
+  .msg{
+    grid-template-columns: 1fr;   /* одна колонка */
+  }
+
+  /* по умолчанию показываем список */
+  .msg__right{
+    display: none;
+  }
+
+  /* когда открыт чат */
+  .msg.isChatOpen .msg__left{
+    display: none;
+  }
+
+  .msg.isChatOpen .msg__right{
+    display: flex;
+  }
+
+  /* кнопка назад в топбаре */
+  .msg__back{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
 }
