@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
 import "./BenefitsBloggers.css";
 
-import blogger1 from "../Assets/blogger1.png";
-import blogger2 from "../Assets/blogger2.png";
-import blogger3 from "../Assets/blogger3.png";
+import blogger1 from "../Assets/blogger1.jpg";
+import blogger2 from "../Assets/blogger2.jpg";
+import blogger3 from "../Assets/blogger3.jpg";
 
 export default function BenefitsBloggers() {
   const benefits = useMemo(
