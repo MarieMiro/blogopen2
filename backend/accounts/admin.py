@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import Profile, BrandProfile, BloggerProfile
 
 
-
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = (
@@ -21,6 +20,5 @@ class ProfileAdmin(admin.ModelAdmin):
         "user__username",
         "user__email",
     )
-
 admin.site.register(BrandProfile)
 admin.site.register(BloggerProfile)
