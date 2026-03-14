@@ -298,6 +298,12 @@ export default function BloggerBrands() {
                 ) : (
                   <div className="bbCard__photo bbCard__photo--empty">Лого</div>
                 )}
+                 {b.verification_status && (
+                  <div className={`bbCard__badge bbCard__badge--${b.verification_status}`}>
+                    {b.verification_status === "approved" && "✔"}
+                    {b.verification_status === "pending" && "⏳"}
+                  </div>
+                )}
               </div>
 
               <div className="bbCard__body">

@@ -445,6 +445,42 @@
   }
 }
 
+
+@media (max-width: 480px) {
+  .bp__avatar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .bp__name {
+    font-size: 24px;
+  }
+
+  .bp__grid2,
+  .bp__section {
+    padding: 0;
+  }
+
+  .bp__topic {
+    padding: 12px 14px !important;
+    font-size: 14px;
+  }
+}
+
+/* Анимации */
+@media (prefers-reduced-motion: no-preference) {
+  .bp__topic {
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+
+  .bp__topic:active {
+    transform: scale(0.98);
+  }
+}
+
+
+
+
 .bp__avatarWrap{
   position: relative;
   display: inline-block;
@@ -482,36 +518,4 @@
 .bp__avatarBadge--rejected{
   background: #ef4444;
   color: white;
-}
-
-@media (max-width: 480px) {
-  .bp__avatar {
-    width: 120px;
-    height: 120px;
-  }
-
-  .bp__name {
-    font-size: 24px;
-  }
-
-  .bp__grid2,
-  .bp__section {
-    padding: 0;
-  }
-
-  .bp__topic {
-    padding: 12px 14px !important;
-    font-size: 14px;
-  }
-}
-
-/* Анимации */
-@media (prefers-reduced-motion: no-preference) {
-  .bp__topic {
-    transition: background 0.2s ease, transform 0.1s ease;
-  }
-
-  .bp__topic:active {
-    transform: scale(0.98);
-  }
 }
