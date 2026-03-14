@@ -445,6 +445,45 @@
   }
 }
 
+.bp__avatarWrap{
+  position: relative;
+  display: inline-block;
+}
+
+.bp__avatarBadge{
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+
+  width: 26px;
+  height: 26px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  border: 2px solid white;
+}
+.bp__avatarBadge--approved{
+  background: #22c55e;
+  color: white;
+}
+
+.bp__avatarBadge--pending{
+  background: #f59e0b;
+  color: white;
+}
+
+.bp__avatarBadge--rejected{
+  background: #ef4444;
+  color: white;
+}
+
 @media (max-width: 480px) {
   .bp__avatar {
     width: 120px;

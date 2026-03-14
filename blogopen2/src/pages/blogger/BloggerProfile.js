@@ -238,7 +238,11 @@ export default function BloggerProfile() {
                 <span>Фото</span>
               </div>
             )}
-
+            <div className={`bp__avatarBadge bp__avatarBadge--${form.verificationStatus}`}>
+              {form.verificationStatus === "approved" && "✔"}
+              {form.verificationStatus === "pending" && "⏳"}
+              {form.verificationStatus === "rejected" && "✕"}
+            </div>
             <input
               ref={fileRef}
               type="file"
