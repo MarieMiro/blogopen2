@@ -117,8 +117,8 @@ def register(request):
     login(request, user)
 
     return Response(
-        {"ok": True, "user_id": user.id, "email": user.email, "role": role
-         "verification_status": prof.verification_status,},
+        {"ok": True, "user_id": user.id, "email": user.email, "role": role,
+         "verification_status": prof.verification_status},
 
         status=status.HTTP_201_CREATED,
     )
@@ -162,7 +162,7 @@ def me(request):
         "ok": True,
         "email": request.user.email,
         "role": profile.role,
-        "verification_status": profile.verification_status
+        "verification_status": profile.verification_status,
     })
 # ---------------- BRAND PROFILE ----------------
 
@@ -519,7 +519,7 @@ def brand_public(request, profile_id: int):
         "budget": getattr(bp, "budget", "") if bp else "",
         "contact_person": getattr(bp, "contact_person", "") if bp else "",
 
-        # ✅ ДОБАВЬ ВОТ ЭТО:
+       
         "topics": (getattr(bp, "topics", None) or []) if bp else [],
     })
 
