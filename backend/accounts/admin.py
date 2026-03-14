@@ -21,6 +21,6 @@ class ProfileAdmin(admin.ModelAdmin):
         "user__username",
         "user__email",
     )
-admin.site.register(Profile)
+
 admin.site.register(BrandProfile)
 admin.site.register(BloggerProfile)
