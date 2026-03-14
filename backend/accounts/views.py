@@ -55,10 +55,7 @@ def get_avatar_url(request, p: Profile) -> str:
 
 
 def save_avatar_to_profile(p: Profile, uploaded_file) -> None:
-    """
-    Если есть avatar_blob -> кладём байты в Postgres.
-    Иначе -> сохраняем в ImageField (как сейчас у тебя).
-    """
+   
     if not uploaded_file:
         return
 
@@ -120,7 +117,9 @@ def register(request):
     login(request, user)
 
     return Response(
-        {"ok": True, "user_id": user.id, "email": user.email, "role": role},
+        {"ok": True, "user_id": user.id, "email": user.email, "role": role
+         "verification_status": prof.verification_status,},
+
         status=status.HTTP_201_CREATED,
     )
 
@@ -138,7 +137,12 @@ def login_view(request):
     login(request, user)
 
     profile = ensure_profile_and_role_models(user, role_default="brand")
-    return Response({"ok": True, "email": user.email, "role": profile.role})
+    return Response({
+    "ok": True,
+    "email": user.email,
+    "role": profile.role,
+    "verification_status": profile.verification_status
+})
 
 
 @api_view(["POST"])
@@ -153,9 +157,13 @@ def logout_view(request):
 @permission_classes([IsAuthenticated])
 def me(request):
     profile = ensure_profile_and_role_models(request.user, role_default="brand")
-    return Response({"ok": True, "email": request.user.email, "role": profile.role})
 
-
+    return Response({
+        "ok": True,
+        "email": request.user.email,
+        "role": profile.role,
+        "verification_status": profile.verification_status
+    })
 # ---------------- BRAND PROFILE ----------------
 
 @api_view(["GET"])
@@ -390,7 +398,7 @@ def bloggers_list(request):
             "id": prof.id,
             "avatar_url": prof.avatar.url if prof.avatar else "",
             "city": prof.city,
-
+            "verification_status": prof.verification_status,
             "nickname": getattr(bp, "nickname", "") if bp else "",
             "platform": getattr(bp, "platform", "") if bp else "",
             "platform_url": getattr(bp, "platform_url", "") if bp else "",
@@ -437,7 +445,7 @@ def brands_list(request):
             "id": prof.id,
             "email": prof.user.email,
             "avatar_url": get_avatar_url(request, prof),
-
+            "verification_status": prof.verification_status,
             "brand_name": getattr(bp, "brand_name", "") if bp else "",
             "sphere": getattr(bp, "sphere", "") if bp else "",
             "budget": getattr(bp, "budget", "") if bp else "",
@@ -470,6 +478,7 @@ def blogger_public(request, profile_id: int):
     return Response({
         "ok": True,
         "id": prof.id,
+        "verification_status": prof.verification_status,
         "avatar_url": get_avatar_url(request, prof),
         "city": prof.city,
 
@@ -504,7 +513,7 @@ def brand_public(request, profile_id: int):
         "avatar_url":get_avatar_url(request, prof),
         "city": prof.city,
         "about": prof.about,
-
+        "verification_status": prof.verification_status,
         "brand_name": getattr(bp, "brand_name", "") if bp else "",
         "sphere": getattr(bp, "sphere", "") if bp else "",
         "budget": getattr(bp, "budget", "") if bp else "",

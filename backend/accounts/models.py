@@ -10,8 +10,21 @@ class Profile(models.Model):
         ("blogger", "blogger"),
     )
 
+    VERIFICATION_STATUS = (
+        ("pending", "Не проверен"),
+        ("approved", "Проверен"),
+        ("rejected", "Не одобрен"),
+    )
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="brand")
+      
+    verification_status = models.CharField(
+        max_length=10,
+        choices=VERIFICATION_STATUS,
+        default="pending"
+    )
+
 
     # старое (можно оставить, но больше не использовать на проде)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
@@ -34,8 +47,7 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.email} ({self.role})"
 
-    def __str__(self):
-        return f"{self.user.email} ({self.role})"
+    
 
 
 class BrandProfile(models.Model):
