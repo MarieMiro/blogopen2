@@ -100,26 +100,39 @@ def register(request):
         role = "brand"
 
     if not email or not password:
-        return Response({"error": "email и password обязательны"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "email и password обязательны"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     if User.objects.filter(username=email).exists():
-        return Response({"error": "Пользователь уже существует"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Пользователь уже существует"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     user = User.objects.create_user(username=email, email=email, password=password)
 
-    profile = Profile.objects.create(user=user, role=role)
-    if role == "brand":
-        BrandProfile.objects.create(profile=profile)
-    else:
-        BloggerProfile.objects.create(profile=profile)
+    
+    profile = user.profile
+    profile.role = role
+    profile.save()
 
-    # авто-логин чтобы сессия сразу появилась
+    if role == "brand":
+        BrandProfile.objects.get_or_create(profile=profile)
+    else:
+        BloggerProfile.objects.get_or_create(profile=profile)
+
     login(request, user)
 
     return Response(
-        {"ok": True, "user_id": user.id, "email": user.email, "role": role,
-         "verification_status": prof.verification_status},
-
+        {
+            "ok": True,
+            "user_id": user.id,
+            "email": user.email,
+            "role": role,
+            "verification_status": profile.verification_status,
+        },
         status=status.HTTP_201_CREATED,
     )
 
