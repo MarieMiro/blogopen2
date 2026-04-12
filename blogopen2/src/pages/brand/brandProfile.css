@@ -304,4 +304,12 @@
     border-radius: 28px;
   }
 
+  .bp__avatarWrap{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+
 }
