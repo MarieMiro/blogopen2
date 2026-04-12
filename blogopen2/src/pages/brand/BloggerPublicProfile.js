@@ -11,6 +11,7 @@ export default function BloggerPublicProfile() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [openingChatId, setOpeningChatId] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -73,6 +74,35 @@ export default function BloggerPublicProfile() {
     return [];
   }, [data]);
 
+  const openChat = async (profileId) => {
+  try {
+    setOpeningChatId(profileId);
+
+    const res = await fetch(`${API_BASE}/api/chat/with/${profileId}/`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      alert(data.error || "Не удалось открыть чат");
+      return;
+    }
+
+    navigate("/dashboard/brand/messages", {
+      state: { convId: data.conversation_id },
+    });
+  } catch {
+    alert("Ошибка соединения с сервером");
+  } finally {
+    setOpeningChatId(null);
+  }
+};
+
+
+
+
   if (loading) return <div className="muted">Загрузка профиля…</div>;
 
   if (error) {
@@ -107,8 +137,13 @@ export default function BloggerPublicProfile() {
             )}
           </div>
 
-          <button className="bpp__btn bpp__btn--primary" type="button">
-            Написать
+          <button
+            className="bpp__btn bpp__btn--primary"
+            type="button"
+            onClick={() => openChat(Number(id))}
+            disabled={openingChatId === Number(id)}
+          >
+            {openingChatId === Number(id) ? "Открываю…" : "Написать"}
           </button>
         </aside>
 
