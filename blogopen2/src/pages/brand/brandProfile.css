@@ -204,6 +204,50 @@
 }
 
 
+.bp__marketplaceBlock{
+  margin: 6px 0 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.bp__marketplaceActions{
+  display: flex;
+  justify-content: flex-start;
+}
+
+.bp__hint{
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.bp__analysis{
+  padding: 14px 16px;
+  border-radius: 14px;
+}
+
+.bp__analysisTitle{
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.bp__analysisGrid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.bp__analysisFull{
+  grid-column: 1 / -1;
+}
+
+.bp__analysisLabel{
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
 /* =========================
    MOBILE (Brand Profile)
    ========================= */

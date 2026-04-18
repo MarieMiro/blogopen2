@@ -13,6 +13,9 @@ from django.shortcuts import get_object_or_404
 from .models import Profile, BrandProfile, BloggerProfile, Conversation, Message
 from .auth import CsrfExemptSessionAuthentication
 import json
+import re
+from urllib.parse import urlparse
+
 
 # ---------------- HELPERS ----------------
 
@@ -714,3 +717,73 @@ def profile_avatar(request, profile_id):
 
     content_type = profile.avatar_mime or "image/jpeg"
     return HttpResponse(profile.avatar_blob, content_type=content_type)
+
+
+# ---------------- PRODUCT ANALYZE ----------------
+
+def detect_marketplace(url: str) -> str:
+    host = urlparse(url).netloc.lower()
+
+    if "wildberries" in host or "wb.ru" in host:
+        return "wildberries"
+    if "ozon" in host:
+        return "ozon"
+    if "market.yandex" in host or "yandex" in host:
+        return "yandex_market"
+    return "unknown"
+
+def detect_category_from_text(text: str) -> str:
+    t = (text or "").lower()
+
+    mapping = {
+        "beauty": ["крем", "сыворот", "шампун", "маска", "космет", "уход", "лицо", "волос", "гель"],
+        "food": ["чай", "кофе", "шоколад", "батончик", "еда", "напиток", "снек", "печенье"],
+        "clothes": ["платье", "футболка", "куртка", "джинсы", "юбка", "одежда", "костюм"],
+        "tech": ["наушники", "смартфон", "ноутбук", "колонка", "техника", "кабель", "зарядка"],
+        "education": ["курс", "обучение", "школа", "урок", "образование"],
+        "services": ["услуга", "сервис", "доставка", "консультация"],
+    }
+
+    for category, words in mapping.items():
+        if any(word in t for word in words):
+            return category
+
+    return "services"
+
+@api_view(["POST"])
+@authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsAuthenticated])
+def product_analyze(request):
+    p = ensure_profile_and_role_models(request.user, role_default="brand")
+    if p.role != "brand":
+        return Response({"error": "Not a brand"}, status=status.HTTP_403_FORBIDDEN)
+
+    url = (request.data.get("url") or "").strip()
+    if not url:
+        return Response({"error": "Ссылка обязательна"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not (url.startswith("http://") or url.startswith("https://")):
+        return Response({"error": "Некорректная ссылка"}, status=status.HTTP_400_BAD_REQUEST)
+
+    marketplace = detect_marketplace(url)
+
+    # MVP: пока без реального парсинга страницы
+    # Берем хвост ссылки как временный source text
+    path_text = urlparse(url).path.replace("-", " ").replace("/", " ")
+    category = detect_category_from_text(path_text)
+
+    result = {
+        "source_url": url,
+        "marketplace": marketplace,
+        "title": "Товар из ссылки",
+        "category": category,
+        "price": None,
+        "brand": "",
+        "description": "",
+        "keywords": [],
+    }
+
+    return Response({
+        "ok": True,
+        "product": result,
+    })

@@ -23,6 +23,9 @@ const TOPIC_OPTIONS = [
 export default function BrandProfile() {
   const initial = useMemo(
     () => ({
+      marketplaceUrl: "",
+      productAnalysis: null,
+      analyzing: false,
       brandName: "",
       city: "",
       about: "",
@@ -116,6 +119,10 @@ export default function BrandProfile() {
 
           avatarUrl: toAbsUrl(data.avatar_url || ""),
           avatarFile: null,
+
+          marketplaceUrl: data.marketplace_url || "",
+          productAnalysis: null,
+          analyzing: false,
         }));
       } catch {
         if (alive) setError("Ошибка соединения с сервером");
@@ -144,6 +151,8 @@ export default function BrandProfile() {
       fd.append("budget", form.budget);
       fd.append("inn", form.inn);
       fd.append("contact_person", form.contactPerson);
+
+      fd.append("marketplace_url", form.marketplaceUrl || "");
 
       // ✅ совместимость со старым бэком: sphere как строка
       const sphereStr = form.topics.join(", ");
@@ -180,6 +189,45 @@ export default function BrandProfile() {
       setSaving(false);
     }
   };
+ 
+  const onAnalyzeMarketplace = async () => {
+  if (!form.marketplaceUrl?.trim()) {
+    setError("Добавьте ссылку на товар или профиль маркетплейса");
+    return;
+  }
+
+  setError("");
+  setForm((p) => ({ ...p, analyzing: true, productAnalysis: null }));
+
+  try {
+    const res = await fetch(`${API_BASE}/api/product/analyze/`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: form.marketplaceUrl.trim() }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setError(data.error || "Не удалось проанализировать ссылку");
+      return;
+    }
+
+    setForm((p) => ({
+      ...p,
+      productAnalysis: data.product || null,
+    }));
+  } catch {
+    setError("Ошибка соединения с сервером");
+  } finally {
+    setForm((p) => ({ ...p, analyzing: false }));
+  }
+};
+
+
+
+
 
   if (loading) return <div className="muted">Загрузка профиля...</div>;
 
@@ -243,6 +291,58 @@ export default function BrandProfile() {
     <div className="bp__infoCol">
 
       <h3 className="bp__h3">Информация для блогера</h3>
+
+      <div className="bp__marketplaceBlock">
+  <label className="field field--full">
+    <span className="field__label">Ссылка на товар / профиль маркетплейса</span>
+    <input
+      className="field__input"
+      type="url"
+      placeholder="https://www.wildberries.ru/... или https://www.ozon.ru/..."
+      value={form.marketplaceUrl || ""}
+      onChange={(e) => setField("marketplaceUrl", e.target.value)}
+      disabled={saving || form.analyzing}
+    />
+  </label>
+
+  <div className="bp__marketplaceActions">
+    <button
+      type="button"
+      className="btn btnPrimary"
+      onClick={onAnalyzeMarketplace}
+      disabled={saving || form.analyzing || !form.marketplaceUrl?.trim()}
+    >
+      {form.analyzing ? "Анализ..." : "Анализировать"}
+    </button>
+  </div>
+
+  <p className="bp__hint muted">
+    Вставьте ссылку на товар или профиль на маркетплейсе, чтобы платформа могла подобрать подходящих блогеров.
+  </p>
+
+  {form.productAnalysis && (
+    <div className="bp__analysis card">
+      <h4 className="bp__analysisTitle">Результат анализа</h4>
+
+      <div className="bp__analysisGrid">
+        <div>
+          <span className="bp__analysisLabel">Маркетплейс</span>
+          <div>{form.productAnalysis.marketplace || "—"}</div>
+        </div>
+
+        <div>
+          <span className="bp__analysisLabel">Категория</span>
+          <div>{form.productAnalysis.category || "—"}</div>
+        </div>
+
+        <div className="bp__analysisFull">
+          <span className="bp__analysisLabel">Название</span>
+          <div>{form.productAnalysis.title || "—"}</div>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
 
       <div className="bp__grid2">
         <label className="field">
