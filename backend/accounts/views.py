@@ -15,6 +15,8 @@ from .auth import CsrfExemptSessionAuthentication
 import json
 import re
 from urllib.parse import urlparse
+import requests
+from bs4 import BeatifulSoup
 
 
 # ---------------- HELPERS ----------------
@@ -767,19 +769,58 @@ def product_analyze(request):
 
     marketplace = detect_marketplace(url)
 
-    # MVP: пока без реального парсинга страницы
-    # Берем хвост ссылки как временный source text
-    path_text = urlparse(url).path.replace("-", " ").replace("/", " ")
-    category = detect_category_from_text(path_text)
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+    }
+
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+    except Exception:
+        return Response({"error": "Не удалось загрузить страницу товара"}, status=status.HTTP_400_BAD_REQUEST)
+
+    html = resp.text
+    soup = BeautifulSoup(html, "html.parser")
+
+    title = ""
+    price = None
+    brand = ""
+    description = ""
+
+    # 1. title
+    if soup.title and soup.title.text:
+        title = soup.title.text.strip()
+
+    # 2. meta description
+    meta_desc = soup.find("meta", attrs={"name": "description"})
+    if meta_desc and meta_desc.get("content"):
+        description = meta_desc["content"].strip()
+
+    # 3. простая попытка найти цену в тексте
+    text = soup.get_text(" ", strip=True)
+    price_match = re.search(r"(\d[\d\s]{1,10})\s?[₽р]", text)
+    if price_match:
+        try:
+            price = int(price_match.group(1).replace(" ", ""))
+        except Exception:
+            price = None
+
+    # 4. бренд пока грубо — можно потом улучшить
+    if "brand" in text.lower():
+        brand = ""
+
+    source_text = " ".join([title, description, urlparse(url).path.replace("-", " ")])
+    category = detect_category_from_text(source_text)
 
     result = {
         "source_url": url,
         "marketplace": marketplace,
-        "title": "Товар из ссылки",
+        "title": title or "Товар из ссылки",
         "category": category,
-        "price": None,
-        "brand": "",
-        "description": "",
+        "price": price,
+        "brand": brand,
+        "description": description,
         "keywords": [],
     }
 
