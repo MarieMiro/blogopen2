@@ -91,6 +91,44 @@ def calc_blogger_progress(profile: Profile, bp: BloggerProfile, request=None) ->
     total = len(fields)
     return int(round((filled / total) * 100)) if total else 0
 
+def parse_wildberries(url: str):
+    match = re.search(r"/catalog/(\d+)/", url)
+    if not match:
+        return None
+
+    nm_id = match.group(1)
+    api_url = f"https://card.wb.ru/cards/detail?nm={nm_id}"
+
+    try:
+        resp = requests.get(api_url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        return None
+
+    try:
+        products = data.get("data", {}).get("products", [])
+        if not products:
+            return None
+
+        product = products[0]
+
+        title = product.get("name") or ""
+        brand = product.get("brand") or ""
+
+        # WB часто хранит цену в копейках
+        price_raw = product.get("salePriceU") or product.get("priceU") or 0
+        price = price_raw / 100 if price_raw else None
+
+        return {
+            "title": title,
+            "price": price,
+            "brand": brand,
+            "description": "",
+        }
+    except Exception:
+        return None
+
 
 # ---------------- AUTH ----------------
 
@@ -769,6 +807,43 @@ def product_analyze(request):
 
     marketplace = detect_marketplace(url)
 
+    # --------------------------
+    # 1) Спец-обработка Wildberries
+    # --------------------------
+    if marketplace == "wildberries":
+        product_data = parse_wildberries(url)
+
+        if product_data:
+            source_text = " ".join([
+                product_data.get("title", ""),
+                product_data.get("brand", ""),
+                urlparse(url).path.replace("-", " "),
+            ])
+
+            category = detect_category_from_text(source_text)
+
+            return Response({
+                "ok": True,
+                "product": {
+                    "source_url": url,
+                    "marketplace": "wildberries",
+                    "title": product_data.get("title") or "Товар из ссылки",
+                    "category": category,
+                    "price": product_data.get("price"),
+                    "brand": product_data.get("brand") or "",
+                    "description": product_data.get("description") or "",
+                    "keywords": [],
+                }
+            })
+
+        return Response(
+            {"error": "Не удалось получить данные товара Wildberries"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # --------------------------
+    # 2) Fallback для остальных сайтов
+    # --------------------------
     headers = {
         "User-Agent": "Mozilla/5.0",
         "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
@@ -778,7 +853,10 @@ def product_analyze(request):
         resp = requests.get(url, headers=headers, timeout=10)
         resp.raise_for_status()
     except Exception:
-        return Response({"error": "Не удалось загрузить страницу товара"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Не удалось загрузить страницу товара"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     html = resp.text
     soup = BeautifulSoup(html, "html.parser")
@@ -797,7 +875,7 @@ def product_analyze(request):
     if meta_desc and meta_desc.get("content"):
         description = meta_desc["content"].strip()
 
-    # 3. простая попытка найти цену в тексте
+    # 3. попытка найти цену в тексте
     text = soup.get_text(" ", strip=True)
     price_match = re.search(r"(\d[\d\s]{1,10})\s?[₽р]", text)
     if price_match:
@@ -806,11 +884,11 @@ def product_analyze(request):
         except Exception:
             price = None
 
-    # 4. бренд пока грубо — можно потом улучшить
-    if "brand" in text.lower():
-        brand = ""
-
-    source_text = " ".join([title, description, urlparse(url).path.replace("-", " ")])
+    source_text = " ".join([
+        title,
+        description,
+        urlparse(url).path.replace("-", " "),
+    ])
     category = detect_category_from_text(source_text)
 
     result = {
@@ -828,3 +906,5 @@ def product_analyze(request):
         "ok": True,
         "product": result,
     })
+
+
