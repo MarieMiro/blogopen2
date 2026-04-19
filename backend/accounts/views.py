@@ -16,7 +16,7 @@ import json
 import re
 from urllib.parse import urlparse
 import requests
-from bs4 import BeatifulSoup
+from bs4 import BeautifulSoup
 
 
 # ---------------- HELPERS ----------------
