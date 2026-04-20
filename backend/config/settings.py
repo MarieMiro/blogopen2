@@ -19,6 +19,7 @@ BACKEND_URL = os.getenv("BACKEND_URL", "").rstrip("/")
 # лучше явно, но если хочешь оставить env — ок
 ALLOWED_HOSTS = [
     "blogopen2.onrender.com",
+    "blogopen.onrender.com"
     "localhost",
     "127.0.0.1",
 ]
@@ -111,7 +112,7 @@ def _split_env_urls(name: str):
         items.append(x)
     return items
 
-CORS_ALLOWED_ORIGINS = ["https://blogopen2.onrender.com",]
+CORS_ALLOWED_ORIGINS = ["https://blogopen2.onrender.com", "https://blogopen.onrender.com"]
 
 # на всякий случай (если домен фронта меняется / есть preview-домены)
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -120,7 +121,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = ["https://blogopen2.onrender.com",]
+CSRF_TRUSTED_ORIGINS = ["https://blogopen2.onrender.com", "https://blogopen.onrender.com"]
 
 
 
