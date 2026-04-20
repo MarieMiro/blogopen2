@@ -21,6 +21,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+import time
 
 # ---------------- HELPERS ----------------
 
@@ -93,6 +94,40 @@ def calc_blogger_progress(profile: Profile, bp: BloggerProfile, request=None) ->
     filled = sum(fields)
     total = len(fields)
     return int(round((filled / total) * 100)) if total else 0
+
+
+
+def open_page_with_selenium(url: str):
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("--window-size=1400,2000")
+    options.binary_location = "/usr/bin/chromium"
+
+    driver = None
+    try:
+        driver = webdriver.Chrome(options=options)
+        driver.get(url)
+        time.sleep(5)
+
+        title = driver.title or ""
+        html = driver.page_source or ""
+
+        return {
+            "ok": True,
+            "title": title,
+            "html_len": len(html),
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": str(e),
+        }
+    finally:
+        if driver:
+            driver.quit()
 
 def parse_wildberries(url: str):
     match = re.search(r"/catalog/(\d+)/", url)
@@ -805,109 +840,21 @@ def product_analyze(request):
     if not url:
         return Response({"error": "Ссылка обязательна"}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not (url.startswith("http://") or url.startswith("https://")):
-        return Response({"error": "Некорректная ссылка"}, status=status.HTTP_400_BAD_REQUEST)
+    result = open_page_with_selenium(url)
 
-    marketplace = detect_marketplace(url)
-
-    # --------------------------
-    # 1) Спец-обработка Wildberries
-    # --------------------------
-    if marketplace == "wildberries":
-        product_data = parse_wildberries(url)
-
-        if product_data:
-            source_text = " ".join([
-                product_data.get("title", ""),
-                product_data.get("brand", ""),
-                urlparse(url).path.replace("-", " "),
-            ])
-
-            category = detect_category_from_text(source_text)
-
-            return Response({
-                "ok": True,
-                "product": {
-                    "source_url": url,
-                    "marketplace": "wildberries",
-                    "title": product_data.get("title") or "Товар из ссылки",
-                    "category": category,
-                    "price": product_data.get("price"),
-                    "brand": product_data.get("brand") or "",
-                    "description": product_data.get("description") or "",
-                    "keywords": [],
-                }
-            })
-
-        return Response(
-            {"error": "Не удалось получить данные товара Wildberries"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # --------------------------
-    # 2) Fallback для остальных сайтов
-    # --------------------------
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
-    }
-
-    try:
-        resp = requests.get(url, headers=headers, timeout=10)
-        resp.raise_for_status()
-    except Exception:
-        return Response(
-            {"error": "Не удалось загрузить страницу товара"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    html = resp.text
-    soup = BeautifulSoup(html, "html.parser")
-
-    title = ""
-    price = None
-    brand = ""
-    description = ""
-
-    # 1. title
-    if soup.title and soup.title.text:
-        title = soup.title.text.strip()
-
-    # 2. meta description
-    meta_desc = soup.find("meta", attrs={"name": "description"})
-    if meta_desc and meta_desc.get("content"):
-        description = meta_desc["content"].strip()
-
-    # 3. попытка найти цену в тексте
-    text = soup.get_text(" ", strip=True)
-    price_match = re.search(r"(\d[\d\s]{1,10})\s?[₽р]", text)
-    if price_match:
-        try:
-            price = int(price_match.group(1).replace(" ", ""))
-        except Exception:
-            price = None
-
-    source_text = " ".join([
-        title,
-        description,
-        urlparse(url).path.replace("-", " "),
-    ])
-    category = detect_category_from_text(source_text)
-
-    result = {
-        "source_url": url,
-        "marketplace": marketplace,
-        "title": title or "Товар из ссылки",
-        "category": category,
-        "price": price,
-        "brand": brand,
-        "description": description,
-        "keywords": [],
-    }
+    if not result["ok"]:
+        return Response({"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({
         "ok": True,
-        "product": result,
+        "product": {
+            "source_url": url,
+            "marketplace": detect_marketplace(url),
+            "title": result["title"] or "Страница открыта",
+            "category": "",
+            "price": None,
+            "brand": "",
+            "description": f"HTML length: {result['html_len']}",
+            "keywords": [],
+        }
     })
-
-
