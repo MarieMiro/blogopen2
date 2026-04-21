@@ -22,6 +22,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+from selenium_stealth import stealth
+
 
 # ---------------- HELPERS ----------------
 
@@ -102,15 +104,37 @@ def open_page_with_selenium(url: str):
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1400,2200")
     options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_argument("--window-size=1400,2000")
+    options.add_argument(
+        "--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    )
     options.binary_location = "/usr/bin/chromium"
 
     driver = None
     try:
         driver = webdriver.Chrome(options=options)
+
+        stealth(
+            driver,
+            languages=["ru-RU", "ru", "en-US", "en"],
+            vendor="Google Inc.",
+            platform="Linux x86_64",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True,
+        )
+
         driver.get(url)
-        time.sleep(5)
+        time.sleep(4)
+
+        # плавный скролл, как в видео
+        for _ in range(20):
+            driver.execute_script("window.scrollBy(0, 700)")
+            time.sleep(0.25)
+
+        time.sleep(3)
 
         title = driver.title or ""
         html = driver.page_source or ""
@@ -119,7 +143,9 @@ def open_page_with_selenium(url: str):
             "ok": True,
             "title": title,
             "html_len": len(html),
+            "text_preview": html[:4000],
         }
+
     except Exception as e:
         return {
             "ok": False,
