@@ -19,7 +19,7 @@ BACKEND_URL = os.getenv("BACKEND_URL", "").rstrip("/")
 # лучше явно, но если хочешь оставить env — ок
 ALLOWED_HOSTS = [
     "blogopen2.onrender.com",
-    "blogopen.onrender.com"
+    "blogopen.onrender.com",
     "localhost",
     "127.0.0.1",
 ]
