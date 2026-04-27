@@ -128,14 +128,14 @@ def open_page_with_selenium(url: str):
         )
 
         driver.get(url)
-        time.sleep(4)
+        time.sleep(5)
 
        
-        for _ in range(20):
+        for _ in range(6):
             driver.execute_script("window.scrollBy(0, 700)")
-            time.sleep(0.25)
+            time.sleep(0.4)
 
-        time.sleep(3)
+        time.sleep(2)
 
         title = driver.title or ""
         html = driver.page_source or ""
