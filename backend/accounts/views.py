@@ -19,7 +19,7 @@ import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by immort By
+from selenium.webdriver.common.by import By
 import time
 from selenium_stealth import stealth
 
