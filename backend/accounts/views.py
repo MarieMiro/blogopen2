@@ -19,8 +19,7 @@ import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by immort By
 import time
 from selenium_stealth import stealth
 
@@ -114,7 +113,9 @@ def open_page_with_selenium(url: str):
 
     driver = None
     try:
-        driver = webdriver.Chrome(options=options)
+        driver = webdriver.Chrome(
+            options=options
+            )
 
         stealth(
             driver,
@@ -129,7 +130,7 @@ def open_page_with_selenium(url: str):
         driver.get(url)
         time.sleep(4)
 
-        # плавный скролл, как в видео
+       
         for _ in range(20):
             driver.execute_script("window.scrollBy(0, 700)")
             time.sleep(0.25)
