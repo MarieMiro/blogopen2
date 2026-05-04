@@ -19,7 +19,7 @@ function dialogAvatarUrl(d) {
 
 function buildBloggerTemplate(activeDialog) {
   const name = activeDialog ? dialogName(activeDialog) : "";
-  return `Привет${name ?` , ${name}` : ""}! 👋
+  return `Привет${name ? `, ${name}` : ""}! 👋
 
 Я пишу с платформы BlogOpen. Хочу предложить сотрудничество.
 
@@ -42,19 +42,20 @@ export default function BloggerMessages() {
 
   const [dialogs, setDialogs] = useState([]);
   const [activeId, setActiveId] = useState(null);
-
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
 
   const [loadingDialogs, setLoadingDialogs] = useState(true);
   const [loadingChat, setLoadingChat] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
   const listRef = useRef(null);
   const isAtBottomRef = useRef(true);
   const pollRef = useRef(null);
 
-  const didPrefillRef = useRef(false);
+  // Черновики по id диалога — чтобы не терять текст при переключении
+  const draftsRef = useRef({});
 
   const [q, setQ] = useState("");
   const preferredConvId = location.state?.convId ?? null;
@@ -70,18 +71,41 @@ export default function BloggerMessages() {
     [dialogs, activeId]
   );
 
-  const openDialog = (id) => {
-    didPrefillRef.current = false; // ✅ разрешаем шаблон заново для нового диалога
+  // =========================
+  // Открыть диалог
+  // =========================
+  const openDialog = async (id) => {
+    // Сохраняем черновик текущего диалога
+    if (activeId) {
+      draftsRef.current[activeId] = text;
+    }
+
     setActiveId(id);
+    setMessages([]);
+
+    // Помечаем как прочитанное
+    try {
+      await fetch(`${API_BASE}/api/chat/${id}/read/`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      // не критично
+    }
+
+    // Сбрасываем счётчик непрочитанных локально
+    setDialogs((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, unread_count: 0 } : d))
+    );
   };
 
   // =========================
-  // 1) ДИАЛОГИ: грузим 1 раз (как ты хотела — статично)
+  // 1) Загрузка диалогов
   // =========================
   useEffect(() => {
     let alive = true;
 
-    (async () => {
+    const loadDialogs = async () => {
       try {
         setError("");
         setLoadingDialogs(true);
@@ -112,43 +136,60 @@ export default function BloggerMessages() {
       } finally {
         if (alive) setLoadingDialogs(false);
       }
-    })();
+    };
+
+    loadDialogs();
+
+    // Polling диалогов каждые 30 сек — чтобы появлялись новые диалоги
+    const dialogsPoll = setInterval(async () => {
+      if (!alive) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && alive) setDialogs(data.results || []);
+      } catch {
+        // тихо
+      }
+    }, 30000);
 
     return () => {
       alive = false;
+      clearInterval(dialogsPoll);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // =========================
-  // 1.5) ШАБЛОН: подставляем при первом входе в диалог
-  // (не перетираем, если пользователь уже что-то печатает)
+  // 2) Текст при смене диалога:
+  //    - если есть черновик — восстанавливаем
+  //    - если диалог новый (нет сообщений) — шаблон
+  //    - если диалог с историей — пустое поле
   // =========================
   useEffect(() => {
-    if (!activeId || !activeDialog) return;
-    if (didPrefillRef.current) return;
+    if (!activeId) return;
 
-    setText((prev) => {
-      if (prev && prev.trim().length > 0) return prev;
-      return buildBloggerTemplate(activeDialog);
-    });
+    // Есть сохранённый черновик — восстанавливаем
+    if (draftsRef.current[activeId] !== undefined) {
+      setText(draftsRef.current[activeId]);
+      return;
+    }
 
-    didPrefillRef.current = true;
-  }, [activeId, activeDialog]);
+    // Черновика нет — ждём загрузки сообщений,
+    // текст выставится в блоке загрузки сообщений (эффект ниже)
+    setText("");
+  }, [activeId]);
 
   // =========================
-  // 2) СООБЩЕНИЯ: polling 10s, пауза на hidden
-  // + автоскролл только если пользователь внизу
+  // 3) Сообщения: polling 10s
   // =========================
   useEffect(() => {
     if (!activeId) return;
 
     let alive = true;
 
-    const load = async () => {
+    const load = async (isFirst = false) => {
       try {
-        setError("");
-        setLoadingChat(true);
+        if (isFirst) setLoadingChat(true);
 
         const res = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
           credentials: "include",
@@ -165,6 +206,12 @@ export default function BloggerMessages() {
 
         setMessages(results);
 
+        // Шаблон показываем ТОЛЬКО если диалог пустой (нет сообщений)
+        // и черновика нет
+        if (isFirst && results.length === 0 && draftsRef.current[activeId] === undefined) {
+          setText(buildBloggerTemplate(activeDialog));
+        }
+
         requestAnimationFrame(() => {
           if (!listRef.current) return;
           if (isAtBottomRef.current) {
@@ -174,16 +221,15 @@ export default function BloggerMessages() {
       } catch {
         if (alive) setError("Ошибка соединения с сервером");
       } finally {
-        if (alive) setLoadingChat(false);
+        if (alive && isFirst) setLoadingChat(false);
       }
     };
 
-    // стартовая загрузка
-    load();
+    load(true);
 
     const startPolling = () => {
       if (pollRef.current) clearInterval(pollRef.current);
-      pollRef.current = setInterval(load, 10000);
+      pollRef.current = setInterval(() => load(false), 10000);
     };
     startPolling();
 
@@ -191,7 +237,7 @@ export default function BloggerMessages() {
       if (document.visibilityState === "hidden") {
         if (pollRef.current) clearInterval(pollRef.current);
       } else {
-        load();
+        load(false);
         startPolling();
       }
     };
@@ -203,23 +249,31 @@ export default function BloggerMessages() {
       if (pollRef.current) clearInterval(pollRef.current);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
   // =========================
-  // 3) SEND
+  // 4) Отправка сообщения
   // =========================
   const onSend = async (e) => {
     e.preventDefault();
 
     const t = text.trim();
-    if (!t || !activeId) return;
+    if (!t || !activeId || sending) return;
 
+    setSending(true);
+    setError("");
+
+    // Optimistic UI
     const tempId = `tmp_${Date.now()}`;
     setMessages((p) => [
       ...p,
       { id: tempId, text: t, created_at: new Date().toISOString(), is_mine: true },
     ]);
     setText("");
+
+    // Удаляем черновик — сообщение отправлено
+    delete draftsRef.current[activeId];
 
     requestAnimationFrame(() => {
       if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -234,27 +288,50 @@ export default function BloggerMessages() {
       });
 
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
+        // Откатываем optimistic сообщение
+        setMessages((p) => p.filter((m) => m.id !== tempId));
+        setText(t); // возвращаем текст пользователю
         setError(data.error || "Не удалось отправить сообщение");
         return;
       }
 
-      // сразу обновим сообщения
-      const r2 = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
-        credentials: "include",
-      });
-      const d2 = await r2.json().catch(() => ({}));
-      if (r2.ok) setMessages(d2.messages || d2.results || []);
+      // Заменяем временное сообщение на реальное
+      if (data.message) {
+        setMessages((p) =>
+          p.map((m) => (m.id === tempId ? { ...data.message, is_mine: true } : m))
+        );
+      }
 
-      // и обновим диалоги (последнее сообщение/время)
-      const rChat = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
-      const dChat = await rChat.json().catch(() => ({}));
-      if (rChat.ok) setDialogs(dChat.results || []);
+      // Обновляем превью диалога локально — без лишнего запроса
+      setDialogs((prev) =>
+        prev.map((d) =>
+          d.id === activeId
+            ? { ...d, last_message: t, last_message_at: new Date().toISOString() }
+            : d
+        )
+      );
     } catch {
+      setMessages((p) => p.filter((m) => m.id !== tempId));
+      setText(t);
       setError("Ошибка соединения с сервером");
+    } finally {
+      setSending(false);
     }
   };
 
+  // Enter = отправить, Shift+Enter = новая строка
+  const onKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onSend(e);
+    }
+  };
+
+  // =========================
+  // RENDER
+  // =========================
   return (
     <div className={`msg ${activeId ? "chat-open" : ""}`}>
       {/* LEFT */}
@@ -263,7 +340,6 @@ export default function BloggerMessages() {
           <div className="msg__leftTop">
             <div className="msg__title">Все чаты</div>
           </div>
-
           <div className="msg__search">
             <input
               className="msg__searchInput"
@@ -302,9 +378,14 @@ export default function BloggerMessages() {
                       <div className="msgItem__name">{dialogName(d)}</div>
                       <div className="msgItem__time">{fmtTime(d.last_message_at)}</div>
                     </div>
-
                     <div className="msgItem__bottom">
-                      <div className="msgItem__preview">{d.last_message || "Без сообщений"}</div>
+                      <div className="msgItem__preview">
+                        {d.last_message || "Без сообщений"}
+                      </div>
+                      {/* Счётчик непрочитанных */}
+                      {d.unread_count > 0 && (
+                        <span className="msgItem__badge">{d.unread_count}</span>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -317,21 +398,19 @@ export default function BloggerMessages() {
       {/* RIGHT */}
       <section className="msg__right">
         <header className="msg__topbar">
-  {activeId && (
-    <button
-      className="msg__back"
-      onClick={() => setActiveId(null)}
-      type="button"
-    >
-      ← Назад
-    </button>
-  )}
-
-  <div className="msg__chatTitle">
-    {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
-  </div>
-</header>
-
+          {activeId && (
+            <button
+              className="msg__back"
+              onClick={() => setActiveId(null)}
+              type="button"
+            >
+              ← Назад
+            </button>
+          )}
+          <div className="msg__chatTitle">
+            {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
+          </div>
+        </header>
 
         <div className="msg__chat">
           <div
@@ -348,17 +427,26 @@ export default function BloggerMessages() {
               <div className="msg__muted">Загрузка сообщений…</div>
             ) : !activeId ? (
               <div className="msg__muted">Выберите диалог слева</div>
+            ) : messages.length === 0 ? (
+              <div className="msg__muted">Начните диалог — отправьте первое сообщение</div>
             ) : (
               messages.map((m) => {
                 const mine = m.is_mine ?? false;
+                const isTemp = String(m.id).startsWith("tmp_");
                 return (
                   <div
                     key={m.id}
                     className={`bubbleRow ${mine ? "bubbleRow--mine" : "bubbleRow--their"}`}
                   >
-                    <div className={`bubble ${mine ? "bubble--mine" : "bubble--their"}`}>
+                    <div
+                      className={`bubble ${mine ? "bubble--mine" : "bubble--their"} ${
+                        isTemp ? "bubble--sending" : ""
+                      }`}
+                    >
                       <div className="bubble__text">{m.text}</div>
-                      <div className="bubble__meta">{fmtTime(m.created_at)}</div>
+                      <div className="bubble__meta">
+                        {isTemp ? "Отправка…" : fmtTime(m.created_at)}
+                      </div>
                     </div>
                   </div>
                 );
@@ -366,17 +454,28 @@ export default function BloggerMessages() {
             )}
           </div>
 
+          {error && (
+            <div style={{ padding: "4px 12px" }}>
+              <p className="small" style={{ color: "crimson", margin: 0 }}>{error}</p>
+            </div>
+          )}
+
           <form className="msg__composer" onSubmit={onSend}>
             <textarea
               className="msg__input msg__input--textarea"
-              placeholder={activeId ? "Написать сообщение…" : "Выберите диалог слева"}
+              placeholder={activeId ? "Написать сообщение… (Enter — отправить, Shift+Enter — новая строка)" : "Выберите диалог слева"}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              disabled={!activeId}
+              onKeyDown={onKeyDown}
+              disabled={!activeId || sending}
               rows={2}
             />
-            <button className="msg__send" type="submit" disabled={!activeId || !text.trim()}>
-              Отправить
+            <button
+              className="msg__send"
+              type="submit"
+              disabled={!activeId || !text.trim() || sending}
+            >
+              {sending ? "…" : "Отправить"}
             </button>
           </form>
         </div>

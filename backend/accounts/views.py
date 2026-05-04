@@ -1,3 +1,4 @@
+from pathlib import Path
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
@@ -12,26 +13,96 @@ from django.shortcuts import get_object_or_404
 
 from .models import Profile, BrandProfile, BloggerProfile, Conversation, Message
 from .auth import CsrfExemptSessionAuthentication
+
 import json
 import re
+import ipaddress
+import logging
 from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-import time
-from selenium_stealth import stealth
+
+logger = logging.getLogger(__name__)
+
+# ============================================================
+# КОНСТАНТЫ
+# ============================================================
+
+MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5 MB
+ALLOWED_AVATAR_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+MIN_PASSWORD_LENGTH = 8
+
+ALLOWED_MARKETPLACE_DOMAINS = [
+    "wildberries.ru",
+    "wb.ru",
+    "ozon.ru",
+    "market.yandex.ru",
+    "yandex.ru",
+]
+
+# ============================================================
+# ВАЛИДАТОРЫ
+# ============================================================
+
+def validate_avatar(f) -> str | None:
+    """Возвращает текст ошибки или None если файл валиден."""
+    if f.size > MAX_AVATAR_SIZE:
+        return "Файл слишком большой (максимум 5 МБ)"
+    content_type = getattr(f, "content_type", "") or ""
+    if content_type not in ALLOWED_AVATAR_MIME:
+        return f"Недопустимый тип файла. Разрешены: JPEG, PNG, WebP, GIF"
+    return None
 
 
-# ---------------- HELPERS ----------------
+def validate_marketplace_url(url: str) -> bool:
+    """
+    Разрешает только HTTPS ссылки на известные маркетплейсы.
+    Блокирует SSRF: локальные IP, file://, внутренние хосты.
+    """
+    try:
+        parsed = urlparse(url)
+
+        # Только HTTPS
+        if parsed.scheme != "https":
+            return False
+
+        host = parsed.netloc.lower().split(":")[0]
+        if not host:
+            return False
+
+        # Блокируем IP-адреса (в т.ч. 169.254.x.x — AWS metadata)
+        try:
+            ip = ipaddress.ip_address(host)
+            return False  # любой IP запрещён
+        except ValueError:
+            pass  # не IP — проверяем домен дальше
+
+        # Только разрешённые домены
+        return any(
+            host == d or host.endswith("." + d)
+            for d in ALLOWED_MARKETPLACE_DOMAINS
+        )
+
+    except Exception:
+        return False
+
+
+def validate_password(password: str) -> str | None:
+    """Возвращает текст ошибки или None."""
+    if len(password) < MIN_PASSWORD_LENGTH:
+        return f"Пароль должен содержать минимум {MIN_PASSWORD_LENGTH} символов"
+    return None
+
+
+# ============================================================
+# HELPERS
+# ============================================================
 
 def ensure_profile_and_role_models(user: User, role_default="brand") -> Profile:
     profile, _ = Profile.objects.get_or_create(
         user=user,
         defaults={"role": role_default},
     )
-
     if not profile.role:
         profile.role = role_default
         profile.save()
@@ -45,12 +116,7 @@ def ensure_profile_and_role_models(user: User, role_default="brand") -> Profile:
 
 
 def get_avatar_url(request, p: Profile) -> str:
-    """
-    Возвращает ABSOLUTE URL аватарки (чтобы фронт не пытался грузить /media с домена фронта).
-    Поддержка двух вариантов:
-    1) avatar_blob в Postgres -> /api/profiles/<id>/avatar/
-    2) ImageField avatar -> /media/...
-    """
+    """Возвращает абсолютный URL аватарки."""
     if hasattr(p, "avatar_blob") and p.avatar_blob:
         return request.build_absolute_uri(f"/api/profiles/{p.id}/avatar/")
 
@@ -65,7 +131,6 @@ def get_avatar_url(request, p: Profile) -> str:
 
 
 def save_avatar_to_profile(p: Profile, uploaded_file) -> None:
-   
     if not uploaded_file:
         return
 
@@ -97,66 +162,12 @@ def calc_blogger_progress(profile: Profile, bp: BloggerProfile, request=None) ->
     return int(round((filled / total) * 100)) if total else 0
 
 
+# ============================================================
+# ПАРСИНГ МАРКЕТПЛЕЙСОВ (только requests, без Selenium в запросе)
+# ============================================================
 
-def open_page_with_selenium(url: str):
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1400,2200")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_argument(
-        "--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-    )
-    options.binary_location = "/usr/bin/chromium"
-
-    driver = None
-    try:
-        driver = webdriver.Chrome(
-            options=options
-            )
-
-        stealth(
-            driver,
-            languages=["ru-RU", "ru", "en-US", "en"],
-            vendor="Google Inc.",
-            platform="Linux x86_64",
-            webgl_vendor="Intel Inc.",
-            renderer="Intel Iris OpenGL Engine",
-            fix_hairline=True,
-        )
-
-        driver.get(url)
-        time.sleep(5)
-
-       
-        for _ in range(6):
-            driver.execute_script("window.scrollBy(0, 700)")
-            time.sleep(0.4)
-
-        time.sleep(2)
-
-        title = driver.title or ""
-        html = driver.page_source or ""
-
-        return {
-            "ok": True,
-            "title": title,
-            "html_len": len(html),
-            "text_preview": html[:4000],
-        }
-
-    except Exception as e:
-        return {
-            "ok": False,
-            "error": str(e),
-        }
-    finally:
-        if driver:
-            driver.quit()
-
-def parse_wildberries(url: str):
+def parse_wildberries(url: str) -> dict | None:
+    """Парсит карточку WB через официальный API."""
     match = re.search(r"/catalog/(\d+)/", url)
     if not match:
         return None
@@ -165,10 +176,18 @@ def parse_wildberries(url: str):
     api_url = f"https://card.wb.ru/cards/detail?nm={nm_id}"
 
     try:
-        resp = requests.get(api_url, timeout=10)
+        resp = requests.get(
+            api_url,
+            timeout=10,
+            headers={"User-Agent": "Mozilla/5.0"},
+        )
         resp.raise_for_status()
         data = resp.json()
-    except Exception:
+    except requests.Timeout:
+        logger.warning("WB API timeout for nm=%s", nm_id)
+        return None
+    except Exception as e:
+        logger.warning("WB API error: %s", e)
         return None
 
     try:
@@ -177,51 +196,122 @@ def parse_wildberries(url: str):
             return None
 
         product = products[0]
-
-        title = product.get("name") or ""
-        brand = product.get("brand") or ""
-
-        # WB часто хранит цену в копейках
         price_raw = product.get("salePriceU") or product.get("priceU") or 0
-        price = price_raw / 100 if price_raw else None
 
         return {
-            "title": title,
-            "price": price,
-            "brand": brand,
+            "title": product.get("name") or "",
+            "brand": product.get("brand") or "",
+            "price": price_raw / 100 if price_raw else None,
             "description": "",
         }
-    except Exception:
+    except Exception as e:
+        logger.warning("WB parse error: %s", e)
         return None
 
 
-# ---------------- AUTH ----------------
+def parse_ozon(url: str) -> dict | None:
+    """Простой парсинг страницы Ozon через requests+BeautifulSoup."""
+    try:
+        resp = requests.get(
+            url,
+            timeout=10,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+                )
+            },
+        )
+        resp.raise_for_status()
+    except requests.Timeout:
+        logger.warning("Ozon timeout: %s", url)
+        return None
+    except Exception as e:
+        logger.warning("Ozon fetch error: %s", e)
+        return None
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+    title = ""
+    tag = soup.find("h1")
+    if tag:
+        title = tag.get_text(strip=True)
+
+    return {
+        "title": title,
+        "brand": "",
+        "price": None,
+        "description": "",
+    }
+
+
+def detect_marketplace(url: str) -> str:
+    host = urlparse(url).netloc.lower()
+    if "wildberries" in host or "wb.ru" in host:
+        return "wildberries"
+    if "ozon" in host:
+        return "ozon"
+    if "market.yandex" in host or "yandex" in host:
+        return "yandex_market"
+    return "unknown"
+
+
+def detect_category_from_text(text: str) -> str:
+    t = (text or "").lower()
+    mapping = {
+        "beauty": ["крем", "сыворот", "шампун", "маска", "космет", "уход", "лицо", "волос", "гель"],
+        "food": ["чай", "кофе", "шоколад", "батончик", "еда", "напиток", "снек", "печенье"],
+        "clothes": ["платье", "футболка", "куртка", "джинсы", "юбка", "одежда", "костюм"],
+        "tech": ["наушники", "смартфон", "ноутбук", "колонка", "техника", "кабель", "зарядка"],
+        "education": ["курс", "обучение", "школа", "урок", "образование"],
+        "services": ["услуга", "сервис", "доставка", "консультация"],
+    }
+    for category, words in mapping.items():
+        if any(word in t for word in words):
+            return category
+    return "services"
+
+
+# ============================================================
+# AUTH
+# ============================================================
 
 @api_view(["POST"])
 @authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([AllowAny])
 def register(request):
     email = (request.data.get("email") or "").strip().lower()
     password = request.data.get("password") or ""
     role = (request.data.get("role") or "brand").strip()
 
-    if role not in ("brand", "blogger"):
-        role = "brand"
-
+    # --- валидация ---
     if not email or not password:
         return Response(
             {"error": "email и password обязательны"},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
         )
+
+    # простая проверка формата email
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        return Response(
+            {"error": "Некорректный email"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    pwd_err = validate_password(password)
+    if pwd_err:
+        return Response({"error": pwd_err}, status=status.HTTP_400_BAD_REQUEST)
+
+    if role not in ("brand", "blogger"):
+        role = "brand"
 
     if User.objects.filter(username=email).exists():
         return Response(
             {"error": "Пользователь уже существует"},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     user = User.objects.create_user(username=email, email=email, password=password)
 
-    
     profile = user.profile
     profile.role = role
     profile.save()
@@ -247,27 +337,39 @@ def register(request):
 
 @api_view(["POST"])
 @authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([AllowAny])
 def login_view(request):
     email = (request.data.get("email") or "").strip().lower()
     password = request.data.get("password") or ""
 
+    if not email or not password:
+        return Response(
+            {"error": "email и password обязательны"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     user = authenticate(request, username=email, password=password)
     if user is None:
-        return Response({"error": "Неверный email или пароль"}, status=status.HTTP_400_BAD_REQUEST)
+        # Одинаковое сообщение — не раскрываем, что именно неверно
+        return Response(
+            {"error": "Неверный email или пароль"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     login(request, user)
-
     profile = ensure_profile_and_role_models(user, role_default="brand")
+
     return Response({
-    "ok": True,
-    "email": user.email,
-    "role": profile.role,
-    "verification_status": profile.verification_status
-})
+        "ok": True,
+        "email": user.email,
+        "role": profile.role,
+        "verification_status": profile.verification_status,
+    })
 
 
 @api_view(["POST"])
 @authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsAuthenticated])
 def logout_view(request):
     logout(request)
     return Response({"ok": True})
@@ -278,14 +380,17 @@ def logout_view(request):
 @permission_classes([IsAuthenticated])
 def me(request):
     profile = ensure_profile_and_role_models(request.user, role_default="brand")
-
     return Response({
         "ok": True,
         "email": request.user.email,
         "role": profile.role,
         "verification_status": profile.verification_status,
     })
-# ---------------- BRAND PROFILE ----------------
+
+
+# ============================================================
+# BRAND PROFILE
+# ============================================================
 
 @api_view(["GET"])
 @authentication_classes([CsrfExemptSessionAuthentication])
@@ -300,14 +405,10 @@ def brand_profile_get(request):
     return Response({
         "role": p.role,
         "email": request.user.email,
-
         "city": p.city,
         "about": p.about,
         "avatar_url": get_avatar_url(request, p),
-
-        # ✅ важно
         "topics": bp.topics or [],
-
         "brand_name": bp.brand_name,
         "sphere": bp.sphere,
         "budget": bp.budget,
@@ -327,31 +428,31 @@ def brand_profile_update(request):
     bp, _ = BrandProfile.objects.get_or_create(profile=p)
     data = request.data
 
-    # -------- topics (JSONField) --------
+    # --- topics ---
     topics = data.get("topics")
     if isinstance(topics, str):
-        # если фронт прислал строку JSON
         try:
             topics = json.loads(topics)
         except Exception:
             topics = None
-
     if isinstance(topics, list):
         bp.topics = topics
 
-    # -------- avatar --------
+    # --- avatar с валидацией ---
     avatar = request.FILES.get("avatar")
     if avatar:
+        err = validate_avatar(avatar)
+        if err:
+            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
         save_avatar_to_profile(p, avatar)
 
-    # -------- общие поля Profile --------
-    p.city = data.get("city", p.city)
-    p.about = data.get("about", p.about)
+    # --- поля Profile ---
+    p.city = (data.get("city") or p.city or "")
+    p.about = (data.get("about") or p.about or "")
     p.save()
 
-    # -------- поля BrandProfile --------
+    # --- поля BrandProfile ---
     bp.brand_name = data.get("brand_name", bp.brand_name)
-    
     bp.budget = data.get("budget", bp.budget)
     bp.inn = data.get("inn", bp.inn)
     bp.contact_person = data.get("contact_person", bp.contact_person)
@@ -363,7 +464,10 @@ def brand_profile_update(request):
         "topics": bp.topics or [],
     })
 
-# ---------------- BLOGGER PROFILE ----------------
+
+# ============================================================
+# BLOGGER PROFILE
+# ============================================================
 
 @api_view(["GET"])
 @authentication_classes([CsrfExemptSessionAuthentication])
@@ -379,11 +483,9 @@ def blogger_profile_get(request):
     return Response({
         "role": p.role,
         "email": request.user.email,
-
         "avatar_url": get_avatar_url(request, p),
         "city": p.city,
         "gender": p.gender,
-
         "nickname": bp.nickname,
         "platform": bp.platform,
         "platform_url": bp.platform_url,
@@ -391,7 +493,6 @@ def blogger_profile_get(request):
         "topic": bp.topic,
         "formats": bp.formats,
         "inn": bp.inn,
-
         "topics": bp.topics or [],
         "progress": progress,
     })
@@ -403,33 +504,35 @@ def blogger_profile_get(request):
 def blogger_profile_update(request):
     p = ensure_profile_and_role_models(request.user, role_default="blogger")
     if p.role != "blogger":
-        return Response(
-            {"error": "Not a blogger"}, 
-            status=status.HTTP_403_FORBIDDEN
-            )
+        return Response({"error": "Not a blogger"}, status=status.HTTP_403_FORBIDDEN)
 
     bp, _ = BloggerProfile.objects.get_or_create(profile=p)
     data = request.data
-    p.gender = data.get("gender", p.gender) or ""
-    p.city = data.get("city", p.city) or ""   # если хочешь сохранять город тоже
-    p.save()
 
+    # --- topics ---
     topics = data.get("topics")
     if isinstance(topics, str):
-        # если фронт вдруг прислал строку JSON
         try:
-            import json
             topics = json.loads(topics)
         except Exception:
             topics = None
-
     if isinstance(topics, list):
         bp.topics = topics
 
+    # --- avatar с валидацией ---
     avatar = request.FILES.get("avatar")
     if avatar:
+        err = validate_avatar(avatar)
+        if err:
+            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
         save_avatar_to_profile(p, avatar)
 
+    # --- поля Profile ---
+    p.gender = data.get("gender", p.gender) or ""
+    p.city = data.get("city", p.city) or ""
+    p.save()
+
+    # --- поля BloggerProfile ---
     bp.nickname = data.get("nickname", bp.nickname)
     bp.platform = data.get("platform", bp.platform)
     bp.platform_url = data.get("platform_url", bp.platform_url)
@@ -455,28 +558,27 @@ def blogger_profile_update(request):
     })
 
 
-# ---------------- LISTS / PUBLIC PROFILES ----------------
+# ============================================================
+# LISTS / PUBLIC PROFILES
+# ============================================================
 
 @api_view(["GET"])
 @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def bloggers_list(request):
-    # доступ только бренду
     p = ensure_profile_and_role_models(request.user, role_default="brand")
     if p.role != "brand":
         return Response({"error": "Not a brand"}, status=status.HTTP_403_FORBIDDEN)
-    mode = (request.GET.get("mode") or "").strip()  
-    # --- query params ---
+
+    mode = (request.GET.get("mode") or "").strip()
     city = (request.GET.get("city") or "").strip()
     platform = (request.GET.get("platform") or "").strip()
     topic = (request.GET.get("topic") or "").strip()
     followers_min = (request.GET.get("followers_min") or "").strip()
     followers_max = (request.GET.get("followers_max") or "").strip()
 
-    # ✅ 1) СНАЧАЛА создаём qs
     qs = Profile.objects.filter(role="blogger").select_related("user", "blogger")
 
-    # ✅ 2) авто-рекомендация по тематикам бренда (если у бренда есть topics)
     brand_bp, _ = BrandProfile.objects.get_or_create(profile=p)
     brand_topics = brand_bp.topics or []
 
@@ -488,24 +590,21 @@ def bloggers_list(request):
         if topic_q:
             qs = qs.filter(topic_q)
 
-    # ✅ 3) дальше твои ручные фильтры
     if city:
         qs = qs.filter(city__iexact=city)
-
     if platform:
         qs = qs.filter(blogger__platform__iexact=platform)
-
     if topic:
         qs = qs.filter(blogger__topic__icontains=topic)
 
     try:
-        if followers_min != "":
+        if followers_min:
             qs = qs.filter(blogger__followers__gte=int(followers_min))
     except ValueError:
         pass
 
     try:
-        if followers_max != "":
+        if followers_max:
             qs = qs.filter(blogger__followers__lte=int(followers_max))
     except ValueError:
         pass
@@ -517,7 +616,8 @@ def bloggers_list(request):
         bp = getattr(prof, "blogger", None)
         items.append({
             "id": prof.id,
-            "avatar_url": prof.avatar.url if prof.avatar else "",
+            # ИСПРАВЛЕНО: используем get_avatar_url везде, не prof.avatar.url напрямую
+            "avatar_url": get_avatar_url(request, prof),
             "city": prof.city,
             "verification_status": prof.verification_status,
             "nickname": getattr(bp, "nickname", "") if bp else "",
@@ -536,17 +636,14 @@ def bloggers_list(request):
 @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def brands_list(request):
-    # доступ только блогеру
     p = ensure_profile_and_role_models(request.user, role_default="blogger")
     if p.role != "blogger":
         return Response({"error": "Not a blogger"}, status=status.HTTP_403_FORBIDDEN)
 
-    mode = (request.GET.get("mode") or "").strip()  # "" | "all"
+    mode = (request.GET.get("mode") or "").strip()
 
-    # ✅ 1) базовый qs
     qs = Profile.objects.filter(role="brand").select_related("user", "brand")
 
-    # ✅ 2) авто-рекомендация по тематикам блогера (ТОЛЬКО если не mode=all)
     blogger_bp, _ = BloggerProfile.objects.get_or_create(profile=p)
     blogger_topics = blogger_bp.topics or []
 
@@ -561,7 +658,7 @@ def brands_list(request):
 
     items = []
     for prof in qs:
-        bp = getattr(prof, "brand", None)  # BrandProfile
+        bp = getattr(prof, "brand", None)
         items.append({
             "id": prof.id,
             "email": prof.user.email,
@@ -570,11 +667,8 @@ def brands_list(request):
             "brand_name": getattr(bp, "brand_name", "") if bp else "",
             "sphere": getattr(bp, "sphere", "") if bp else "",
             "budget": getattr(bp, "budget", "") if bp else "",
-
             "city": prof.city,
             "about": prof.about,
-
-           
             "topics": (getattr(bp, "topics", None) or []) if bp else [],
         })
 
@@ -602,7 +696,6 @@ def blogger_public(request, profile_id: int):
         "verification_status": prof.verification_status,
         "avatar_url": get_avatar_url(request, prof),
         "city": prof.city,
-
         "nickname": getattr(bp, "nickname", "") if bp else "",
         "platform": getattr(bp, "platform", "") if bp else "",
         "platform_url": getattr(bp, "platform_url", "") if bp else "",
@@ -625,13 +718,12 @@ def brand_public(request, profile_id: int):
         id=profile_id,
         role="brand",
     )
-
     bp = getattr(prof, "brand", None)
 
     return Response({
         "ok": True,
         "id": prof.id,
-        "avatar_url":get_avatar_url(request, prof),
+        "avatar_url": get_avatar_url(request, prof),
         "city": prof.city,
         "about": prof.about,
         "verification_status": prof.verification_status,
@@ -639,13 +731,29 @@ def brand_public(request, profile_id: int):
         "sphere": getattr(bp, "sphere", "") if bp else "",
         "budget": getattr(bp, "budget", "") if bp else "",
         "contact_person": getattr(bp, "contact_person", "") if bp else "",
-
-       
         "topics": (getattr(bp, "topics", None) or []) if bp else [],
     })
 
 
-# ---------------- CHAT ----------------
+# ============================================================
+# AVATAR ENDPOINT
+# ============================================================
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def profile_avatar(request, profile_id):
+    profile = get_object_or_404(Profile, id=profile_id)
+
+    if not profile.avatar_blob:
+        return HttpResponse(status=404)
+
+    content_type = profile.avatar_mime or "image/jpeg"
+    return HttpResponse(profile.avatar_blob, content_type=content_type)
+
+
+# ============================================================
+# CHAT
+# ============================================================
 
 def other_party(me: Profile, conv: Conversation) -> Profile:
     return conv.blogger if me.role == "brand" else conv.brand
@@ -665,28 +773,23 @@ def _supports_read_flags() -> bool:
 
 def unread_count_for(me: Profile, conv: Conversation) -> int:
     qs = Message.objects.filter(conversation=conv).exclude(sender=me)
-
     if _supports_read_flags():
         if me.role == "brand":
             return qs.filter(read_by_brand=False).count()
         return qs.filter(read_by_blogger=False).count()
-
     if hasattr(Message, "is_read"):
         return qs.filter(is_read=False).count()
-
     return 0
 
 
 def mark_read_for(me: Profile, conv: Conversation):
     qs = Message.objects.filter(conversation=conv).exclude(sender=me)
-
     if _supports_read_flags():
         if me.role == "brand":
             qs.update(read_by_brand=True)
         else:
             qs.update(read_by_blogger=True)
         return
-
     if hasattr(Message, "is_read"):
         qs.update(is_read=True)
 
@@ -708,15 +811,13 @@ def conversations_list(request):
     for c in qs:
         other = other_party(me_prof, c)
         last_msg = c.messages.order_by("-created_at").first()
-        last_text = last_msg.text if last_msg else ""
-        last_at = last_msg.created_at if last_msg else None
 
         results.append({
             "id": c.id,
             "avatar_url": get_avatar_url(request, other),
             "title": display_name(other),
-            "last_message": last_text,
-            "last_message_at": last_at,
+            "last_message": last_msg.text if last_msg else "",
+            "last_message_at": last_msg.created_at if last_msg else None,
             "unread_count": unread_count_for(me_prof, c),
         })
 
@@ -730,13 +831,24 @@ def conversation_messages(request, conv_id: int):
     me_prof = ensure_profile_and_role_models(request.user, role_default="brand")
     conv = get_object_or_404(Conversation, id=conv_id)
 
+    # Проверяем что пользователь участник разговора
     if me_prof.id not in (conv.brand_id, conv.blogger_id):
         return Response({"error": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
     if request.method == "POST":
         text = (request.data.get("text") or "").strip()
         if not text:
-            return Response({"error": "text is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "text is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Ограничение длины сообщения
+        if len(text) > 5000:
+            return Response(
+                {"error": "Сообщение слишком длинное (максимум 5000 символов)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         create_kwargs = {
             "conversation": conv,
@@ -764,16 +876,18 @@ def conversation_messages(request, conv_id: int):
             }
         }, status=status.HTTP_201_CREATED)
 
+    # GET — список сообщений
     qs = conv.messages.select_related("sender__user").order_by("created_at")
-    results = []
-    for m in qs:
-        results.append({
+    results = [
+        {
             "id": m.id,
             "text": m.text,
             "created_at": m.created_at,
             "sender_id": m.sender_id,
             "is_mine": (m.sender_id == me_prof.id),
-        })
+        }
+        for m in qs
+    ]
 
     return Response({"ok": True, "results": results})
 
@@ -800,7 +914,10 @@ def conversation_with_profile(request, profile_id: int):
     other = get_object_or_404(Profile, id=profile_id)
 
     if me_prof.role == other.role:
-        return Response({"error": "Same role chat not allowed"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Same role chat not allowed"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     if me_prof.role == "brand":
         brand, blogger = me_prof, other
@@ -811,49 +928,9 @@ def conversation_with_profile(request, profile_id: int):
     return Response({"ok": True, "conversation_id": conv.id})
 
 
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def profile_avatar(request, profile_id):
-    profile = get_object_or_404(Profile, id=profile_id)
-
-    if not profile.avatar_blob:
-        return HttpResponse(status=404)
-
-    content_type = profile.avatar_mime or "image/jpeg"
-    return HttpResponse(profile.avatar_blob, content_type=content_type)
-
-
-# ---------------- PRODUCT ANALYZE ----------------
-
-def detect_marketplace(url: str) -> str:
-    host = urlparse(url).netloc.lower()
-
-    if "wildberries" in host or "wb.ru" in host:
-        return "wildberries"
-    if "ozon" in host:
-        return "ozon"
-    if "market.yandex" in host or "yandex" in host:
-        return "yandex_market"
-    return "unknown"
-
-def detect_category_from_text(text: str) -> str:
-    t = (text or "").lower()
-
-    mapping = {
-        "beauty": ["крем", "сыворот", "шампун", "маска", "космет", "уход", "лицо", "волос", "гель"],
-        "food": ["чай", "кофе", "шоколад", "батончик", "еда", "напиток", "снек", "печенье"],
-        "clothes": ["платье", "футболка", "куртка", "джинсы", "юбка", "одежда", "костюм"],
-        "tech": ["наушники", "смартфон", "ноутбук", "колонка", "техника", "кабель", "зарядка"],
-        "education": ["курс", "обучение", "школа", "урок", "образование"],
-        "services": ["услуга", "сервис", "доставка", "консультация"],
-    }
-
-    for category, words in mapping.items():
-        if any(word in t for word in words):
-            return category
-
-    return "services"
+# ============================================================
+# PRODUCT ANALYZE (парсинг маркетплейсов)
+# ============================================================
 
 @api_view(["POST"])
 @authentication_classes([CsrfExemptSessionAuthentication])
@@ -865,23 +942,49 @@ def product_analyze(request):
 
     url = (request.data.get("url") or "").strip()
     if not url:
-        return Response({"error": "Ссылка обязательна"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Ссылка обязательна"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    result = open_page_with_selenium(url)
+    # SSRF-защита: только разрешённые маркетплейсы по HTTPS
+    if not validate_marketplace_url(url):
+        return Response(
+            {"error": "Разрешены только ссылки на Wildberries, Ozon или Яндекс.Маркет"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    if not result["ok"]:
-        return Response({"error": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    marketplace = detect_marketplace(url)
+    product_data = None
+
+    if marketplace == "wildberries":
+        product_data = parse_wildberries(url)
+    elif marketplace == "ozon":
+        product_data = parse_ozon(url)
+
+    if not product_data:
+        # Фолбэк: возвращаем то, что смогли определить
+        product_data = {
+            "title": "",
+            "brand": "",
+            "price": None,
+            "description": "",
+        }
+
+    category = detect_category_from_text(
+        f"{product_data.get('title', '')} {product_data.get('description', '')}"
+    )
 
     return Response({
         "ok": True,
         "product": {
             "source_url": url,
-            "marketplace": detect_marketplace(url),
-            "title": result["title"] or "Страница открыта",
-            "category": "",
-            "price": None,
-            "brand": "",
-            "description": f"HTML length: {result['html_len']}",
+            "marketplace": marketplace,
+            "title": product_data.get("title", ""),
+            "brand": product_data.get("brand", ""),
+            "price": product_data.get("price"),
+            "category": category,
+            "description": product_data.get("description", ""),
             "keywords": [],
         }
     })

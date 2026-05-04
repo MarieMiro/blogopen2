@@ -49,6 +49,7 @@ export default function BrandProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState ("");
 
   const fileRef = useRef(null);
 
@@ -138,9 +139,18 @@ export default function BrandProfile() {
 
   // сохранение профиля
   const onSave = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSaving(true);
+  e.preventDefault();
+  setError("");
+  setSuccess("");
+
+  const inn = form.inn.replace(/\D/g, "");
+  if (inn && inn.length !== 10 && inn.length !== 12) {
+    setError("ИНН должен содержать 10 или 12 цифр");
+    return;
+  }
+
+
+  setSaving(true);
 
     try {
       const fd = new FormData();
@@ -149,7 +159,7 @@ export default function BrandProfile() {
       fd.append("city", form.city);
       fd.append("about", form.about);
       fd.append("budget", form.budget);
-      fd.append("inn", form.inn);
+      fd.append("inn", inn);
       fd.append("contact_person", form.contactPerson);
 
       fd.append("marketplace_url", form.marketplaceUrl || "");
@@ -182,7 +192,7 @@ export default function BrandProfile() {
         avatarFile: null,
       }));
 
-      alert("Сохранено!");
+      setSuccess("Профиль сохранён");
     } catch {
       setError("Не удалось сохранить (ошибка соединения)");
     } finally {

@@ -48,6 +48,7 @@ export default function BloggerProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const fileRef = useRef(null);
 
@@ -55,13 +56,32 @@ export default function BloggerProfile() {
 
   const onPickAvatar = () => fileRef.current?.click();
 
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+
   const onAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
+
+    if (form.avatarUrl?.startsWith("blob:")) {
+    URL.revokeObjectURL(form.avatarUrl);
+  }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+    setError("Разрешены только JPEG, PNG, WebP, GIF");
+    return;
+  }
+    if (file.size > MAX_SIZE) {
+    setError("Файл слишком большой (максимум 5 МБ)");
+    return;
+  }
+
     const url = URL.createObjectURL(file);
     setForm((p) => ({ ...p, avatarUrl: url, avatarFile: file }));
   };
+
+
 
   const toggleTopic = (label) => {
     setForm((p) => {
@@ -160,9 +180,28 @@ export default function BloggerProfile() {
 
   // ---- SAVE PROFILE ----
   const onSave = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSaving(true);
+  e.preventDefault();
+  setError("");
+  setSuccess("");
+
+  const inn = form.inn.replace(/\D/g, "");
+  if (inn && inn.length !== 10 && inn.length !== 12) {
+    setError("ИНН должен содержать 10 или 12 цифр");
+    return;
+  }
+
+  const urlVal = primarySocial.url.trim();
+  if (!urlVal) {
+    setError("Добавьте ссылку на основную соцсеть");
+    return;
+  }
+
+  if (!/^https?:\/\/.+\..+/.test(urlVal)) {
+    setError("Ссылка на соцсеть должна начинаться с http:// или https://");
+    return;
+  }
+
+  setSaving(true);
 
     try {
       const fd = new FormData();
@@ -170,11 +209,11 @@ export default function BloggerProfile() {
       fd.append("nickname", form.nick);
       fd.append("followers", form.followers);
       fd.append("formats", form.formats);
-      fd.append("inn", form.inn);
+      fd.append("inn", inn);
 
       // совместимость со старым бэком (одна соцсеть)
       fd.append("platform", primarySocial.platform);
-      fd.append("platform_url", primarySocial.url);
+      fd.append("platform_url", urlVal);
 
       // ✅ тематики отправляем ДВУМЯ способами:
       // 1) старое поле topic (строка)
@@ -207,7 +246,7 @@ export default function BloggerProfile() {
         progress: data.progress ?? p.progress,
       }));
 
-      alert("Сохранено!");
+      setSuccess("Профиль сохранён");
     } catch {
       setError("Не удалось сохранить (ошибка соединения)");
     } finally {
