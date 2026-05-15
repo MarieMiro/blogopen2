@@ -256,6 +256,7 @@ map((p) => (
                   <div className={`bbCard__badge bbCard__badge--${b.verification_status}`}>
                     {b.verification_status === "approved" && "✔"}
                     {b.verification_status === "pending" && "⏳"}
+                    
                   </div>
                 )}
               </div>
