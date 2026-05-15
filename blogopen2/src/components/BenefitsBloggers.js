@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import "./BenefitsBloggers.css";
-
 import blogger1 from "../Assets/blogger1.jpg";
 import blogger2 from "../Assets/blogger2.jpg";
 import blogger3 from "../Assets/blogger3.jpg";
@@ -9,17 +8,20 @@ export default function BenefitsBloggers() {
   const benefits = useMemo(
     () => [
       {
+        num: "01",
         title: "Монетизация",
         description:
           "Получайте заявки от брендов под вашу тематику и монетизируйте блог уже на старте.",
       },
       {
+        num: "02",
         title: "Прозрачные требования",
         description: "Безопасные сделки за счёт чётких ТЗ, сроков и предоплаты.",
       },
       {
+        num: "03",
         title: "Рост профиля",
-        description: "Развивайте профиль благодаря идеальной рекламе.",
+        description: "Развивайте профиль благодаря идеальной рекламе и репутации на платформе.",
       },
     ],
     []
@@ -35,38 +37,40 @@ export default function BenefitsBloggers() {
   );
 
   const [idx, setIdx] = useState(0);
-
   const next = () => setIdx((p) => (p + 1) % slides.length);
   const prev = () => setIdx((p) => (p - 1 + slides.length) % slides.length);
 
   return (
     <section className="bbSection" id="benefits-bloggers">
       <div className="bbContainer">
+
         {/* LEFT */}
         <div className="bbLeft">
-          <div className="benefits-header">
-            <div className="highlight-badge">
-              <span className="highlight-text">Для блогеров</span>
-            </div>
-
-            <h2 className="bbTitle">Преимущества для блогеров</h2>
+          <div className="bbKicker">
+            <span className="bbKickerDot" />
+            Для блогеров
           </div>
+
+          <h2 className="bbTitle">Преимущества<br />для блогеров</h2>
 
           <p className="bbLead">
             Получайте заявки от брендов, работайте прозрачно и монетизируйте блог.
           </p>
 
-          <div className="benefits-cards">
-            {benefits.map((benefit) => (
-              <div className="benefit-card compact" key={benefit.title}>
-                <h3 className="benefit-title">{benefit.title}</h3>
-                <p className="benefit-desc">{benefit.description}</p>
+          <div className="bbItems">
+            {benefits.map((b) => (
+              <div className="bbItem" key={b.num}>
+                <div className="bbItemNum">{b.num}</div>
+                <div>
+                  <h3 className="bbItemTitle">{b.title}</h3>
+                  <p className="bbItemDesc">{b.description}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* RIGHT (slider) */}
+        {/* RIGHT — слайдер без изменений */}
         <div className="bbRight">
           <div className="bbSlider">
             <button
@@ -77,7 +81,6 @@ export default function BenefitsBloggers() {
             >
               ‹
             </button>
-
             <div className="bbFrame">
               <img
                 className="bbSlide"
@@ -86,7 +89,6 @@ export default function BenefitsBloggers() {
                 draggable="false"
               />
             </div>
-
             <button
               type="button"
               className="bbNav bbNav--next"
@@ -95,7 +97,6 @@ export default function BenefitsBloggers() {
             >
               ›
             </button>
-
             <div className="bbDots" aria-hidden="true">
               {slides.map((_, i) => (
                 <span key={i} className={`bbDot ${i === idx ? "isActive" : ""}`} />
@@ -103,6 +104,7 @@ export default function BenefitsBloggers() {
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );
