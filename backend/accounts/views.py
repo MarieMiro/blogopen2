@@ -931,11 +931,21 @@ def conversation_with_profile(request, profile_id: int):
 # ============================================================
 # PRODUCT ANALYZE (парсинг маркетплейсов)
 # ============================================================
+# Добавь этот импорт в начало views.py (рядом с другими импортами):
+# from .parser.run_parser import run_ozon_parser
+
+# И замени существующий product_analyze на этот:
 
 @api_view(["POST"])
 @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def product_analyze(request):
+    """
+    Принимает ссылку на магазин Ozon, парсит и возвращает данные
+    для автозаполнения профиля бренда.
+    """
+    from .parser.run_parser import run_ozon_parser
+
     p = ensure_profile_and_role_models(request.user, role_default="brand")
     if p.role != "brand":
         return Response({"error": "Not a brand"}, status=status.HTTP_403_FORBIDDEN)
@@ -947,44 +957,40 @@ def product_analyze(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # SSRF-защита: только разрешённые маркетплейсы по HTTPS
+    # SSRF защита — только Ozon
     if not validate_marketplace_url(url):
         return Response(
-            {"error": "Разрешены только ссылки на Wildberries, Ozon или Яндекс.Маркет"},
+            {"error": "Разрешены только ссылки на Ozon (ozon.ru)"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     marketplace = detect_marketplace(url)
-    product_data = None
+    if marketplace != "ozon":
+        return Response(
+            {"error": "Пока поддерживается только Ozon. Wildberries — скоро."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    if marketplace == "wildberries":
-        product_data = parse_wildberries(url)
-    elif marketplace == "ozon":
-        product_data = parse_ozon(url)
+    # Запускаем парсер в отдельном процессе (не блокирует Gunicorn)
+    result = run_ozon_parser(url)
 
-    if not product_data:
-        # Фолбэк: возвращаем то, что смогли определить
-        product_data = {
-            "title": "",
-            "brand": "",
-            "price": None,
-            "description": "",
-        }
-
-    category = detect_category_from_text(
-        f"{product_data.get('title', '')} {product_data.get('description', '')}"
-    )
+    if "error" in result:
+        logger.warning("Ozon parser error for %s: %s", url, result["error"])
+        return Response(
+            {"error": result["error"]},
+            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
 
     return Response({
         "ok": True,
-        "product": {
-            "source_url": url,
-            "marketplace": marketplace,
-            "title": product_data.get("title", ""),
-            "brand": product_data.get("brand", ""),
-            "price": product_data.get("price"),
-            "category": category,
-            "description": product_data.get("description", ""),
-            "keywords": [],
+        "data": {
+            "brand_name":     result.get("brand_name", ""),
+            "sphere":         result.get("sphere", ""),
+            "topics":         result.get("topics", []),
+            "description":    result.get("description", ""),
+            "rating":         result.get("rating"),
+            "products_count": result.get("products_count"),
+            "source_url":     result.get("source_url", url),
+            "marketplace":    "ozon",
         }
     })
