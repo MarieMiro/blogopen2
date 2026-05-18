@@ -89,6 +89,7 @@ export default function BrandProfile() {
         });
 
         const data = await res.json().catch(() => ({}));
+        
 
         if (!res.ok) {
           if (alive) setError(data.error || "Не удалось загрузить профиль");
@@ -219,6 +220,7 @@ export default function BrandProfile() {
     });
 
     const data = await res.json().catch(() => ({}));
+    console.log("PARSED RESPONSE:", JSON.stringify(data, null, 2));
 
     if (!res.ok) {
       setError(data.error || "Не удалось проанализировать ссылку");
