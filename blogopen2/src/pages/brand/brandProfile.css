@@ -248,6 +248,14 @@
   opacity: 0.7;
 }
 
+.bp__success p {
+  color: #1d9e75;
+  margin: 0;
+}
+.bp__success {
+  border-color: rgba(29, 158, 117, 0.35);
+}
+
 /* =========================
    MOBILE (Brand Profile)
    ========================= */

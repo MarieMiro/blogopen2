@@ -202,11 +202,12 @@ export default function BrandProfile() {
  
   const onAnalyzeMarketplace = async () => {
   if (!form.marketplaceUrl?.trim()) {
-    setError("Добавьте ссылку на товар или профиль маркетплейса");
+    setError("Добавьте ссылку на профиль магазина на маркетплейсе");
     return;
   }
 
   setError("");
+  setSuccess("");
   setForm((p) => ({ ...p, analyzing: true, productAnalysis: null }));
 
   try {
@@ -224,13 +225,47 @@ export default function BrandProfile() {
       return;
     }
 
+    // Бэк возвращает data.data (новый парсер) или data.product (старый)
+    const parsed = data.data || data.product || {};
+
+    // Маппинг topics с бэка → TOPIC_OPTIONS на фронте
+    const TOPIC_MAP = {
+      beauty:    "Красота",
+      clothes:   "Одежда",
+      food:      "Еда",
+      education: "Образование",
+      home:      "Lifestyle",
+      sport:     "Lifestyle",
+      kids:      "Lifestyle",
+      services:  "Lifestyle",
+    };
+
+    // Конвертируем внутренние ключи в русские лейблы
+    const mappedTopics = (parsed.topics || [])
+      .map((t) => TOPIC_MAP[t])
+      .filter(Boolean)
+      // оставляем только те что есть в TOPIC_OPTIONS
+      .filter((t) => TOPIC_OPTIONS.includes(t));
+
+    // Убираем дубли
+    const uniqueTopics = [...new Set(mappedTopics)];
+
     setForm((p) => ({
       ...p,
-      productAnalysis: data.product || null,
+      // Заполняем поля только если пришли данные (не перетираем если пусто)
+      brandName:      parsed.brand_name  || p.brandName,
+      about:          parsed.description || p.about,
+      topics:         uniqueTopics.length ? uniqueTopics : p.topics,
+      productAnalysis: parsed,
+      analyzing:      false,
     }));
+
+    setSuccess(
+      `Данные загружены с ${parsed.marketplace || "маркетплейса"}. Проверьте и сохраните профиль.`
+    );
+
   } catch {
     setError("Ошибка соединения с сервером");
-  } finally {
     setForm((p) => ({ ...p, analyzing: false }));
   }
 };
@@ -246,6 +281,12 @@ export default function BrandProfile() {
   {error && (
     <div className="card bp__error">
       <p className="small">{error}</p>
+    </div>
+  )}
+
+  {success && (
+    <div className="card bp__success">
+      <p className="small">{success}</p>
     </div>
   )}
 
