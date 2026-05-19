@@ -67,6 +67,13 @@ def parse_seller_page(url: str) -> dict:
         scroll_page(driver, steps=6)
 
         soup = BeautifulSoup(driver.page_source, "html.parser")
+        # ВРЕМЕННО — для отладки
+        with open("/tmp/ozon_debug.html", "w", encoding="utf-8") as f:
+            f.write(driver.page_source)
+        print(f"DEBUG title tag: {soup.find('title')}", file=sys.stderr)
+        print(f"DEBUG h1 tags: {[h.get_text(strip=True) for h in soup.find_all('h1')]}", file=sys.stderr)
+        print(f"DEBUG og:title: {soup.find('meta', property='og:title')}", file=sys.stderr)
+        print(f"DEBUG page text preview: {soup.get_text(' ', strip=True)[:500]}", file=sys.stderr)
 
         result = {
             "brand_name": "",
