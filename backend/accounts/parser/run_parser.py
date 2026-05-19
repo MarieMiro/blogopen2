@@ -18,10 +18,6 @@ PARSER_TIMEOUT = 60
 
 
 def run_ozon_parser(url: str) -> dict:
-    """
-    Запускает парсер как subprocess и возвращает результат.
-    Если парсер завис или упал — возвращает {"error": "..."}.
-    """
     try:
         proc = subprocess.run(
             [sys.executable, PARSER_SCRIPT, url],
@@ -30,29 +26,33 @@ def run_ozon_parser(url: str) -> dict:
             timeout=PARSER_TIMEOUT,
         )
 
+        # Всё логируем — видно в Render Logs
+        logger.warning("=== PARSER STDERR ===\n%s", proc.stderr[:2000] if proc.stderr else "(пусто)")
+        logger.warning("=== PARSER STDOUT ===\n%s", proc.stdout[:2000] if proc.stdout else "(пусто)")
+        logger.warning("=== PARSER RETURNCODE === %s", proc.returncode)
+
         stdout = (proc.stdout or "").strip()
-        stderr = (proc.stderr or "").strip()
 
         if not stdout:
             return {
-                "error": f"Парсер не вернул данные. stderr: {stderr[:300]}"
+                "error": f"Парсер не вернул данные. stderr: {(proc.stderr or '')[:300]}"
             }
 
-        
-        last_line = stdout.strip().split("\n")[-1]
+        lines = stdout.strip().split("\n")
+        last_line = lines[-1]
 
         try:
             return json.loads(last_line)
         except json.JSONDecodeError:
             return {
-                "error": f"Не удалось разобрать ответ парсера: {last_line[:200]}"
+                "error": f"Не удалось разобрать ответ: {last_line[:200]}"
             }
 
     except subprocess.TimeoutExpired:
-        return {"error": f"Парсер превысил лимит времени ({PARSER_TIMEOUT} сек). Попробуйте ещё раз."}
+        return {"error": f"Парсер завис (лимит {PARSER_TIMEOUT} сек). Попробуйте ещё раз."}
 
     except FileNotFoundError:
-        return {"error": "Скрипт парсера не найден. Проверьте путь к ozon_parser.py"}
+        return {"error": f"Скрипт не найден: {PARSER_SCRIPT}"}
 
     except Exception as e:
-        return {"error": f"Ошибка запуска парсера: {str(e)}"}
+        return {"error": f"Ошибка запуска: {str(e)}"}
