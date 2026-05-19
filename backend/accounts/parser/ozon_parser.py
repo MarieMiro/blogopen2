@@ -192,6 +192,15 @@ if __name__ == "__main__":
         sys.exit(1)
 
     url = sys.argv[1]
-    result = parse_seller_page(url)
-    # Выводим результат в stdout как JSON — Django прочитает это
-    print(json.dumps(result, ensure_ascii=False))
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+
+# ОТЛАДКА — выводим в stdout до основного JSON
+debug_info = {
+    "DEBUG_title": str(soup.find("title")),
+    "DEBUG_h1": [h.get_text(strip=True) for h in soup.find_all("h1")][:5],
+    "DEBUG_og_title": str(soup.find("meta", property="og:title")),
+    "DEBUG_og_desc": str(soup.find("meta", property="og:description")),
+    "DEBUG_text_preview": soup.get_text(" ", strip=True)[:300],
+    "DEBUG_page_len": len(driver.page_source),
+}
+print(json.dumps(debug_info, ensure_ascii=False), file=sys.stderr)
