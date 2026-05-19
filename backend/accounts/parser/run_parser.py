@@ -9,6 +9,9 @@ import subprocess
 import json
 import sys
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Путь к парсеру относительно этого файла
 PARSER_SCRIPT = os.path.join(os.path.dirname(__file__), "ozon_parser.py")
