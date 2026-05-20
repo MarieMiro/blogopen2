@@ -1,4 +1,3 @@
-
 import sys
 import json
 import time
@@ -6,9 +5,6 @@ import re
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium_stealth import stealth
 from bs4 import BeautifulSoup
 
@@ -25,7 +21,6 @@ def init_driver():
         "--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
     )
-    # Путь к chromium в Docker образе
     options.binary_location = "/usr/bin/chromium"
 
     driver = webdriver.Chrome(options=options)
@@ -44,7 +39,6 @@ def init_driver():
 
 
 def scroll_page(driver, steps=5):
-    """Скроллим страницу чтобы загрузился lazy-content."""
     for _ in range(steps):
         driver.execute_script("window.scrollBy(0, 600)")
         time.sleep(0.4)
@@ -52,28 +46,30 @@ def scroll_page(driver, steps=5):
 
 
 def parse_seller_page(url: str) -> dict:
-    """
-    Парсит страницу магазина Ozon.
-    Возвращает словарь с данными или {"error": "..."}.
-    """
     driver = None
     try:
         driver = init_driver()
         driver.set_page_load_timeout(30)
         driver.get(url)
 
-        # Ждём загрузки основного контента
-        time.sleep(4)
+        time.sleep(5)
         scroll_page(driver, steps=6)
 
-        soup = BeautifulSoup(driver.page_source, "html.parser")
-        # ВРЕМЕННО — для отладки
-        with open("/tmp/ozon_debug.html", "w", encoding="utf-8") as f:
-            f.write(driver.page_source)
-        print(f"DEBUG title tag: {soup.find('title')}", file=sys.stderr)
-        print(f"DEBUG h1 tags: {[h.get_text(strip=True) for h in soup.find_all('h1')]}", file=sys.stderr)
-        print(f"DEBUG og:title: {soup.find('meta', property='og:title')}", file=sys.stderr)
-        print(f"DEBUG page text preview: {soup.get_text(' ', strip=True)[:500]}", file=sys.stderr)
+        html = driver.page_source
+        soup = BeautifulSoup(html, "html.parser")
+
+        # ── Отладка в stderr (видно в Render Logs) ──
+        title_tag = soup.find("title")
+        h1_tags = [h.get_text(strip=True) for h in soup.find_all("h1")]
+        og_title = soup.find("meta", property="og:title")
+        og_desc = soup.find("meta", property="og:description")
+        page_text = soup.get_text(" ", strip=True)
+
+        print(f"DEBUG title: {title_tag}", file=sys.stderr)
+        print(f"DEBUG h1: {h1_tags}", file=sys.stderr)
+        print(f"DEBUG og:title: {og_title}", file=sys.stderr)
+        print(f"DEBUG og:desc: {og_desc}", file=sys.stderr)
+        print(f"DEBUG text[:300]: {page_text[:300]}", file=sys.stderr)
 
         result = {
             "brand_name": "",
@@ -85,56 +81,40 @@ def parse_seller_page(url: str) -> dict:
             "source_url": url,
         }
 
-        # ── 1. Название магазина ──────────────────────────────────────────
-        # Ozon обычно кладёт название в h1 или в мета-тег og:title
-        h1 = soup.find("h1")
-        if h1:
-            result["brand_name"] = h1.get_text(strip=True)
+        # 1. Название
+        if h1_tags:
+            result["brand_name"] = h1_tags[0]
 
-        if not result["brand_name"]:
-            og_title = soup.find("meta", property="og:title")
-            if og_title:
-                raw = og_title.get("content", "")
-                # Убираем "– Ozon" в конце если есть
-                result["brand_name"] = re.sub(r"\s*[–—-]\s*Ozon.*$", "", raw).strip()
+        if not result["brand_name"] and og_title:
+            raw = og_title.get("content", "")
+            result["brand_name"] = re.sub(r"\s*[–—-]\s*Ozon.*$", "", raw).strip()
 
-        # ── 2. Описание магазина ──────────────────────────────────────────
-        og_desc = soup.find("meta", property="og:description")
+        # 2. Описание
         if og_desc:
             result["description"] = og_desc.get("content", "").strip()
 
-        # ── 3. Категории товаров → sphere и topics ────────────────────────
-        # Ищем хлебные крошки или теги категорий
+        # 3. Категории
         categories = []
 
-        # Вариант А: breadcrumb
         breadcrumbs = soup.find_all("a", href=re.compile(r"/category/"))
         for bc in breadcrumbs[:5]:
             text = bc.get_text(strip=True)
             if text and len(text) > 2:
                 categories.append(text)
 
-        # Вариант Б: ищем по тексту в атрибутах data-widget
-        if not categories:
-            for tag in soup.find_all(True, {"data-widget": True}):
-                text = tag.get_text(strip=True)
-                if 3 < len(text) < 40 and "категор" in text.lower():
-                    categories.append(text)
-
-        # Вариант В: мета keywords
         if not categories:
             meta_kw = soup.find("meta", attrs={"name": "keywords"})
             if meta_kw:
                 kw = meta_kw.get("content", "")
                 categories = [k.strip() for k in kw.split(",") if k.strip()][:5]
 
+        print(f"DEBUG categories: {categories}", file=sys.stderr)
+
         if categories:
             result["sphere"] = categories[0]
             result["topics"] = map_categories_to_topics(categories)
 
-        # ── 4. Рейтинг магазина ───────────────────────────────────────────
-        # Ищем числа вида "4.8" или "4,8" рядом со словом "рейтинг"
-        page_text = soup.get_text(" ", strip=True)
+        # 4. Рейтинг
         rating_match = re.search(r"рейтинг[^\d]{0,20}(\d[.,]\d)", page_text, re.IGNORECASE)
         if rating_match:
             try:
@@ -142,7 +122,7 @@ def parse_seller_page(url: str) -> dict:
             except ValueError:
                 pass
 
-        # ── 5. Количество товаров ─────────────────────────────────────────
+        # 5. Количество товаров
         count_match = re.search(r"(\d[\d\s]*)\s*товар", page_text, re.IGNORECASE)
         if count_match:
             try:
@@ -153,6 +133,7 @@ def parse_seller_page(url: str) -> dict:
         return result
 
     except Exception as e:
+        print(f"DEBUG exception: {e}", file=sys.stderr)
         return {"error": str(e)}
 
     finally:
@@ -163,19 +144,18 @@ def parse_seller_page(url: str) -> dict:
                 pass
 
 
-# Маппинг категорий Ozon → внутренние topics платформы
 CATEGORY_MAP = {
-    "beauty":     ["красота", "уход", "косметика", "парфюм", "beauty"],
-    "food":       ["еда", "продукт", "напиток", "чай", "кофе", "food"],
-    "clothes":    ["одежда", "обувь", "аксессуар", "мода", "fashion"],
-    "tech":       ["электроника", "техника", "гаджет", "смартфон", "ноутбук"],
-    "home":       ["дом", "мебель", "интерьер", "кухня", "декор"],
-    "sport":      ["спорт", "фитнес", "outdoor", "туризм"],
-    "kids":       ["детск", "игрушк", "baby", "для детей"],
-    "education":  ["книг", "образован", "обучен", "канцеляр"],
-    "pets":       ["животн", "зоо", "питомц", "для кошек", "для собак"],
-    "services":   [],  # дефолт
+    "beauty":    ["красота", "уход", "косметика", "парфюм", "beauty"],
+    "food":      ["еда", "продукт", "напиток", "чай", "кофе", "food"],
+    "clothes":   ["одежда", "обувь", "аксессуар", "мода", "fashion"],
+    "tech":      ["электроника", "техника", "гаджет", "смартфон", "ноутбук"],
+    "home":      ["дом", "мебель", "интерьер", "кухня", "декор"],
+    "sport":     ["спорт", "фитнес", "outdoor", "туризм"],
+    "kids":      ["детск", "игрушк", "baby", "для детей"],
+    "education": ["книг", "образован", "обучен", "канцеляр"],
+    "pets":      ["животн", "зоо", "питомц", "для кошек", "для собак"],
 }
+
 
 def map_categories_to_topics(categories: list) -> list:
     found = []
@@ -192,15 +172,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     url = sys.argv[1]
-    soup = BeautifulSoup(driver.page_source, "html.parser")
-
-# ОТЛАДКА — выводим в stdout до основного JSON
-debug_info = {
-    "DEBUG_title": str(soup.find("title")),
-    "DEBUG_h1": [h.get_text(strip=True) for h in soup.find_all("h1")][:5],
-    "DEBUG_og_title": str(soup.find("meta", property="og:title")),
-    "DEBUG_og_desc": str(soup.find("meta", property="og:description")),
-    "DEBUG_text_preview": soup.get_text(" ", strip=True)[:300],
-    "DEBUG_page_len": len(driver.page_source),
-}
-print(json.dumps(debug_info, ensure_ascii=False), file=sys.stderr)
+    result = parse_seller_page(url)
+    print(json.dumps(result, ensure_ascii=False))
