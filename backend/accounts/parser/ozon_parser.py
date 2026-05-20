@@ -1,159 +1,170 @@
+"""
+backend/accounts/parser/ozon_parser.py
+
+Парсит страницу бренда/магазина Ozon через ScraperAPI.
+ScraperAPI сам рендерит JS и обходит капчу.
+"""
+
 import sys
 import json
-import time
+import os
 import re
-
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium_stealth import stealth
+import requests
 from bs4 import BeautifulSoup
 
 
-def init_driver():
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1400,900")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_argument(
-        "--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-    )
-    options.binary_location = "/usr/bin/chromium"
-
-    driver = webdriver.Chrome(options=options)
-
-    stealth(
-        driver,
-        languages=["ru-RU", "ru", "en-US", "en"],
-        vendor="Google Inc.",
-        platform="Linux x86_64",
-        webgl_vendor="Intel Inc.",
-        renderer="Intel Iris OpenGL Engine",
-        fix_hairline=True,
-    )
-
-    return driver
+SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY", "")
 
 
-def scroll_page(driver, steps=5):
-    for _ in range(steps):
-        driver.execute_script("window.scrollBy(0, 600)")
-        time.sleep(0.4)
-    time.sleep(1)
+def fetch_page(url: str) -> str:
+    """
+    Загружает страницу через ScraperAPI с рендерингом JS.
+    render=true — ScraperAPI запускает headless браузер на своей стороне.
+    """
+    if not SCRAPER_API_KEY:
+        raise ValueError("SCRAPER_API_KEY не задан в переменных окружения")
+
+    api_url = "https://api.scraperapi.com/"
+    params = {
+        "api_key": SCRAPER_API_KEY,
+        "url": url,
+        "render": "true",          # рендерит JS как браузер
+        "country_code": "ru",      # российский IP — меньше подозрений
+        "device_type": "desktop",
+    }
+
+    resp = requests.get(api_url, params=params, timeout=70)
+    resp.raise_for_status()
+    return resp.text
 
 
 def parse_seller_page(url: str) -> dict:
-    driver = None
+    result = {
+        "brand_name": "",
+        "sphere": "",
+        "topics": [],
+        "description": "",
+        "rating": None,
+        "products_count": None,
+        "source_url": url,
+    }
+
     try:
-        driver = init_driver()
-        driver.set_page_load_timeout(30)
-        driver.get(url)
+        html = fetch_page(url)
+    except Exception as e:
+        return {"error": f"Не удалось загрузить страницу: {e}"}
 
-        time.sleep(5)
-        scroll_page(driver, steps=6)
+    soup = BeautifulSoup(html, "html.parser")
+    page_text = soup.get_text(" ", strip=True)
 
-        html = driver.page_source
-        soup = BeautifulSoup(html, "html.parser")
+    # ── Отладка ──────────────────────────────────────────────────────────
+    print(f"DEBUG title: {soup.find('title')}", file=sys.stderr)
+    print(f"DEBUG h1: {[h.get_text(strip=True) for h in soup.find_all('h1')]}", file=sys.stderr)
+    og_title_tag = soup.find("meta", property="og:title")
+    print(f"DEBUG og:title: {og_title_tag}", file=sys.stderr)
+    print(f"DEBUG text[:400]: {page_text[:400]}", file=sys.stderr)
+    # ─────────────────────────────────────────────────────────────────────
 
-        # ── Отладка в stderr (видно в Render Logs) ──
+    # 1. Название бренда/магазина
+    h1 = soup.find("h1")
+    if h1:
+        result["brand_name"] = h1.get_text(strip=True)
+
+    if not result["brand_name"] and og_title_tag:
+        raw = og_title_tag.get("content", "")
+        result["brand_name"] = re.sub(r"\s*[–—-]\s*Ozon.*$", "", raw).strip()
+
+    # Дополнительно ищем название в title если h1 пустой
+    if not result["brand_name"]:
         title_tag = soup.find("title")
-        h1_tags = [h.get_text(strip=True) for h in soup.find_all("h1")]
-        og_title = soup.find("meta", property="og:title")
-        og_desc = soup.find("meta", property="og:description")
-        page_text = soup.get_text(" ", strip=True)
+        if title_tag:
+            raw = title_tag.get_text(strip=True)
+            result["brand_name"] = re.sub(r"\s*[–—|]\s*Ozon.*$", "", raw).strip()
 
-        print(f"DEBUG title: {title_tag}", file=sys.stderr)
-        print(f"DEBUG h1: {h1_tags}", file=sys.stderr)
-        print(f"DEBUG og:title: {og_title}", file=sys.stderr)
-        print(f"DEBUG og:desc: {og_desc}", file=sys.stderr)
-        print(f"DEBUG text[:300]: {page_text[:300]}", file=sys.stderr)
+    # 2. Описание
+    og_desc = soup.find("meta", property="og:description")
+    if og_desc:
+        result["description"] = og_desc.get("content", "").strip()
 
-        result = {
-            "brand_name": "",
-            "sphere": "",
-            "topics": [],
-            "description": "",
-            "rating": None,
-            "products_count": None,
-            "source_url": url,
-        }
+    # Если og:description пустой — берём первый абзац страницы
+    if not result["description"]:
+        for p in soup.find_all("p"):
+            text = p.get_text(strip=True)
+            if len(text) > 40:
+                result["description"] = text[:300]
+                break
 
-        # 1. Название
-        if h1_tags:
-            result["brand_name"] = h1_tags[0]
+    # 3. Категории → sphere и topics
+    categories = []
 
-        if not result["brand_name"] and og_title:
-            raw = og_title.get("content", "")
-            result["brand_name"] = re.sub(r"\s*[–—-]\s*Ozon.*$", "", raw).strip()
+    # Вариант А: ссылки на категории
+    for a in soup.find_all("a", href=re.compile(r"/category/")):
+        text = a.get_text(strip=True)
+        if text and 2 < len(text) < 60:
+            categories.append(text)
 
-        # 2. Описание
-        if og_desc:
-            result["description"] = og_desc.get("content", "").strip()
-
-        # 3. Категории
-        categories = []
-
-        breadcrumbs = soup.find_all("a", href=re.compile(r"/category/"))
-        for bc in breadcrumbs[:5]:
+    # Вариант Б: хлебные крошки (часто class содержит "breadcrumb")
+    if not categories:
+        for bc in soup.find_all(class_=re.compile(r"breadcrumb|Breadcrumb", re.I)):
             text = bc.get_text(strip=True)
-            if text and len(text) > 2:
+            if 2 < len(text) < 60:
                 categories.append(text)
 
-        if not categories:
-            meta_kw = soup.find("meta", attrs={"name": "keywords"})
-            if meta_kw:
-                kw = meta_kw.get("content", "")
-                categories = [k.strip() for k in kw.split(",") if k.strip()][:5]
+    # Вариант В: мета keywords
+    if not categories:
+        meta_kw = soup.find("meta", attrs={"name": "keywords"})
+        if meta_kw:
+            kw = meta_kw.get("content", "")
+            categories = [k.strip() for k in kw.split(",") if k.strip()][:5]
 
-        print(f"DEBUG categories: {categories}", file=sys.stderr)
+    # Вариант Г: ищем по тексту страницы типичные категории Ozon
+    if not categories:
+        ozon_categories = [
+            "Одежда", "Обувь", "Красота", "Здоровье", "Электроника",
+            "Дом и сад", "Детские товары", "Спорт", "Продукты", "Книги",
+            "Зоотовары", "Автотовары", "Ювелирные украшения",
+        ]
+        for cat in ozon_categories:
+            if cat.lower() in page_text.lower():
+                categories.append(cat)
+                if len(categories) >= 3:
+                    break
 
-        if categories:
-            result["sphere"] = categories[0]
-            result["topics"] = map_categories_to_topics(categories)
+    print(f"DEBUG categories: {categories}", file=sys.stderr)
 
-        # 4. Рейтинг
-        rating_match = re.search(r"рейтинг[^\d]{0,20}(\d[.,]\d)", page_text, re.IGNORECASE)
-        if rating_match:
-            try:
-                result["rating"] = float(rating_match.group(1).replace(",", "."))
-            except ValueError:
-                pass
+    if categories:
+        result["sphere"] = categories[0]
+        result["topics"] = map_categories_to_topics(categories)
 
-        # 5. Количество товаров
-        count_match = re.search(r"(\d[\d\s]*)\s*товар", page_text, re.IGNORECASE)
-        if count_match:
-            try:
-                result["products_count"] = int(count_match.group(1).replace(" ", ""))
-            except ValueError:
-                pass
+    # 4. Рейтинг
+    rating_match = re.search(r"рейтинг[^\d]{0,20}(\d[.,]\d)", page_text, re.IGNORECASE)
+    if rating_match:
+        try:
+            result["rating"] = float(rating_match.group(1).replace(",", "."))
+        except ValueError:
+            pass
 
-        return result
+    # 5. Количество товаров
+    count_match = re.search(r"(\d[\d\s]{0,6})\s*товар", page_text, re.IGNORECASE)
+    if count_match:
+        try:
+            result["products_count"] = int(count_match.group(1).replace(" ", ""))
+        except ValueError:
+            pass
 
-    except Exception as e:
-        print(f"DEBUG exception: {e}", file=sys.stderr)
-        return {"error": str(e)}
-
-    finally:
-        if driver:
-            try:
-                driver.quit()
-            except Exception:
-                pass
+    return result
 
 
 CATEGORY_MAP = {
-    "beauty":    ["красота", "уход", "косметика", "парфюм", "beauty"],
+    "beauty":    ["красота", "уход", "косметика", "парфюм", "beauty", "здоровье"],
     "food":      ["еда", "продукт", "напиток", "чай", "кофе", "food"],
-    "clothes":   ["одежда", "обувь", "аксессуар", "мода", "fashion"],
-    "tech":      ["электроника", "техника", "гаджет", "смартфон", "ноутбук"],
-    "home":      ["дом", "мебель", "интерьер", "кухня", "декор"],
+    "clothes":   ["одежда", "обувь", "аксессуар", "мода", "fashion", "ювелир"],
+    "tech":      ["электроника", "техника", "гаджет", "смартфон", "ноутбук", "авто"],
+    "home":      ["дом", "мебель", "интерьер", "кухня", "декор", "сад"],
     "sport":     ["спорт", "фитнес", "outdoor", "туризм"],
     "kids":      ["детск", "игрушк", "baby", "для детей"],
     "education": ["книг", "образован", "обучен", "канцеляр"],
-    "pets":      ["животн", "зоо", "питомц", "для кошек", "для собак"],
+    "pets":      ["животн", "зоо", "питомц", "для кошек", "для собак", "зоотовар"],
 }
 
 
