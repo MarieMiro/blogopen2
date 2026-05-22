@@ -46,108 +46,73 @@ def parse_seller_page(url: str) -> dict:
         "source_url": url,
     }
 
-    try:
-        html = fetch_page(url)
-    except Exception as e:
-        return {"error": f"Не удалось загрузить страницу: {e}"}
+    # Извлекаем ID бренда из URL
+    # https://www.ozon.ru/brand/sela-24124695/ → 24124695
+    match = re.search(r"-(\d+)/?$", url)
+    if not match:
+        return {"error": "Не удалось извлечь ID бренда из URL. Убедитесь что ссылка ведёт на страницу бренда Ozon."}
 
-    soup = BeautifulSoup(html, "html.parser")
-    page_text = soup.get_text(" ", strip=True)
+    brand_id = match.group(1)
+    print(f"DEBUG brand_id: {brand_id}", file=sys.stderr)
 
-    # ── Отладка ──────────────────────────────────────────────────────────
-    print(f"DEBUG title: {soup.find('title')}", file=sys.stderr)
-    print(f"DEBUG h1: {[h.get_text(strip=True) for h in soup.find_all('h1')]}", file=sys.stderr)
-    og_title_tag = soup.find("meta", property="og:title")
-    print(f"DEBUG og:title: {og_title_tag}", file=sys.stderr)
-    print(f"DEBUG text[:400]: {page_text[:400]}", file=sys.stderr)
-    # ─────────────────────────────────────────────────────────────────────
+    # Внутренний API Ozon для получения данных бренда
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "ru-RU,ru;q=0.9",
+        "Referer": "https://www.ozon.ru/",
+        "Origin": "https://www.ozon.ru",
+    }
 
-    # 1. Название бренда/магазина
-    h1 = soup.find("h1")
-    if h1:
-        result["brand_name"] = h1.get_text(strip=True)
+    # Пробуем несколько внутренних эндпоинтов
+    endpoints = [
+        f"https://www.ozon.ru/api/composer-api.bff/page/json/brand?brand_id={brand_id}",
+        f"https://www.ozon.ru/api/entrypoint-api.bff/page/json/brand?brand_id={brand_id}",
+        f"https://www.ozon.ru/api/composer-api.bff/page/json/v2/brand?brand_id={brand_id}",
+    ]
 
-    if not result["brand_name"] and og_title_tag:
-        raw = og_title_tag.get("content", "")
-        result["brand_name"] = re.sub(r"\s*[–—-]\s*Ozon.*$", "", raw).strip()
-
-    # Дополнительно ищем название в title если h1 пустой
-    if not result["brand_name"]:
-        title_tag = soup.find("title")
-        if title_tag:
-            raw = title_tag.get_text(strip=True)
-            result["brand_name"] = re.sub(r"\s*[–—|]\s*Ozon.*$", "", raw).strip()
-
-    # 2. Описание
-    og_desc = soup.find("meta", property="og:description")
-    if og_desc:
-        result["description"] = og_desc.get("content", "").strip()
-
-    # Если og:description пустой — берём первый абзац страницы
-    if not result["description"]:
-        for p in soup.find_all("p"):
-            text = p.get_text(strip=True)
-            if len(text) > 40:
-                result["description"] = text[:300]
+    data = None
+    for endpoint in endpoints:
+        try:
+            resp = requests.get(endpoint, headers=headers, timeout=15)
+            print(f"DEBUG endpoint {endpoint}: status={resp.status_code}", file=sys.stderr)
+            if resp.status_code == 200:
+                data = resp.json()
+                print(f"DEBUG api response keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}", file=sys.stderr)
                 break
+        except Exception as e:
+            print(f"DEBUG endpoint error: {e}", file=sys.stderr)
+            continue
 
-    # 3. Категории → sphere и topics
-    categories = []
+    if data and isinstance(data, dict):
+        # Пробуем извлечь название
+        brand_name = (
+            data.get("brand", {}).get("name") or
+            data.get("name") or
+            data.get("title") or
+            data.get("seo", {}).get("title") or
+            ""
+        )
+        result["brand_name"] = brand_name
 
-    # Вариант А: ссылки на категории
-    for a in soup.find_all("a", href=re.compile(r"/category/")):
-        text = a.get_text(strip=True)
-        if text and 2 < len(text) < 60:
-            categories.append(text)
+        # Описание
+        result["description"] = (
+            data.get("brand", {}).get("description") or
+            data.get("description") or
+            ""
+        )[:300]
 
-    # Вариант Б: хлебные крошки (часто class содержит "breadcrumb")
-    if not categories:
-        for bc in soup.find_all(class_=re.compile(r"breadcrumb|Breadcrumb", re.I)):
-            text = bc.get_text(strip=True)
-            if 2 < len(text) < 60:
-                categories.append(text)
+        # Категории
+        categories = data.get("categories", [])
+        if isinstance(categories, list):
+            cat_names = [c.get("name", "") for c in categories if c.get("name")]
+            if cat_names:
+                result["sphere"] = cat_names[0]
+                result["topics"] = map_categories_to_topics(cat_names)
 
-    # Вариант В: мета keywords
-    if not categories:
-        meta_kw = soup.find("meta", attrs={"name": "keywords"})
-        if meta_kw:
-            kw = meta_kw.get("content", "")
-            categories = [k.strip() for k in kw.split(",") if k.strip()][:5]
-
-    # Вариант Г: ищем по тексту страницы типичные категории Ozon
-    if not categories:
-        ozon_categories = [
-            "Одежда", "Обувь", "Красота", "Здоровье", "Электроника",
-            "Дом и сад", "Детские товары", "Спорт", "Продукты", "Книги",
-            "Зоотовары", "Автотовары", "Ювелирные украшения",
-        ]
-        for cat in ozon_categories:
-            if cat.lower() in page_text.lower():
-                categories.append(cat)
-                if len(categories) >= 3:
-                    break
-
-    print(f"DEBUG categories: {categories}", file=sys.stderr)
-
-    if categories:
-        result["sphere"] = categories[0]
-        result["topics"] = map_categories_to_topics(categories)
-
-    # 4. Рейтинг
-    rating_match = re.search(r"рейтинг[^\d]{0,20}(\d[.,]\d)", page_text, re.IGNORECASE)
-    if rating_match:
-        try:
-            result["rating"] = float(rating_match.group(1).replace(",", "."))
-        except ValueError:
-            pass
-
-    # 5. Количество товаров
-    count_match = re.search(r"(\d[\d\s]{0,6})\s*товар", page_text, re.IGNORECASE)
-    if count_match:
-        try:
-            result["products_count"] = int(count_match.group(1).replace(" ", ""))
-        except ValueError:
-            pass
+        print(f"DEBUG brand_name: {result['brand_name']}", file=sys.stderr)
+        print(f"DEBUG description: {result['description'][:100]}", file=sys.stderr)
 
     return result
 
