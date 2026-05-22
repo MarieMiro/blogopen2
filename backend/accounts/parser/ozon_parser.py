@@ -17,23 +17,20 @@ SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY", "")
 
 
 def fetch_page(url: str) -> str:
-    """
-    Загружает страницу через ScraperAPI с рендерингом JS.
-    render=true — ScraperAPI запускает headless браузер на своей стороне.
-    """
     if not SCRAPER_API_KEY:
-        raise ValueError("SCRAPER_API_KEY не задан в переменных окружения")
+        raise ValueError("SCRAPER_API_KEY не задан")
 
     api_url = "https://api.scraperapi.com/"
     params = {
         "api_key": SCRAPER_API_KEY,
         "url": url,
-        "render": "true",          # рендерит JS как браузер
-        "country_code": "ru",      # российский IP — меньше подозрений
+        # render=true убираем — пробуем без JS рендеринга
+        "country_code": "ru",
         "device_type": "desktop",
+        "premium": "true",  # premium прокси — лучше обходят блокировки
     }
 
-    resp = requests.get(api_url, params=params, timeout=110)
+    resp = requests.get(api_url, params=params, timeout=60)
     resp.raise_for_status()
     return resp.text
 
