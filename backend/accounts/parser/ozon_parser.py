@@ -33,7 +33,7 @@ def fetch_page(url: str) -> str:
         "device_type": "desktop",
     }
 
-    resp = requests.get(api_url, params=params, timeout=70)
+    resp = requests.get(api_url, params=params, timeout=110)
     resp.raise_for_status()
     return resp.text
 

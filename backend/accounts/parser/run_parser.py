@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 PARSER_SCRIPT = os.path.join(os.path.dirname(__file__), "ozon_parser.py")
 
 # Максимальное время ожидания в секундах
-PARSER_TIMEOUT = 60
+PARSER_TIMEOUT = 120
 
 
 def run_ozon_parser(url: str) -> dict:
