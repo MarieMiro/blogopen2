@@ -9,6 +9,35 @@ function fmtTime(iso) {
   return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
 }
 
+// ── Дата для разделителя ─────────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isSameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (isSameDay(d, today)) return "Сегодня";
+  if (isSameDay(d, yesterday)) return "Вчера";
+
+  return d.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: d.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
+  });
+}
+
+// Возвращает строку вида "2024-05-25" для группировки по дням
+function dayKey(iso) {
+  if (!iso) return "";
+  return iso.slice(0, 10);
+}
+
 function dialogName(d) {
   return d?.other?.name || d?.title || d?.nickname || d?.brand_name || "Диалог";
 }
@@ -17,14 +46,12 @@ function dialogAvatarUrl(d) {
   return d?.other?.avatar_url || d?.avatar_url || "";
 }
 
-// ✅ проверка: пользователь почти внизу?
 function isNearBottom(el, px = 120) {
   if (!el) return true;
   const { scrollTop, scrollHeight, clientHeight } = el;
   return scrollHeight - (scrollTop + clientHeight) <= px;
 }
 
-// ✅ шаблон для бренда
 function buildBrandTemplate(activeDialog) {
   const name = activeDialog ? dialogName(activeDialog) : "";
   return `Привет${name ? `, ${name}` : ""}! 👋
@@ -50,25 +77,21 @@ export default function BrandMessages() {
 
   const [dialogs, setDialogs] = useState([]);
   const [activeId, setActiveId] = useState(null);
-
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
 
   const [loadingDialogs, setLoadingDialogs] = useState(true);
   const [loadingChat, setLoadingChat] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
-
   const [q, setQ] = useState("");
 
   const listRef = useRef(null);
-
-  // ✅ refs для “умного” polling/скролла
   const pollRef = useRef(null);
   const isAtBottomRef = useRef(true);
   const lastMsgKeyRef = useRef("");
-
-  // ✅ чтобы шаблон вставлялся один раз на диалог
   const didPrefillRef = useRef(false);
+  const draftsRef = useRef({});
 
   const preferredConvId = location.state?.convId ?? null;
 
@@ -78,14 +101,57 @@ export default function BrandMessages() {
     return dialogs.filter((d) => dialogName(d).toLowerCase().includes(s));
   }, [q, dialogs]);
 
-  const openDialog = (id) => setActiveId(id);
-
   const activeDialog = useMemo(
     () => dialogs.find((d) => d.id === activeId) || null,
     [dialogs, activeId]
   );
 
-  // ✅ 1) ДИАЛОГИ — загружаем один раз (без polling)
+  // Группируем сообщения по дням для разделителей
+  const groupedMessages = useMemo(() => {
+    const groups = [];
+    let lastDay = "";
+
+    messages.forEach((m) => {
+      const day = dayKey(m.created_at);
+      if (day !== lastDay) {
+        groups.push({ type: "separator", day, label: fmtDate(m.created_at), id: `sep_${day}` });
+        lastDay = day;
+      }
+      groups.push({ type: "message", ...m });
+    });
+
+    return groups;
+  }, [messages]);
+
+  const openDialog = async (id) => {
+    if (activeId) draftsRef.current[activeId] = text;
+    setActiveId(id);
+    setMessages([]);
+    didPrefillRef.current = false;
+
+    try {
+      await fetch(`${API_BASE}/api/chat/${id}/read/`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {}
+
+    setDialogs((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, unread_count: 0 } : d))
+    );
+  };
+
+  // Восстанавливаем черновик при смене диалога
+  useEffect(() => {
+    if (!activeId) return;
+    if (draftsRef.current[activeId] !== undefined) {
+      setText(draftsRef.current[activeId]);
+    } else {
+      setText("");
+    }
+  }, [activeId]);
+
+  // 1) Диалоги
   useEffect(() => {
     let alive = true;
 
@@ -120,41 +186,32 @@ export default function BrandMessages() {
       }
     })();
 
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ 1.5) при смене диалога разрешаем снова вставить шаблон
+  // Polling диалогов каждые 30 сек
   useEffect(() => {
-    didPrefillRef.current = false;
-  }, [activeId]);
+    const id = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) setDialogs(data.results || []);
+      } catch {}
+    }, 30000);
+    return () => clearInterval(id);
+  }, []);
 
-  // ✅ 1.6) вставляем шаблон (один раз), если поле пустое
-  useEffect(() => {
-    if (!activeId || !activeDialog) return;
-    if (didPrefillRef.current) return;
-
-    setText((prev) => {
-      if (prev && prev.trim().length > 0) return prev;
-      return buildBrandTemplate(activeDialog);
-    });
-
-    didPrefillRef.current = true;
-  }, [activeId, activeDialog]);
-
-  // ✅ 2) MESSAGES + polling 10 сек + пауза на hidden + без “прыжков” скролла
+  // 2) Сообщения + polling
   useEffect(() => {
     if (!activeId) return;
 
     let alive = true;
     lastMsgKeyRef.current = "";
 
-    const load = async () => {
+    const load = async (isFirst = false) => {
       try {
-        setError("");
-        setLoadingChat(true);
+        if (isFirst) setLoadingChat(true);
 
         const res = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
           credentials: "include",
@@ -169,7 +226,6 @@ export default function BrandMessages() {
         const results = data.messages || data.results || [];
         if (!alive) return;
 
-        // ✅ обновляем state только если реально изменилось последнее сообщение
         const last = results.length ? results[results.length - 1] : null;
         const key = last ? `${last.id}_${last.created_at}` : `empty_${results.length}`;
         if (key === lastMsgKeyRef.current) return;
@@ -177,28 +233,28 @@ export default function BrandMessages() {
 
         setMessages(results);
 
+        // Шаблон только если диалог пустой
+        if (isFirst && results.length === 0 && draftsRef.current[activeId] === undefined) {
+          setText(buildBrandTemplate(activeDialog));
+          didPrefillRef.current = true;
+        }
+
         requestAnimationFrame(() => {
           const el = listRef.current;
-          if (!el) return;
-
-          // автоскролл только если пользователь внизу
-          if (isAtBottomRef.current) {
-            el.scrollTop = el.scrollHeight;
-          }
+          if (el && isAtBottomRef.current) el.scrollTop = el.scrollHeight;
         });
       } catch {
         if (alive) setError("Ошибка соединения с сервером");
       } finally {
-        if (alive) setLoadingChat(false);
+        if (alive && isFirst) setLoadingChat(false);
       }
     };
 
-    // стартовая загрузка
-    load();
+    load(true);
 
     const startPolling = () => {
       if (pollRef.current) clearInterval(pollRef.current);
-      pollRef.current = setInterval(load, 10000); // ✅ 10 секунд
+      pollRef.current = setInterval(() => load(false), 10000);
     };
     startPolling();
 
@@ -206,7 +262,7 @@ export default function BrandMessages() {
       if (document.visibilityState === "hidden") {
         if (pollRef.current) clearInterval(pollRef.current);
       } else {
-        load();
+        load(false);
         startPolling();
       }
     };
@@ -218,14 +274,17 @@ export default function BrandMessages() {
       if (pollRef.current) clearInterval(pollRef.current);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
-  // ✅ 3) отправка сообщения
+  // 3) Отправка
   const onSend = async (e) => {
     e.preventDefault();
-
     const t = text.trim();
-    if (!t || !activeId) return;
+    if (!t || !activeId || sending) return;
+
+    setSending(true);
+    setError("");
 
     const tempId = `tmp_${Date.now()}`;
     setMessages((p) => [
@@ -233,6 +292,7 @@ export default function BrandMessages() {
       { id: tempId, text: t, created_at: new Date().toISOString(), is_mine: true },
     ]);
     setText("");
+    delete draftsRef.current[activeId];
 
     requestAnimationFrame(() => {
       const el = listRef.current;
@@ -248,24 +308,41 @@ export default function BrandMessages() {
       });
 
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
+        setMessages((p) => p.filter((m) => m.id !== tempId));
+        setText(t);
         setError(data.error || "Не удалось отправить сообщение");
         return;
       }
 
-      // сразу обновим сообщения
-      const r2 = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
-        credentials: "include",
-      });
-      const d2 = await r2.json().catch(() => ({}));
-      if (r2.ok) setMessages(d2.messages || d2.results || []);
+      if (data.message) {
+        setMessages((p) =>
+          p.map((m) => (m.id === tempId ? { ...data.message, is_mine: true } : m))
+        );
+      }
 
-      // обновим список диалогов (последнее сообщение/время)
-      const rChat = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
-      const dChat = await rChat.json().catch(() => ({}));
-      if (rChat.ok) setDialogs(dChat.results || []);
+      setDialogs((prev) =>
+        prev.map((d) =>
+          d.id === activeId
+            ? { ...d, last_message: t, last_message_at: new Date().toISOString() }
+            : d
+        )
+      );
     } catch {
+      setMessages((p) => p.filter((m) => m.id !== tempId));
+      setText(t);
       setError("Ошибка соединения с сервером");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Enter — отправить, Shift+Enter — новая строка
+  const onKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onSend(e);
     }
   };
 
@@ -277,7 +354,6 @@ export default function BrandMessages() {
           <div className="msg__leftTop">
             <div className="msg__title">Все чаты</div>
           </div>
-
           <div className="msg__search">
             <input
               className="msg__searchInput"
@@ -291,7 +367,7 @@ export default function BrandMessages() {
         <div className="msgList">
           {loadingDialogs ? (
             <div className="msg__muted">Загрузка диалогов…</div>
-            ) : filteredDialogs.length === 0 ? (
+          ) : filteredDialogs.length === 0 ? (
             <div className="msg__muted">Ничего не найдено</div>
           ) : (
             filteredDialogs.map((d) => {
@@ -313,12 +389,18 @@ export default function BrandMessages() {
 
                   <div className="msgItem__body">
                     <div className="msgItem__top">
+                      {/* FIX 1: имя не переносится, обрезается */}
                       <div className="msgItem__name">{dialogName(d)}</div>
                       <div className="msgItem__time">{fmtTime(d.last_message_at)}</div>
                     </div>
-
                     <div className="msgItem__bottom">
-                      <div className="msgItem__preview">{d.last_message || "Без сообщений"}</div>
+                      {/* FIX 2: превью обрезается через CSS */}
+                      <div className="msgItem__preview">
+                        {d.last_message || "Без сообщений"}
+                      </div>
+                      {d.unread_count > 0 && (
+                        <span className="msgItem__badge">{d.unread_count}</span>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -330,22 +412,16 @@ export default function BrandMessages() {
 
       {/* RIGHT */}
       <section className="msg__right">
-         <header className="msg__topbar">
-  {activeId && (
-    <button
-      className="msg__back"
-      onClick={() => setActiveId(null)}
-      type="button"
-    >
-      ← Назад
-    </button>
-  )}
-
-  <div className="msg__chatTitle">
-    {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
-  </div>
-</header>
-
+        <header className="msg__topbar">
+          {activeId && (
+            <button className="msg__back" onClick={() => setActiveId(null)} type="button">
+              ← Назад
+            </button>
+          )}
+          <div className="msg__chatTitle">
+            {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
+          </div>
+        </header>
 
         <div className="msg__chat">
           <div
@@ -361,17 +437,35 @@ export default function BrandMessages() {
               <div className="msg__muted">Загрузка сообщений…</div>
             ) : !activeId ? (
               <div className="msg__muted">Выберите диалог слева</div>
+            ) : messages.length === 0 ? (
+              <div className="msg__muted">Начните диалог — отправьте первое сообщение</div>
             ) : (
-              messages.map((m) => {
-                const mine = m.is_mine ?? false;
+              // FIX 3: рендерим группы с разделителями по дням
+              groupedMessages.map((item) => {
+                if (item.type === "separator") {
+                  return (
+                    <div key={item.id} className="msg__dateSep">
+                      <span className="msg__dateSepLabel">{item.label}</span>
+                    </div>
+                  );
+                }
+
+                const mine = item.is_mine ?? false;
+                const isTemp = String(item.id).startsWith("tmp_");
                 return (
                   <div
-                    key={m.id}
+                    key={item.id}
                     className={`bubbleRow ${mine ? "bubbleRow--mine" : "bubbleRow--their"}`}
                   >
-                    <div className={`bubble ${mine ? "bubble--mine" : "bubble--their"}`}>
-                      <div className="bubble__text">{m.text}</div>
-                      <div className="bubble__meta">{fmtTime(m.created_at)}</div>
+                    <div
+                      className={`bubble ${mine ? "bubble--mine" : "bubble--their"} ${
+                        isTemp ? "bubble--sending" : ""
+                      }`}
+                    >
+                      <div className="bubble__text">{item.text}</div>
+                      <div className="bubble__meta">
+                        {isTemp ? "Отправка…" : fmtTime(item.created_at)}
+                      </div>
                     </div>
                   </div>
                 );
@@ -379,16 +473,33 @@ export default function BrandMessages() {
             )}
           </div>
 
+          {error && (
+            <div style={{ padding: "4px 12px" }}>
+              <p className="small" style={{ color: "crimson", margin: 0 }}>{error}</p>
+            </div>
+          )}
+
+          {/* FIX 1: textarea вместо input */}
           <form className="msg__composer" onSubmit={onSend}>
-            <input
-              className="msg__input"
-              placeholder={activeId ? "Написать сообщение…" : "Выберите диалог слева"}
+            <textarea
+              className="msg__input msg__input--textarea"
+              placeholder={
+                activeId
+                  ? "Написать сообщение… (Enter — отправить, Shift+Enter — новая строка)"
+                  : "Выберите диалог слева"
+              }
               value={text}
               onChange={(e) => setText(e.target.value)}
-              disabled={!activeId}
+              onKeyDown={onKeyDown}
+              disabled={!activeId || sending}
+              rows={3}
             />
-            <button className="msg__send" type="submit" disabled={!activeId || !text.trim()}>
-              Отправить
+            <button
+              className="msg__send"
+              type="submit"
+              disabled={!activeId || !text.trim() || sending}
+            >
+              {sending ? "…" : "Отправить"}
             </button>
           </form>
         </div>

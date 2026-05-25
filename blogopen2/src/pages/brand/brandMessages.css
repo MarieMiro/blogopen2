@@ -341,3 +341,114 @@
   }
 
 }
+
+
+
+/* ── Добавь в конец brandMessages.css ── */
+
+/* FIX 1: textarea вместо input */
+.msg__input--textarea {
+  resize: none;
+  line-height: 1.5;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(10, 12, 20, 0.12);
+  flex: 1;
+  min-height: 52px;
+  max-height: 160px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* FIX 2: превью последнего сообщения — обрезаем в одну строку */
+.msgItem__preview {
+  font-size: 13px;
+  color: rgba(10, 12, 20, 0.50);
+  white-space: nowrap;       /* одна строка */
+  overflow: hidden;          /* обрезаем */
+  text-overflow: ellipsis;   /* многоточие */
+  min-width: 0;              /* важно для flex */
+  flex: 1;
+}
+
+/* Нижняя строка карточки диалога — flex чтобы превью + бейдж */
+.msgItem__bottom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;              /* важно для flex + ellipsis */
+}
+
+/* Имя тоже не должно вылезать */
+.msgItem__name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Верхняя строка карточки */
+.msgItem__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Бейдж непрочитанных */
+.msgItem__badge {
+  flex-shrink: 0;
+  background: #5b66b8;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+
+/* FIX 3: разделитель по дням */
+.msg__dateSep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 8px;
+  padding: 0 16px;
+}
+
+.msg__dateSep::before,
+.msg__dateSep::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(10, 12, 20, 0.10);
+}
+
+.msg__dateSepLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(10, 12, 20, 0.40);
+  white-space: nowrap;
+  padding: 3px 10px;
+  background: rgba(10, 12, 20, 0.04);
+  border-radius: 999px;
+}
+
+/* Сообщение в процессе отправки */
+.bubble--sending {
+  opacity: 0.6;
+}
+
+/* Текст в пузыре переносится */
+.bubble__text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
