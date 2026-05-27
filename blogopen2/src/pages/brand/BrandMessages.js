@@ -80,7 +80,12 @@ function DealModal({ activeDialog, activeId, onClose, onCreated }) {
     setSaving(true);
     setError("");
     try {
-      const bloggerId = activeDialog?.blogger_id || activeDialog?.id;
+      const bloggerId = activeDialog?.blogger_id;
+        if (!bloggerId) {
+          setError("Не удалось определить блогера. Обновите страницу.");
+          setSaving(false);
+          return;
+        }
       const res = await fetch(`${API_BASE}/api/deals/create/`, {
         method: "POST",
         credentials: "include",

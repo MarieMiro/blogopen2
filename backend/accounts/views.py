@@ -819,6 +819,8 @@ def conversations_list(request):
             "last_message": last_msg.text if last_msg else "",
             "last_message_at": last_msg.created_at if last_msg else None,
             "unread_count": unread_count_for(me_prof, c),
+            "blogger_id": c.blogger_id,
+            "brand_id": c.brand_id,
         })
 
     return Response({"ok": True, "results": results})
