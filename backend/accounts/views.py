@@ -11,7 +11,7 @@ from rest_framework import status
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
-from .models import Profile, BrandProfile, BloggerProfile, Conversation, Message
+from .models import Profile, BrandProfile, BloggerProfile, Conversation, Message, Deal
 from .auth import CsrfExemptSessionAuthentication
 
 import json
