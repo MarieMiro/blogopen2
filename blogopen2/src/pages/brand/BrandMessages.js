@@ -9,30 +9,24 @@ function fmtTime(iso) {
   return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
 }
 
-// ── Дата для разделителя ─────────────────────────────────────────────────────
 function fmtDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-
   const isSameDay = (a, b) =>
     a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate();
-
   if (isSameDay(d, today)) return "Сегодня";
   if (isSameDay(d, yesterday)) return "Вчера";
-
   return d.toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "long",
+    day: "numeric", month: "long",
     year: d.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
   });
 }
 
-// Возвращает строку вида "2024-05-25" для группировки по дням
 function dayKey(iso) {
   if (!iso) return "";
   return iso.slice(0, 10);
@@ -72,6 +66,107 @@ function buildBrandTemplate(activeDialog) {
 Спасибо!`;
 }
 
+// ── Модальное окно создания сделки ───────────────────────────────────────────
+function DealModal({ activeDialog, activeId, onClose, onCreated }) {
+  const [form, setForm] = useState({ description: "", amount: "", deadline: "" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const setField = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.description.trim()) { setError("Опишите условия сделки"); return; }
+    setSaving(true);
+    setError("");
+    try {
+      const bloggerId = activeDialog?.blogger_id || activeDialog?.id;
+      const res = await fetch(`${API_BASE}/api/deals/create/`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          blogger_id: bloggerId,
+          conversation_id: activeId,
+          description: form.description.trim(),
+          amount: form.amount.trim(),
+          deadline: form.deadline.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setError(data.error || "Ошибка создания сделки"); return; }
+      onCreated(data.deal);
+      onClose();
+    } catch {
+      setError("Ошибка соединения с сервером");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="dealModal__backdrop" onClick={onClose}>
+      <div className="dealModal__panel" onClick={(e) => e.stopPropagation()}>
+        <div className="dealModal__head">
+          <strong>🤝 Оформить сделку</strong>
+          <button type="button" className="dealModal__close" onClick={onClose}>✕</button>
+        </div>
+
+        <p className="dealModal__hint">
+          Опишите условия сотрудничества. Блогер получит уведомление и сможет принять или отклонить сделку.
+        </p>
+
+        <form onSubmit={onSubmit} className="dealModal__form">
+          <label className="dealModal__label">
+            Условия сделки *
+            <textarea
+              className="dealModal__textarea"
+              placeholder="Опишите задачу, требования, что нужно сделать…"
+              value={form.description}
+              onChange={(e) => setField("description", e.target.value)}
+              rows={4}
+              disabled={saving}
+            />
+          </label>
+
+          <div className="dealModal__row">
+            <label className="dealModal__label">
+              Бюджет
+              <input
+                className="dealModal__input"
+                placeholder="например: 15 000 ₽"
+                value={form.amount}
+                onChange={(e) => setField("amount", e.target.value)}
+                disabled={saving}
+              />
+            </label>
+            <label className="dealModal__label">
+              Сроки
+              <input
+                className="dealModal__input"
+                placeholder="например: до 10 июня"
+                value={form.deadline}
+                onChange={(e) => setField("deadline", e.target.value)}
+                disabled={saving}
+              />
+            </label>
+          </div>
+
+          {error && <p className="dealModal__error">{error}</p>}
+
+          <div className="dealModal__actions">
+            <button type="button" className="btn" onClick={onClose} disabled={saving}>Отмена</button>
+            <button type="submit" className="btn btnPrimary" disabled={saving}>
+              {saving ? "Отправка…" : "Отправить предложение"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Основной компонент ────────────────────────────────────────────────────────
 export default function BrandMessages() {
   const location = useLocation();
 
@@ -85,6 +180,10 @@ export default function BrandMessages() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
+
+  // Сделка
+  const [showDealModal, setShowDealModal] = useState(false);
+  const [pendingDeal, setPendingDeal] = useState(null); // активная сделка в диалоге
 
   const listRef = useRef(null);
   const pollRef = useRef(null);
@@ -106,11 +205,9 @@ export default function BrandMessages() {
     [dialogs, activeId]
   );
 
-  // Группируем сообщения по дням для разделителей
   const groupedMessages = useMemo(() => {
     const groups = [];
     let lastDay = "";
-
     messages.forEach((m) => {
       const day = dayKey(m.created_at);
       if (day !== lastDay) {
@@ -119,7 +216,6 @@ export default function BrandMessages() {
       }
       groups.push({ type: "message", ...m });
     });
-
     return groups;
   }, [messages]);
 
@@ -127,21 +223,28 @@ export default function BrandMessages() {
     if (activeId) draftsRef.current[activeId] = text;
     setActiveId(id);
     setMessages([]);
+    setPendingDeal(null);
     didPrefillRef.current = false;
 
     try {
-      await fetch(`${API_BASE}/api/chat/${id}/read/`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await fetch(`${API_BASE}/api/chat/${id}/read/`, { method: "POST", credentials: "include" });
     } catch {}
 
-    setDialogs((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, unread_count: 0 } : d))
-    );
+    setDialogs((prev) => prev.map((d) => (d.id === id ? { ...d, unread_count: 0 } : d)));
   };
 
-  // Восстанавливаем черновик при смене диалога
+  // Загружаем pending сделку при смене диалога
+  useEffect(() => {
+    if (!activeId) { setPendingDeal(null); return; }
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/deals/in-conversation/${activeId}/`, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) setPendingDeal(data.deal || null);
+      } catch {}
+    })();
+  }, [activeId]);
+
   useEffect(() => {
     if (!activeId) return;
     if (draftsRef.current[activeId] !== undefined) {
@@ -154,30 +257,17 @@ export default function BrandMessages() {
   // 1) Диалоги
   useEffect(() => {
     let alive = true;
-
     (async () => {
       try {
         setError("");
         setLoadingDialogs(true);
-
         const res = await fetch(`${API_BASE}/api/chat/`, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          if (alive) setError(data.error || "Не удалось загрузить диалоги");
-          return;
-        }
-
+        if (!res.ok) { if (alive) setError(data.error || "Не удалось загрузить диалоги"); return; }
         const results = data.results || [];
         if (!alive) return;
-
         setDialogs(results);
-
-        if (preferredConvId) {
-          setActiveId(preferredConvId);
-          return;
-        }
-
+        if (preferredConvId) { setActiveId(preferredConvId); return; }
         if (results.length > 0) setActiveId((prev) => prev ?? results[0].id);
       } catch {
         if (alive) setError("Ошибка соединения с сервером");
@@ -185,12 +275,10 @@ export default function BrandMessages() {
         if (alive) setLoadingDialogs(false);
       }
     })();
-
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Polling диалогов каждые 30 сек
   useEffect(() => {
     const id = setInterval(async () => {
       try {
@@ -205,40 +293,26 @@ export default function BrandMessages() {
   // 2) Сообщения + polling
   useEffect(() => {
     if (!activeId) return;
-
     let alive = true;
     lastMsgKeyRef.current = "";
 
     const load = async (isFirst = false) => {
       try {
         if (isFirst) setLoadingChat(true);
-
-        const res = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
-          credentials: "include",
-        });
+        const res = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          if (alive) setError(data.error || "Не удалось загрузить сообщения");
-          return;
-        }
-
+        if (!res.ok) { if (alive) setError(data.error || "Не удалось загрузить сообщения"); return; }
         const results = data.messages || data.results || [];
         if (!alive) return;
-
         const last = results.length ? results[results.length - 1] : null;
         const key = last ? `${last.id}_${last.created_at}` : `empty_${results.length}`;
         if (key === lastMsgKeyRef.current) return;
         lastMsgKeyRef.current = key;
-
         setMessages(results);
-
-        // Шаблон только если диалог пустой
         if (isFirst && results.length === 0 && draftsRef.current[activeId] === undefined) {
           setText(buildBrandTemplate(activeDialog));
           didPrefillRef.current = true;
         }
-
         requestAnimationFrame(() => {
           const el = listRef.current;
           if (el && isAtBottomRef.current) el.scrollTop = el.scrollHeight;
@@ -251,24 +325,16 @@ export default function BrandMessages() {
     };
 
     load(true);
-
     const startPolling = () => {
       if (pollRef.current) clearInterval(pollRef.current);
       pollRef.current = setInterval(() => load(false), 10000);
     };
     startPolling();
-
     const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        if (pollRef.current) clearInterval(pollRef.current);
-      } else {
-        load(false);
-        startPolling();
-      }
+      if (document.visibilityState === "hidden") { if (pollRef.current) clearInterval(pollRef.current); }
+      else { load(false); startPolling(); }
     };
-
     document.addEventListener("visibilitychange", onVisibilityChange);
-
     return () => {
       alive = false;
       if (pollRef.current) clearInterval(pollRef.current);
@@ -282,53 +348,24 @@ export default function BrandMessages() {
     e.preventDefault();
     const t = text.trim();
     if (!t || !activeId || sending) return;
-
     setSending(true);
     setError("");
-
     const tempId = `tmp_${Date.now()}`;
-    setMessages((p) => [
-      ...p,
-      { id: tempId, text: t, created_at: new Date().toISOString(), is_mine: true },
-    ]);
+    setMessages((p) => [...p, { id: tempId, text: t, created_at: new Date().toISOString(), is_mine: true }]);
     setText("");
     delete draftsRef.current[activeId];
-
-    requestAnimationFrame(() => {
-      const el = listRef.current;
-      if (el) el.scrollTop = el.scrollHeight;
-    });
+    requestAnimationFrame(() => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; });
 
     try {
       const res = await fetch(`${API_BASE}/api/chat/${activeId}/messages/`, {
-        method: "POST",
-        credentials: "include",
+        method: "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: t }),
       });
-
       const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setMessages((p) => p.filter((m) => m.id !== tempId));
-        setText(t);
-        setError(data.error || "Не удалось отправить сообщение");
-        return;
-      }
-
-      if (data.message) {
-        setMessages((p) =>
-          p.map((m) => (m.id === tempId ? { ...data.message, is_mine: true } : m))
-        );
-      }
-
-      setDialogs((prev) =>
-        prev.map((d) =>
-          d.id === activeId
-            ? { ...d, last_message: t, last_message_at: new Date().toISOString() }
-            : d
-        )
-      );
+      if (!res.ok) { setMessages((p) => p.filter((m) => m.id !== tempId)); setText(t); setError(data.error || "Не удалось отправить"); return; }
+      if (data.message) setMessages((p) => p.map((m) => (m.id === tempId ? { ...data.message, is_mine: true } : m)));
+      setDialogs((prev) => prev.map((d) => d.id === activeId ? { ...d, last_message: t, last_message_at: new Date().toISOString() } : d));
     } catch {
       setMessages((p) => p.filter((m) => m.id !== tempId));
       setText(t);
@@ -338,16 +375,29 @@ export default function BrandMessages() {
     }
   };
 
-  // Enter — отправить, Shift+Enter — новая строка
   const onKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      onSend(e);
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(e); }
+  };
+
+  // После создания сделки — перезагружаем сообщения и ставим pendingDeal
+  const onDealCreated = (deal) => {
+    setPendingDeal(deal);
+    lastMsgKeyRef.current = ""; // сбрасываем кэш чтобы polling подхватил новое сообщение
   };
 
   return (
     <div className={`msg ${activeId ? "chat-open" : ""}`}>
+
+      {/* Модалка создания сделки */}
+      {showDealModal && activeDialog && (
+        <DealModal
+          activeDialog={activeDialog}
+          activeId={activeId}
+          onClose={() => setShowDealModal(false)}
+          onCreated={onDealCreated}
+        />
+      )}
+
       {/* LEFT */}
       <section className="msg__left">
         <div className="msg__leftHead">
@@ -355,12 +405,7 @@ export default function BrandMessages() {
             <div className="msg__title">Все чаты</div>
           </div>
           <div className="msg__search">
-            <input
-              className="msg__searchInput"
-              placeholder="Поиск"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
+            <input className="msg__searchInput" placeholder="Поиск" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
         </div>
 
@@ -373,34 +418,18 @@ export default function BrandMessages() {
             filteredDialogs.map((d) => {
               const ava = dialogAvatarUrl(d);
               return (
-                <button
-                  key={d.id}
-                  className={`msgItem ${activeId === d.id ? "isActive" : ""}`}
-                  onClick={() => openDialog(d.id)}
-                  type="button"
-                >
+                <button key={d.id} className={`msgItem ${activeId === d.id ? "isActive" : ""}`} onClick={() => openDialog(d.id)} type="button">
                   <div className="msgItem__avatar">
-                    {ava ? (
-                      <img className="msgItem__avatarImg" src={ava} alt="" />
-                    ) : (
-                      <div className="msgItem__avatarEmpty">👤</div>
-                    )}
+                    {ava ? <img className="msgItem__avatarImg" src={ava} alt="" /> : <div className="msgItem__avatarEmpty">👤</div>}
                   </div>
-
                   <div className="msgItem__body">
                     <div className="msgItem__top">
-                      {/* FIX 1: имя не переносится, обрезается */}
                       <div className="msgItem__name">{dialogName(d)}</div>
                       <div className="msgItem__time">{fmtTime(d.last_message_at)}</div>
                     </div>
                     <div className="msgItem__bottom">
-                      {/* FIX 2: превью обрезается через CSS */}
-                      <div className="msgItem__preview">
-                        {d.last_message || "Без сообщений"}
-                      </div>
-                      {d.unread_count > 0 && (
-                        <span className="msgItem__badge">{d.unread_count}</span>
-                      )}
+                      <div className="msgItem__preview">{d.last_message || "Без сообщений"}</div>
+                      {d.unread_count > 0 && <span className="msgItem__badge">{d.unread_count}</span>}
                     </div>
                   </div>
                 </button>
@@ -414,14 +443,33 @@ export default function BrandMessages() {
       <section className="msg__right">
         <header className="msg__topbar">
           {activeId && (
-            <button className="msg__back" onClick={() => setActiveId(null)} type="button">
-              ← Назад
-            </button>
+            <button className="msg__back" onClick={() => setActiveId(null)} type="button">← Назад</button>
           )}
           <div className="msg__chatTitle">
             {activeDialog ? dialogName(activeDialog) : "Выберите диалог"}
           </div>
+
+          {/* Кнопка сделки — только если диалог открыт */}
+          {activeId && (
+            <button
+              type="button"
+              className="msg__dealBtn"
+              onClick={() => setShowDealModal(true)}
+              disabled={!!pendingDeal}
+              title={pendingDeal ? "Уже есть активная сделка" : "Оформить сделку"}
+            >
+              {pendingDeal ? "⏳ Сделка отправлена" : "🤝 Оформить сделку"}
+            </button>
+          )}
         </header>
+
+        {/* Баннер активной сделки */}
+        {pendingDeal && (
+          <div className="msg__dealBanner">
+            <span>🤝 Сделка #{pendingDeal.id} ожидает ответа блогера</span>
+            {pendingDeal.amount && <span className="msg__dealBannerAmount">{pendingDeal.amount}</span>}
+          </div>
+        )}
 
         <div className="msg__chat">
           <div
@@ -440,7 +488,6 @@ export default function BrandMessages() {
             ) : messages.length === 0 ? (
               <div className="msg__muted">Начните диалог — отправьте первое сообщение</div>
             ) : (
-              // FIX 3: рендерим группы с разделителями по дням
               groupedMessages.map((item) => {
                 if (item.type === "separator") {
                   return (
@@ -449,23 +496,13 @@ export default function BrandMessages() {
                     </div>
                   );
                 }
-
                 const mine = item.is_mine ?? false;
                 const isTemp = String(item.id).startsWith("tmp_");
                 return (
-                  <div
-                    key={item.id}
-                    className={`bubbleRow ${mine ? "bubbleRow--mine" : "bubbleRow--their"}`}
-                  >
-                    <div
-                      className={`bubble ${mine ? "bubble--mine" : "bubble--their"} ${
-                        isTemp ? "bubble--sending" : ""
-                      }`}
-                    >
+                  <div key={item.id} className={`bubbleRow ${mine ? "bubbleRow--mine" : "bubbleRow--their"}`}>
+                    <div className={`bubble ${mine ? "bubble--mine" : "bubble--their"} ${isTemp ? "bubble--sending" : ""}`}>
                       <div className="bubble__text">{item.text}</div>
-                      <div className="bubble__meta">
-                        {isTemp ? "Отправка…" : fmtTime(item.created_at)}
-                      </div>
+                      <div className="bubble__meta">{isTemp ? "Отправка…" : fmtTime(item.created_at)}</div>
                     </div>
                   </div>
                 );
@@ -479,26 +516,17 @@ export default function BrandMessages() {
             </div>
           )}
 
-          {/* FIX 1: textarea вместо input */}
           <form className="msg__composer" onSubmit={onSend}>
             <textarea
               className="msg__input msg__input--textarea"
-              placeholder={
-                activeId
-                  ? "Написать сообщение… (Enter — отправить, Shift+Enter — новая строка)"
-                  : "Выберите диалог слева"
-              }
+              placeholder={activeId ? "Написать сообщение… (Enter — отправить, Shift+Enter — новая строка)" : "Выберите диалог слева"}
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={onKeyDown}
               disabled={!activeId || sending}
               rows={3}
             />
-            <button
-              className="msg__send"
-              type="submit"
-              disabled={!activeId || !text.trim() || sending}
-            >
+            <button className="msg__send" type="submit" disabled={!activeId || !text.trim() || sending}>
               {sending ? "…" : "Отправить"}
             </button>
           </form>

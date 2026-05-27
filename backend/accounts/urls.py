@@ -8,7 +8,8 @@ from .views import (
     blogger_public, brand_public,
     conversations_list, conversation_messages, 
     conversation_mark_read, conversation_with_profile,
-    profile_avatar, product_analyze
+    profile_avatar, product_analyze,
+    deal_create, deal_respond, deals_list, deal_pending_in_conversation,
 )
 
 urlpatterns = [
@@ -42,5 +43,10 @@ urlpatterns = [
 
 
     path("product/analyze/", product_analyze),
+
+    path("deals/", deals_list),
+    path("deals/create/", deal_create),
+    path("deals/<int:deal_id>/respond/", deal_respond),
+    path("deals/in-conversation/<int:conv_id>/", deal_pending_in_conversation),
 
 ]

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Profile, BrandProfile, BloggerProfile
+from .models import Profile, BrandProfile, BloggerProfile, Deal
+
 
 
 @admin.register(Profile)
@@ -53,3 +54,9 @@ class BrandProfileAdmin(admin.ModelAdmin):
 class BloggerProfileAdmin(admin.ModelAdmin):
     list_display = ("profile", "nickname", "platform", "followers")
     search_fields = ("nickname", "profile__user__email")
+
+@admin.register(Deal)
+class DealAdmin(admin.ModelAdmin):
+    list_display  = ("id", "brand", "blogger", "status", "amount", "created_at")
+    list_filter   = ("status",)
+    search_fields = ("brand__user__email", "blogger__user__email")

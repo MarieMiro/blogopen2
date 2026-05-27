@@ -124,3 +124,31 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Msg {self.id} conv={self.conversation_id}"
+
+
+class Deal(models.Model):
+    STATUS_CHOICES = (
+        ("pending",  "Ожидает ответа"),
+        ("accepted", "Принята"),
+        ("declined", "Отклонена"),
+    )
+
+    brand   = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="deals_as_brand",  limit_choices_to={"role": "brand"})
+    blogger = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="deals_as_blogger", limit_choices_to={"role": "blogger"})
+
+    conversation = models.ForeignKey(Conversation, on_delete=models.SET_NULL, null=True, blank=True, related_name="deals")
+
+    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    description = models.TextField()                    # условия сделки
+    amount      = models.CharField(max_length=100, blank=True, default="")  # бюджет/сумма
+    deadline    = models.CharField(max_length=100, blank=True, default="")  # сроки
+
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes  = [models.Index(fields=["brand", "blogger", "status"])]
+
+    def __str__(self):
+        return f"Deal #{self.id} {self.brand} ↔ {self.blogger} [{self.status}]"

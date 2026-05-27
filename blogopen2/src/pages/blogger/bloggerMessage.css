@@ -571,3 +571,97 @@
   }
 
 }
+
+
+/* ── Добавь в конец bloggerMessage.css ── */
+
+/* Баннер предложения сделки для блогера */
+.msg__dealBannerBlogger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(91,102,184,0.07), rgba(118,75,162,0.07));
+  border-bottom: 1px solid rgba(91, 102, 184, 0.15);
+  flex-wrap: wrap;
+}
+
+.msg__dealBannerInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.msg__dealBannerTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0a0c14;
+}
+
+.msg__dealBannerAmount {
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(91, 102, 184, 0.12);
+  color: #5b66b8;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.msg__dealBannerDeadline {
+  font-size: 12px;
+  color: rgba(10, 12, 20, 0.55);
+}
+
+.msg__dealBannerActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.msg__dealAccept {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(29, 158, 117, 0.12);
+  color: #1d9e75;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.msg__dealAccept:hover:not(:disabled) { background: rgba(29, 158, 117, 0.22); }
+.msg__dealAccept:disabled { opacity: 0.6; cursor: default; }
+
+.msg__dealDecline {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.msg__dealDecline:hover:not(:disabled) { background: rgba(192, 57, 43, 0.16); }
+.msg__dealDecline:disabled { opacity: 0.6; cursor: default; }
+
+/* Результат сделки */
+.msg__dealResult {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+}
+.msg__dealResult--ok {
+  background: rgba(29, 158, 117, 0.08);
+  color: #1d9e75;
+  border-bottom-color: rgba(29, 158, 117, 0.15);
+}
+.msg__dealResult--no {
+  background: rgba(192, 57, 43, 0.07);
+  color: #c0392b;
+  border-bottom-color: rgba(192, 57, 43, 0.12);
+}

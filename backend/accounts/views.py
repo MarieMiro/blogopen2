@@ -994,3 +994,205 @@ def product_analyze(request):
             "marketplace":    "ozon",
         }
     })
+
+
+# ============================================================
+# DEALS
+# ============================================================
+
+from .models import Deal
+
+@api_view(["POST"])
+@authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsAuthenticated])
+def deal_create(request):
+    """Бренд создаёт сделку — блогер получает уведомление в чат."""
+    me = ensure_profile_and_role_models(request.user, role_default="brand")
+    if me.role != "brand":
+        return Response({"error": "Только бренд может создавать сделки"}, status=403)
+
+    blogger_id  = request.data.get("blogger_id")
+    description = (request.data.get("description") or "").strip()
+    amount      = (request.data.get("amount") or "").strip()
+    deadline    = (request.data.get("deadline") or "").strip()
+    conv_id     = request.data.get("conversation_id")
+
+    if not blogger_id:
+        return Response({"error": "blogger_id обязателен"}, status=400)
+    if not description:
+        return Response({"error": "Опишите условия сделки"}, status=400)
+
+    blogger = get_object_or_404(Profile, id=blogger_id, role="blogger")
+
+    # Находим или создаём диалог
+    conv = None
+    if conv_id:
+        conv = Conversation.objects.filter(id=conv_id, brand=me, blogger=blogger).first()
+    if not conv:
+        conv, _ = Conversation.objects.get_or_create(brand=me, blogger=blogger)
+
+    # Создаём сделку
+    deal = Deal.objects.create(
+        brand=me,
+        blogger=blogger,
+        conversation=conv,
+        description=description,
+        amount=amount,
+        deadline=deadline,
+    )
+
+    # Отправляем системное сообщение в чат
+    brand_name = getattr(me, "brand", None)
+    brand_name = brand_name.brand_name if brand_name and brand_name.brand_name else me.user.email
+
+    msg_text = (
+        f"🤝 ПРЕДЛОЖЕНИЕ О СДЕЛКЕ #{deal.id}\n\n"
+        f"От: {brand_name}\n"
+        f"Условия: {description}"
+        + (f"\nБюджет: {amount}" if amount else "")
+        + (f"\nСроки: {deadline}" if deadline else "")
+        + f"\n\n✅ Чтобы принять сделку нажмите кнопку «Принять сделку» выше."
+    )
+
+    create_kwargs = {
+        "conversation": conv,
+        "sender": me,
+        "text": msg_text,
+    }
+    if _supports_read_flags():
+        create_kwargs["read_by_brand"] = True
+        create_kwargs["read_by_blogger"] = False
+
+    Message.objects.create(**create_kwargs)
+    conv.save()
+
+    return Response({
+        "ok": True,
+        "deal": {
+            "id": deal.id,
+            "status": deal.status,
+            "description": deal.description,
+            "amount": deal.amount,
+            "deadline": deal.deadline,
+            "conversation_id": conv.id,
+        }
+    }, status=201)
+
+
+@api_view(["POST"])
+@authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsAuthenticated])
+def deal_respond(request, deal_id):
+    """Блогер принимает или отклоняет сделку."""
+    me = ensure_profile_and_role_models(request.user, role_default="blogger")
+    if me.role != "blogger":
+        return Response({"error": "Только блогер может отвечать на сделки"}, status=403)
+
+    deal = get_object_or_404(Deal, id=deal_id, blogger=me)
+
+    if deal.status != "pending":
+        return Response({"error": "Сделка уже обработана"}, status=400)
+
+    action = (request.data.get("action") or "").strip()
+    if action not in ("accept", "decline"):
+        return Response({"error": "action должен быть 'accept' или 'decline'"}, status=400)
+
+    deal.status = "accepted" if action == "accept" else "declined"
+    deal.save()
+
+    # Системное сообщение о результате
+    if deal.conversation:
+        blogger_name = getattr(me, "blogger", None)
+        blogger_name = blogger_name.nickname if blogger_name and blogger_name.nickname else me.user.email
+
+        if deal.status == "accepted":
+            msg_text = f"✅ {blogger_name} принял(а) сделку #{deal.id}. Сотрудничество подтверждено!"
+        else:
+            msg_text = f"❌ {blogger_name} отклонил(а) сделку #{deal.id}."
+
+        create_kwargs = {
+            "conversation": deal.conversation,
+            "sender": me,
+            "text": msg_text,
+        }
+        if _supports_read_flags():
+            create_kwargs["read_by_brand"] = False
+            create_kwargs["read_by_blogger"] = True
+
+        Message.objects.create(**create_kwargs)
+        deal.conversation.save()
+
+    return Response({
+        "ok": True,
+        "deal": {
+            "id": deal.id,
+            "status": deal.status,
+        }
+    })
+
+
+@api_view(["GET"])
+@authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsAuthenticated])
+def deals_list(request):
+    """Список всех сделок пользователя."""
+    me = ensure_profile_and_role_models(request.user, role_default="brand")
+
+    if me.role == "brand":
+        qs = Deal.objects.filter(brand=me).select_related("blogger__user", "blogger__blogger")
+    else:
+        qs = Deal.objects.filter(blogger=me).select_related("brand__user", "brand__brand")
+
+    results = []
+    for d in qs:
+        if me.role == "brand":
+            partner = d.blogger
+            bp = getattr(partner, "blogger", None)
+            partner_name = (bp.nickname if bp and bp.nickname else "") or partner.user.email
+        else:
+            partner = d.brand
+            bp = getattr(partner, "brand", None)
+            partner_name = (bp.brand_name if bp and bp.brand_name else "") or partner.user.email
+
+        results.append({
+            "id":           d.id,
+            "status":       d.status,
+            "description":  d.description,
+            "amount":       d.amount,
+            "deadline":     d.deadline,
+            "partner_name": partner_name,
+            "partner_id":   partner.id,
+            "conversation_id": d.conversation_id,
+            "created_at":   d.created_at,
+        })
+
+    return Response({"ok": True, "results": results})
+
+
+@api_view(["GET"])
+@authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsAuthenticated])
+def deal_pending_in_conversation(request, conv_id):
+    """Возвращает активную (pending) сделку в диалоге если есть."""
+    me = ensure_profile_and_role_models(request.user, role_default="brand")
+    conv = get_object_or_404(Conversation, id=conv_id)
+
+    if me.id not in (conv.brand_id, conv.blogger_id):
+        return Response({"error": "Forbidden"}, status=403)
+
+    deal = Deal.objects.filter(conversation=conv, status="pending").first()
+    if not deal:
+        return Response({"ok": True, "deal": None})
+
+    return Response({
+        "ok": True,
+        "deal": {
+            "id":          deal.id,
+            "status":      deal.status,
+            "description": deal.description,
+            "amount":      deal.amount,
+            "deadline":    deal.deadline,
+            "brand_id":    deal.brand_id,
+            "blogger_id":  deal.blogger_id,
+        }
+    })
