@@ -11,11 +11,15 @@
 }
 
 /* topbar */
- .msg__topbar{
+ .msg__topbar {
   flex: 0 0 auto;
   padding: 12px 14px;
   border-bottom: 1px solid rgba(0,0,0,.08);
   background: rgba(255,255,255,.85);
+  /* ДОБАВЬ: */
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
  .msg__chatTitle{
@@ -333,12 +337,27 @@
   /* кнопка назад в топбаре */
   .msg__back{
     display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(10, 12, 20, 0.12);
+  background: rgba(10, 12, 20, 0.04);
+  color: rgba(10, 12, 20, 0.70);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
   }
+  .msg__back:hover {
+  background: rgba(10, 12, 20, 0.08);
+}
+.msg__back::before {
+  content: "←";
+  font-size: 15px;
+}
 
 }
 
