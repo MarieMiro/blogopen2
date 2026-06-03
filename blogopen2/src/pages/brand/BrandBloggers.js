@@ -1,26 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./brandBloggers.css";
-
 import { API_BASE } from "../../api";
 
-
 const RUS_CITIES = [
-  "Москва",
-  "Санкт-Петербург",
-  "Новосибирск",
-  "Екатеринбург",
-  "Казань",
-  "Нижний Новгород",
-  "Челябинск",
-  "Самара",
-  "Омск",
-  "Ростов-на-Дону",
-  "Уфа",
-  "Красноярск",
-  "Воронеж",
-  "Пермь",
-  "Волгоград",
+  "Москва","Санкт-Петербург","Новосибирск","Екатеринбург","Казань",
+  "Нижний Новгород","Челябинск","Самара","Омск","Ростов-на-Дону",
+  "Уфа","Красноярск","Воронеж","Пермь","Волгоград",
 ];
 
 const PLATFORMS = [
@@ -52,20 +38,15 @@ export default function BrandBloggers() {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
   const [openingChatId, setOpeningChatId] = useState(null);
   const [mode, setMode] = useState("rec");
+
   const setField = (name, value) => setFilters((p) => ({ ...p, [name]: value }));
 
-  const resetFilters = () =>
-    setFilters({
-      city: "",
-      platform: "",
-      topic: "",
-      followers_min: "",
-      followers_max: "",
-    });
+  const resetFilters = () => setFilters({
+    city: "", platform: "", topic: "", followers_min: "", followers_max: "",
+  });
 
   const queryString = useMemo(() => {
     const p = new URLSearchParams();
@@ -77,21 +58,21 @@ export default function BrandBloggers() {
 
   useEffect(() => {
     let alive = true;
-
     (async () => {
       try {
         setError("");
         setLoading(true);
 
-        const url = `${API_BASE}/api/bloggers/${mode === "all" ? "?mode=all" : ""}`;
-        const res = await fetch(url, { credentials: "include" });
+        const params = new URLSearchParams();
+        if (mode === "all") params.set("mode", "all");
+        Object.entries(filters).forEach(([k, v]) => {
+          if (String(v ?? "").trim() !== "") params.set(k, v);
+        });
+
+        const res = await fetch(`${API_BASE}/api/bloggers/?${params.toString()}`, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
 
-        if (!res.ok) {
-          if (alive) setError(data.error || "Не удалось загрузить блогеров");
-          return;
-        }
-
+        if (!res.ok) { if (alive) setError(data.error || "Не удалось загрузить блогеров"); return; }
         if (alive) setItems(data.results || []);
       } catch {
         if (alive) setError("Ошибка соединения с сервером");
@@ -99,37 +80,24 @@ export default function BrandBloggers() {
         if (alive) setLoading(false);
       }
     })();
-
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [queryString, mode]);
 
-  // Открыть/создать диалог и перейти в Messages
   const openChat = async (profileId) => {
-  try {
-    setOpeningChatId(profileId);
-
-    const res = await fetch(`${API_BASE}/api/chat/with/${profileId}/`, {
-      method: "POST",
-      credentials: "include",
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      alert(data.error || "Не удалось открыть чат");
-      return;
+    try {
+      setOpeningChatId(profileId);
+      const res = await fetch(`${API_BASE}/api/chat/with/${profileId}/`, {
+        method: "POST", credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(data.error || "Не удалось открыть чат"); return; }
+      navigate("/dashboard/brand/messages", { state: { convId: data.conversation_id } });
+    } catch {
+      alert("Ошибка соединения с сервером");
+    } finally {
+      setOpeningChatId(null);
     }
-
-    // переходим в сообщения, открываем нужный диалог
-    navigate("/dashboard/brand/messages", { state: { convId: data.conversation_id } });
-  } catch (e) {
-    alert("Ошибка соединения с сервером");
-  } finally {
-    setOpeningChatId(null);
-  }
-};
+  };
 
   return (
     <div className="bb">
@@ -138,36 +106,20 @@ export default function BrandBloggers() {
 
         <div className="bb__tools">
           <div className="bb__filters">
+
             <div className="bb__filter">
               <div className="bb__label">Город</div>
-              <select
-                className="bb__input"
-                value={filters.city}
-                onChange={(e) => setField("city", e.target.value)}
-              >
+              <select className="bb__input" value={filters.city} onChange={(e) => setField("city", e.target.value)}>
                 <option value="">Все</option>
-                {RUS_CITIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
+                {RUS_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
 
             <div className="bb__filter">
               <div className="bb__label">Соцсеть</div>
-              <select
-                className="bb__input"
-                value={filters.platform}
-                onChange={(e) => setField("platform", e.target.value)}
-              >
+              <select className="bb__input" value={filters.platform} onChange={(e) => setField("platform", e.target.value)}>
                 <option value="">Все</option>
-                {PLATFORMS.
-map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
+                {PLATFORMS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </div>
 
@@ -217,22 +169,13 @@ map((p) => (
       {error && <div className="bb__error">{error}</div>}
 
       <div className="bbTabs">
-  <button
-    type="button"
-    className={`bbTab ${mode === "rec" ? "isActive" : ""}`}
-    onClick={() => setMode("rec")}
-  >
-    Рекомендации
-  </button>
-
-  <button
-    type="button"
-    className={`bbTab ${mode === "all" ? "isActive" : ""}`}
-    onClick={() => setMode("all")}
-  >
-    Все блогеры
-  </button>
-</div>
+        <button type="button" className={`bbTab ${mode === "rec" ? "isActive" : ""}`} onClick={() => setMode("rec")}>
+          Рекомендации
+        </button>
+        <button type="button" className={`bbTab ${mode === "all" ? "isActive" : ""}`} onClick={() => setMode("all")}>
+          Все блогеры
+        </button>
+      </div>
 
       {loading ? (
         <div className="bb__loading">Загрузка…</div>
@@ -244,11 +187,7 @@ map((p) => (
             <article className="bbCard" key={b.id}>
               <div className="bbCard__photoWrap">
                 {b.avatar_url ? (
-                  <img
-                    className="bbCard__photo"
-                    src={toAbsUrl(b.avatar_url)}
-                    alt={b.nickname || "Blogger"}
-                  />
+                  <img className="bbCard__photo" src={toAbsUrl(b.avatar_url)} alt={b.nickname || "Blogger"} />
                 ) : (
                   <div className="bbCard__photo bbCard__photo--empty">Фото</div>
                 )}
@@ -256,30 +195,23 @@ map((p) => (
                   <div className={`bbCard__badge bbCard__badge--${b.verification_status}`}>
                     {b.verification_status === "approved" && "✔"}
                     {b.verification_status === "pending" && "⏳"}
-                    
                   </div>
                 )}
               </div>
-                
+
               <div className="bbCard__body">
                 <div className="bbCard__name">{b.nickname || "Без ника"}</div>
-
                 <div className="bbCard__meta">
                   <span className="bbTag">{b.platform || "Платформа"}</span>
                   <span className="bbTag">
-                    {b.followers
-                      ? `${Number(b.followers).toLocaleString("ru-RU")} подписчиков`
-                      : "Подписчики"}
+                    {b.followers ? `${Number(b.followers).toLocaleString("ru-RU")} подп.` : "Подписчики"}
                   </span>
                   <span className="bbTag">{b.city || "Город"}</span>
                 </div>
               </div>
 
               <div className="bbCard__actions">
-                <Link className="bbBtn" to={`/dashboard/brand/bloggers/${b.id}`}>
-                  Профиль
-                </Link>
-
+                <Link className="bbBtn" to={`/dashboard/brand/bloggers/${b.id}`}>Профиль</Link>
                 <button
                   className="bbBtn bbBtn--primary"
                   type="button"

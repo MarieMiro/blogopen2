@@ -79,33 +79,38 @@ export default function BloggerBrands() {
 
   
   useEffect(() => {
-    let alive = true;
+  let alive = true;
 
-    (async () => {
-      try {
-        setError("");
-        setLoading(true);
+  (async () => {
+    try {
+      setError("");
+      setLoading(true);
 
-        
-        const url = `${API_BASE}/api/brands/${mode === "all" ? "?mode=all" : ""}`;
-        const res = await fetch(url, { credentials: "include" });
-        const data = await res.json().catch(() => ({}));
+      const params = new URLSearchParams();
+      if (mode === "all") params.set("mode", "all");
+      Object.entries(filters).forEach(([k, v]) => {
+        if (String(v ?? "").trim() !== "") params.set(k, v);
+      });
 
-        if (!res.ok) {
-          if (alive) setError(data.error || "Не удалось загрузить бренды");
-          return;
-        }
+      const url = `${API_BASE}/api/brands/?${params.toString()}`;
+      const res = await fetch(url, { credentials: "include" });
+      const data = await res.json().catch(() => ({}));
 
-        if (alive) setItems(data.results || []);
-      } catch {
-        if (alive) setError("Ошибка соединения с сервером");
-      } finally {
-        if (alive) setLoading(false);
+      if (!res.ok) {
+        if (alive) setError(data.error || "Не удалось загрузить бренды");
+        return;
       }
-    })();
 
-    return () => (alive = false);
-  }, [queryString, mode]);
+      if (alive) setItems(data.results || []);
+    } catch {
+      if (alive) setError("Ошибка соединения с сервером");
+    } finally {
+      if (alive) setLoading(false);
+    }
+  })();
+
+  return () => { alive = false; };
+}, [queryString, mode]);
 
   const openChat = async (profileId) => {
   try {

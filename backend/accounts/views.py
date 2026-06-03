@@ -655,6 +655,21 @@ def brands_list(request):
         qs = qs.filter(topic_q)
 
     qs = qs.order_by("id")
+    # Фильтры из query params
+    city = (request.GET.get("city") or "").strip()
+    sphere = (request.GET.get("sphere") or "").strip()
+    q = (request.GET.get("q") or "").strip()
+
+    if city:
+        qs = qs.filter(city__iexact=city)
+    if sphere:
+        qs = qs.filter(brand__sphere__icontains=sphere)
+    if q:
+        qs = qs.filter(
+            Q(brand__brand_name__icontains=q) |
+            Q(brand__sphere__icontains=q) |
+            Q(about__icontains=q)
+        )
 
     items = []
     for prof in qs:
