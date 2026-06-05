@@ -21,6 +21,9 @@ export default function BloggerLayout() {
         <NavLink to="/dashboard/blogger/messages" className="dash__icon">
           💬
         </NavLink>
+        <NavLink to="/dashboard/blogger/deals" className="dash__icon" title="Сделки">
+          🤝
+        </NavLink>
       </aside>
 
       {/* ПРАВАЯ ЧАСТЬ */}

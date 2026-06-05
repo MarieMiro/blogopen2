@@ -10,6 +10,7 @@ from .views import (
     conversation_mark_read, conversation_with_profile,
     profile_avatar, product_analyze,
     deal_create, deal_respond, deals_list, deal_pending_in_conversation,
+    deal_mark_done,
 )
 
 urlpatterns = [
@@ -48,5 +49,6 @@ urlpatterns = [
     path("deals/create/", deal_create),
     path("deals/<int:deal_id>/respond/", deal_respond),
     path("deals/in-conversation/<int:conv_id>/", deal_pending_in_conversation),
-
+    path("deals/<int:deal_id>/done/", deal_mark_done),
+    path("deals/<int:deal_id>/dispute/", deal_dispute),
 ]

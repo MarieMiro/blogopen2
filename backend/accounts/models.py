@@ -128,23 +128,29 @@ class Message(models.Model):
 
 class Deal(models.Model):
     STATUS_CHOICES = (
-        ("pending",  "Ожидает ответа"),
-        ("accepted", "Принята"),
-        ("declined", "Отклонена"),
+        ("pending",     "Ожидает ответа"),
+        ("accepted",    "Принята"),
+        ("declined",    "Отклонена"),
+        ("in_progress", "В работе"),
+        ("completed",   "Выполнена"),
+       
     )
 
     brand   = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="deals_as_brand",  limit_choices_to={"role": "brand"})
     blogger = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="deals_as_blogger", limit_choices_to={"role": "blogger"})
-
     conversation = models.ForeignKey(Conversation, on_delete=models.SET_NULL, null=True, blank=True, related_name="deals")
 
     status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    description = models.TextField()                    # условия сделки
-    amount      = models.CharField(max_length=100, blank=True, default="")  # бюджет/сумма
-    deadline    = models.CharField(max_length=100, blank=True, default="")  # сроки
+    description = models.TextField()
+    amount      = models.CharField(max_length=100, blank=True, default="")
+    deadline    = models.CharField(max_length=100, blank=True, default="")
 
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
+   
+    completed_by_blogger = models.BooleanField(default=False)
+    completed_by_brand   = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]

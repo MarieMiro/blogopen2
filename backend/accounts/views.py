@@ -1213,3 +1213,52 @@ def deal_pending_in_conversation(request, conv_id):
             "blogger_id":  deal.blogger_id,
         }
     })
+
+@api_view(["POST"])
+@authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsAuthenticated])
+def deal_mark_done(request, deal_id):
+    """Блогер или бренд отмечает свою сторону как выполненную."""
+    me = ensure_profile_and_role_models(request.user, role_default="brand")
+    deal = get_object_or_404(Deal, id=deal_id)
+
+    # Проверяем что пользователь участник сделки
+    if me.id not in (deal.brand_id, deal.blogger_id):
+        return Response({"error": "Forbidden"}, status=403)
+
+    if deal.status in ("declined", "completed", "disputed"):
+        return Response({"error": "Сделка уже завершена"}, status=400)
+
+    # Отмечаем свою сторону
+    if me.role == "blogger":
+        deal.completed_by_blogger = True
+    else:
+        deal.completed_by_brand = True
+
+    # Если обе стороны подтвердили — закрываем сделку
+    if deal.completed_by_blogger and deal.completed_by_brand:
+        deal.status = "completed"
+        if deal.conversation:
+            Message.objects.create(
+                conversation=deal.conversation,
+                sender=me,
+                text=f"✅ Сделка #{deal.id} успешно завершена! Обе стороны подтвердили выполнение.",
+                **({
+                    "read_by_brand": me.role == "brand",
+                    "read_by_blogger": me.role == "blogger",
+                } if _supports_read_flags() else {})
+            )
+    elif deal.status == "accepted":
+        deal.status = "in_progress"
+
+    deal.save()
+
+    return Response({
+        "ok": True,
+        "deal": {
+            "id": deal.id,
+            "status": deal.status,
+            "completed_by_blogger": deal.completed_by_blogger,
+            "completed_by_brand": deal.completed_by_brand,
+        }
+    })

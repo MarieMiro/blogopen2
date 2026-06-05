@@ -21,6 +21,7 @@ import BrandBloggers from "./pages/brand/BrandBloggers";
 import BrandMessages from "./pages/brand/BrandMessages";
 import BloggerProfile from "./pages/blogger/BloggerProfile";
 import BloggerLayout from "./pages/blogger/BloggerLayout";
+import BloggerDeals from "./pages/blogger/BloggerDeals";
 import BloggerBrands from "./pages/blogger/BloggerBrands";
 import BloggerMessages from "./pages/blogger/BloggerMessages";
 import BloggerPublicProfile from "./pages/brand/BloggerPublicProfile";
@@ -182,6 +183,7 @@ function App() {
           <Route path="brands" element={<BloggerBrands />} />
           <Route path="brands/:id" element={<BrandPublicProfile/>} />
           <Route path="messages" element={<BloggerMessages />} />
+          <Route path="deals" element={<BloggerDeals />} />
           </Route>
       </Routes>
     </div>
