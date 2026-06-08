@@ -50,5 +50,5 @@ urlpatterns = [
     path("deals/<int:deal_id>/respond/", deal_respond),
     path("deals/in-conversation/<int:conv_id>/", deal_pending_in_conversation),
     path("deals/<int:deal_id>/done/", deal_mark_done),
-    path("deals/<int:deal_id>/dispute/", deal_dispute),
+   
 ]
