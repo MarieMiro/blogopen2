@@ -25,6 +25,9 @@ export default function BrandLayout() {
           <span>💬</span>
           <span>Чаты</span>
         </NavLink>
+        <NavLink to="/dashboard/brand/deals" className="dash__icon" title="Сделки">
+          🤝
+        </NavLink>
       </aside>
 
       {/* КОНТЕНТ */}

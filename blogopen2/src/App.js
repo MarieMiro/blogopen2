@@ -19,6 +19,7 @@ import BrandLayout from "./pages/brand/BrandLayout";
 import BrandProfile from "./pages/brand/BrandProfile";
 import BrandBloggers from "./pages/brand/BrandBloggers";
 import BrandMessages from "./pages/brand/BrandMessages";
+import BrandDeals from "./pages/brand/BrandDeals";
 import BloggerProfile from "./pages/blogger/BloggerProfile";
 import BloggerLayout from "./pages/blogger/BloggerLayout";
 import BloggerDeals from "./pages/blogger/BloggerDeals";
@@ -169,6 +170,7 @@ function App() {
           <Route path="bloggers" element={<BrandBloggers />} />
           <Route path="bloggers/:id" element={<BloggerPublicProfile/>} />
           <Route path="messages" element={<BrandMessages />} />
+          <Route path="deals" element={<BrandDeals />} />
         </Route>
 
         {/* Кабинет блогера */}
