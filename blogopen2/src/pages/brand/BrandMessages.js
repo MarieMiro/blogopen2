@@ -273,7 +273,10 @@ export default function BrandMessages() {
         if (!alive) return;
         setDialogs(results);
         if (preferredConvId) { setActiveId(preferredConvId); return; }
-        if (results.length > 0) setActiveId((prev) => prev ?? results[0].id);
+       const isMobile = window.innerWidth <= 768;
+        if (results.length > 0 && !isMobile) {
+          setActiveId((prev) => prev ?? results[0].id);
+        }
       } catch {
         if (alive) setError("Ошибка соединения с сервером");
       } finally {

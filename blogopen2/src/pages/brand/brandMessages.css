@@ -25,6 +25,11 @@
  .msg__chatTitle{
   font-weight: 800;
   font-size: 16px;
+  flex: 1;           
+  min-width: 0;      
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* chat layout: messages (scroll) + composer (bottom) */
@@ -638,4 +643,20 @@
   justify-content: flex-end;
   gap: 10px;
   margin-top: 4px;
+}
+
+
+@media (max-width: 768px) {
+  .msg {
+    grid-template-columns: 1fr;
+    height: 100dvh; /* dvh вместо vh — не скачет на мобиле */
+  }
+
+  /* По умолчанию показываем список */
+  .msg__right { display: none; }
+  .msg__left  { display: flex; }
+
+  /* Когда открыт чат */
+  .msg.chat-open .msg__left  { display: none; }
+  .msg.chat-open .msg__right { display: flex; }
 }
