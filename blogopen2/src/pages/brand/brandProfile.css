@@ -264,105 +264,90 @@
     padding: 16px;
     max-width: 100%;
   }
-
   .bp__card {
     display: flex;
     flex-direction: column;
-    gap: 22px;
-    padding: 18px;
+    gap: 24px;
+    padding: 16px;
   }
 
+  /* Левая колонка — аватар по центру, всё в колонку */
   .bp__photoCol {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 12px;
     width: 100%;
   }
 
+  /* Враппер аватара — просто колонка по центру */
   .bp__avatarWrap {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
   }
 
+  /* Аватар — компактный круг, не на всю ширину */
   .bp__avatar {
-    width: 100%;
-    max-width: 260px;
-    border-radius: 18px;
-    display: block;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
     margin: 0 auto;
   }
 
+  /* Кнопка загрузки — под аватаром, компактная */
   .bp__btn {
-    width: 100%;
-    max-width: 260px;
+    width: auto;
+    padding: 8px 20px;
+    font-size: 13px;
     margin: 0 auto;
   }
 
+  /* Инфо под фото — по центру */
   .bp__sideSummary {
     text-align: center;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: 8px;
+    width: 100%;
   }
 
-  .bp__sideName {
-    font-size: 24px;
-  }
+  .bp__sideName { font-size: 22px; }
+  .bp__sideChips { justify-content: center; }
+  .bp__sideTopics { justify-content: center; }
+  .bp__verBadge { margin: 0 auto; }
 
-  .bp__sideChips {
-    justify-content: center;
-  }
-
-  .bp__sideAbout {
-    text-align: center;
-    max-width: 420px;
-  }
-
-  .bp__infoCol {
-    gap: 20px;
-  }
+  /* Правая колонка */
+  .bp__infoCol { gap: 16px; }
 
   .bp__sectionHead {
-    justify-content: center;
-    text-align: center;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
 
-  .bp__h3 {
-    font-size: 17px;
-  }
+  .bp__h3 { font-size: 16px; }
 
   .bp__grid2 {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
   }
 
-  .field {
-    width: 100%;
-  }
+  .field { width: 100%; }
+  .field__label { font-size: 13px; }
+  .field__input { font-size: 15px; }
 
-  .field__label {
-    text-align: center;
-    font-size: 13px;
-  }
+  .bp__topics { justify-content: flex-start; }
 
-  .field__input {
-    font-size: 15px;
-  }
-
-  .bp__topics {
-    justify-content: center;
-  }
-
-  .bp__actions {
-    justify-content: center;
-  }
-
+  .bp__actions { justify-content: stretch; }
   .bp__actions button {
     width: 100%;
     height: 48px;
-    border-radius: 28px;
+    border-radius: 14px;
   }
 }
 
