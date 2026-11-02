@@ -22,7 +22,7 @@ ALLOWED_HOSTS = [
     "blogopen.onrender.com",
     "localhost",
     "127.0.0.1",
-    blogopen-mariemiro.msk1.amvera.tech,
+    "blogopen-mariemiro.msk1.amvera.tech",
 ]
 # если задеплоен бэк на render — добавь домен бэка
 # (можно и через env, но на всякий)
