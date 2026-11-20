@@ -10,4 +10,4 @@ build:
 run:
   persistenceMount: /data
   containerPort: 8000
-  command: sh -c "echo START; cd backend && exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --log-level debug --error-logfile -"
+  command: sh -c "export PYTHONUNBUFFERED=1; echo START; cd backend && python manage.py collectstatic --noinput && echo STATIC_OK && (timeout 60 python manage.py migrate --noinput; echo MIGRATE_DONE); exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120 --error-logfile -"
